@@ -1,0 +1,41 @@
+{
+  "name": "@massivoto/kit",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "prettier": "prettier --write \"src/**/*.ts\""
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3",
+    "vite-node": "^3.2.4",
+    "vitest": "^3.2.4"
+  },
+  "description": "Common utilities and shared code for the Massivoto monorepo",
+  "keywords": [
+    "utilities",
+    "shared",
+    "typescript"
+  ],
+  "author": "Nicolas Zozol",
+  "license": "Apache-2.0",
+  "homepage": "https://massivoto.com"
+}

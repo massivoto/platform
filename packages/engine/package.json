@@ -1,0 +1,36 @@
+{
+  "name": "@massivoto/engine",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "test": "npm run clean && npm run build && vitest run \"./src/compiler/parser\" ",
+    "prettier": "prettier --write \"src/**/*.ts\" \"./*.json\""
+  },
+  "dependencies": {
+    "@masala/parser": "^2.0.0",
+    "@massivoto/kit": "*",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "lodash.get": "^4.4.2",
+    "lodash.set": "^4.3.2"
+  },
+  "devDependencies": {
+    "@types/lodash.get": "^4.4.9",
+    "@types/lodash.set": "^4.3.9",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "vite-node": "^3.1.1",
+    "vitest": "^3.2.4"
+  },
+  "description": "The Automation Programming Language",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://github.com/nicolas-zozol/imagine#readme"
+}
