@@ -11,10 +11,10 @@ const reservedWords = [
   'true',
   'false',
   'for',
-  'forEach',
+  // 'forEach', TODO: needed for forEach syntactic sugar
   'for-each',
   'in',
-  'if',
+  // 'if', TODO: needed for if syntactic sugar
   'else',
   'endif',
   'repeat',
