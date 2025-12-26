@@ -1,5 +1,5 @@
 {
-  "name": "@massivoto/engine",
+  "name": "@massivoto/runtime",
   "type": "module",
   "version": "1.0.0",
   "main": "dist/index.js",
