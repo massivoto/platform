@@ -35,12 +35,12 @@ export interface LogicalExpressionNode {
   right: ExpressionNode
 }
 
-export interface ConditionalExpressionNode {
+/*export interface ConditionalExpressionNode {
   type: 'conditional'
   test: ExpressionNode
   consequent: ExpressionNode
   alternate: ExpressionNode
-}
+}*/
 
 export interface SingleStringNode {
   type: 'single-string'
@@ -85,7 +85,7 @@ export type SimpleExpressionNode =
   | UnaryExpressionNode
   | BinaryExpressionNode
   | LogicalExpressionNode
-  | ConditionalExpressionNode // a ? b : c (optional)
+//| ConditionalExpressionNode // a ? b : c (optional)
 
 export type ExpressionNode =
   | IdentifierNode
@@ -94,7 +94,7 @@ export type ExpressionNode =
   | UnaryExpressionNode
   | BinaryExpressionNode
   | LogicalExpressionNode
-  | ConditionalExpressionNode // a ? b : c (optional)
+  //| ConditionalExpressionNode // a ? b : c (optional)
   | PipeExpressionNode
 
 export interface ArgumentNode {

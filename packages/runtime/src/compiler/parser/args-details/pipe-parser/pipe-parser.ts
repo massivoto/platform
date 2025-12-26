@@ -1,9 +1,9 @@
-import { SingleParser, Tuple } from '@masala/parser'
+import { SingleParser } from '@masala/parser'
 import { MixedTuple } from '@masala/parser/typings/tuple.js'
 import { SimpleExpressionNode } from '../../ast.js'
 import { ArgTokens } from '../tokens/argument-tokens.js'
 
-// | QualifiedNameNode; (if we use registry sme days)
+// | QualifiedNameNode; (if we use registry some days)
 export interface PipeSegment {
   pipeName: string
   args: SimpleExpressionNode[] // maybe empty
