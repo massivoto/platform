@@ -1,4 +1,3 @@
-// Login.tsx
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
 

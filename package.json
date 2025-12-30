@@ -9,7 +9,7 @@
     "build": "tsc --build",
     "build:kit": "yarn workspace @massivoto/kit build",
     "build:engine": "yarn workspace @massivoto/engine build",
-    "dev": "yarn workspaces foreach run dev",
+    "dev": "yarn workspaces foreach -A run dev",
     "test": "yarn workspaces foreach run test",
     "type-check": "tsc --noEmit"
   },
@@ -17,20 +17,27 @@
     "apps/*",
     "packages/*"
   ],
-  "dependencies": {
-
-  },
   "devDependencies": {
-    "typescript": "^5.9.3",
     "@types/node": "^22",
     "concurrently": "^8.2.2",
-    "rimraf": "^6.0.1",
     "globals": "^16.5.0",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.3"
   },
   "description": "The Open Source Platform for Massivoto Automation Language",
-  "keywords": ["massivoto", "automation", "automation language", "low-code", "platform"],
+  "keywords": [
+    "massivoto",
+    "automation",
+    "automation language",
+    "low-code",
+    "platform"
+  ],
   "author": "Nicolas Zozol",
   "license": "Apache-2.0",
-  "homepage": "https://massivoto.com"
+  "homepage": "https://massivoto.com",
+  "dependencies": {
+    "@react-oauth/google": "^0.13.4",
+    "jwt-decode": "^4.0.0"
+  }
 }

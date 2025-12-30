@@ -1,13 +1,11 @@
 import { Provider } from '@/lib/providers/provider.types.js'
-import { useState } from 'react'
-import { Save, Eye, EyeOff, X, Check, AlertCircle, HelpCircle, Lock, Key } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Save, Eye, EyeOff, X, Check, AlertCircle, HelpCircle, Lock, Key, Copy } from 'lucide-react'
+import { OAuthCredentials, useOAuthStorage } from '@/hooks/useOAuthStorage'
 
 interface Props {
   provider: Provider
 }
-
-// Backend URL
-const BACKEND_URL = 'http://localhost:3000/api'
 
 export function ConnectKeyAndSecretButton({ provider }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -16,51 +14,56 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
   const [showSecret, setShowSecret] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [isValidating, setIsValidating] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [connectionInfo, setConnectionInfo] = useState<OAuthCredentials | null>(null)
 
-  // Storage key
-  const storageKey = `${provider.id}_oauth_credentials`
+  const { saveData, loadData, isConnected, removeData } = useOAuthStorage()
+  const storageType = 'oauth-credentials'
+
+  // Load stored credentials on mount
+  useEffect(() => {
+    loadCredentials()
+  }, [])
+
+  const loadCredentials = () => {
+    const data = loadData<OAuthCredentials>(provider.id, storageType)
+    setConnectionInfo(data)
+    return data
+  }
 
   // Check if already connected
-  const isConnected = localStorage.getItem(storageKey) !== null
+  const isConnectedState = isConnected(provider.id, storageType)
 
-  // Handle connection
+  // Handle save credentials
   const handleSave = async () => {
-    if (!clientId.trim() || !clientSecret.trim()) {
-      setError('Both Client ID and Client Secret are required')
+    if (!clientId.trim()) {
+      setError('Client ID is required')
       return
     }
 
-    setIsValidating(true)
+    if (!clientSecret.trim()) {
+      setError('Client Secret is required')
+      return
+    }
+
+    setIsSaving(true)
     setError(null)
 
     try {
-      const response = await fetch(`${BACKEND_URL}/auth/oauth-credentials`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          providerId: provider.id,
-          providerName: provider.name,
-          clientId: clientId.trim(),
-          clientSecret: clientSecret.trim(),
-          redirectUri: `${window.location.origin}/oauth/callback`,
-        }),
-      })
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to save credentials')
+      const credentials: OAuthCredentials = {
+        providerId: provider.id,
+        providerName: provider.name,
+        clientId: clientId.trim(),
+        clientSecret: clientSecret.trim(),
+        redirectUri: `${window.location.origin}/oauth/callback`,
+        connectedAt: new Date().toISOString(),
       }
 
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify({
-          providerId: provider.id,
-          providerName: provider.name,
-          connectedAt: new Date().toISOString(),
-        }),
-      )
-
+      // Use centralized storage
+      saveData(provider.id, storageType, credentials)
+      setConnectionInfo(credentials)
       setSuccess(true)
 
       setTimeout(() => {
@@ -69,57 +72,37 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
         setClientSecret('')
         setShowSecret(false)
         setSuccess(false)
-        window.location.reload()
+        setIsSaving(false)
       }, 1500)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save credentials.')
-    } finally {
-      setIsValidating(false)
+      setError('Failed to save credentials. Please try again.')
+      setIsSaving(false)
     }
   }
 
   // Handle disconnect
-  const handleDisconnect = async () => {
-    try {
-      await fetch(`${BACKEND_URL}/auth/oauth-credentials`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ providerId: provider.id }),
-      })
-    } catch (err) {
-      console.error('Error disconnecting:', err)
-    } finally {
-      localStorage.removeItem(storageKey)
+  const handleDisconnect = () => {
+    if (window.confirm(`Are you sure you want to disconnect ${provider.name}?`)) {
+      removeData(provider.id, storageType)
+      setConnectionInfo(null)
       window.location.reload()
     }
   }
 
-  // Get connection info
-  const getConnectionInfo = () => {
-    const stored = localStorage.getItem(storageKey)
-    if (!stored) return ''
-
-    try {
-      const data = JSON.parse(stored)
-      return `Connected to ${data.providerName}`
-    } catch {
-      return 'Connected'
-    }
-  }
-
-  // Open docs
-  const openDocs = () => {
-    window.open('https://docs.example.com/oauth-setup', '_blank')
-  }
-
-  // Open modal
+  // Open modal with current credentials if available
   const openModal = () => {
-    setIsModalOpen(true)
-    setClientId('')
-    setClientSecret('')
+    const data = loadData<OAuthCredentials>(provider.id, storageType)
+    if (data) {
+      setClientId(data.clientId)
+      setClientSecret(data.clientSecret)
+    } else {
+      setClientId('')
+      setClientSecret('')
+    }
     setShowSecret(false)
     setError(null)
     setSuccess(false)
+    setIsModalOpen(true)
   }
 
   // Close modal
@@ -130,11 +113,23 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
     setShowSecret(false)
     setError(null)
     setSuccess(false)
+    setIsSaving(false)
+  }
+
+  // Copy to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        // You could add a toast notification here
+        console.log('Copied to clipboard')
+      })
+      .catch((err) => console.error('Failed to copy:', err))
   }
 
   return (
     <div className="w-full">
-      {isConnected ? (
+      {isConnectedState ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -142,16 +137,27 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
                 <Check className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <h3 className="font-medium text-sm text-gray-900">{getConnectionInfo()}</h3>
-                <p className="text-xs text-gray-600 mt-1">OAuth2 credentials configured</p>
+                <h3 className="font-medium text-sm text-gray-900">Connected to {provider.name}</h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  Client ID: {connectionInfo?.clientId.substring(0, 8)}... • Connected:{' '}
+                  {new Date(connectionInfo?.connectedAt || '').toLocaleDateString()}
+                </p>
               </div>
             </div>
-            <button
-              onClick={handleDisconnect}
-              className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded border border-red-200 hover:bg-red-50 transition"
-            >
-              Disconnect
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={openModal}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded border border-blue-200 hover:bg-blue-50 transition"
+              >
+                Edit
+              </button>
+              <button
+                onClick={handleDisconnect}
+                className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded border border-red-200 hover:bg-red-50 transition"
+              >
+                Disconnect
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -164,21 +170,23 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
         </button>
       )}
 
-      {/* Modal - Simplified design */}
+      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl min-h-[80vh]">
-            {/* Header with Save button on top-right */}
+            {/* Header */}
             <div className="flex items-center justify-between p-3 border-b border-gray-200">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Connection</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {isConnectedState ? 'Edit Connection' : 'Connect'} {provider.name}
+                </h2>
                 <div className="mt-1">
                   <button
-                    onClick={openDocs}
+                    onClick={() => window.open('https://docs.example.com/oauth-setup', '_blank')}
                     className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700"
                   >
                     <HelpCircle className="w-4 h-4 mr-1" />
-                    Need help filling out these fields? Open docs.
+                    Need help? Open documentation
                   </button>
                 </div>
               </div>
@@ -187,16 +195,16 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
                 {/* Save button */}
                 <button
                   onClick={handleSave}
-                  disabled={isValidating || !clientId.trim() || !clientSecret.trim()}
+                  disabled={isSaving || !clientId.trim() || !clientSecret.trim()}
                   className="px-4 py-1 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  {isValidating ? (
+                  {isSaving ? (
                     <>
                       <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2" />
                       Saving...
                     </>
                   ) : (
-                    <>Save</>
+                    'Save'
                   )}
                 </button>
 
@@ -218,47 +226,50 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
                     <Check className="w-8 h-8 text-green-600" />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Connected Successfully!
+                    {isConnectedState ? 'Updated' : 'Connected'} Successfully!
                   </h3>
                   <p className="text-gray-600">
-                    {provider.name} OAuth2 is now configured and ready to use.
+                    {provider.name} OAuth2 credentials have been saved.
                   </p>
                 </div>
               ) : (
                 <>
-                  {/* Connection type (simple label, no buttons) */}
-                  <div className="">
+                  {/* Connection type */}
+                  <div>
                     <label className="block text-sm font-medium text-gray-900 mb-3">
-                      Connect using *
+                      Connection Type
                     </label>
                     <div className="flex items-center space-x-4">
-                      <button className="flex items-center space-x-2 px-4 py-1 bg-blue-50 border-2 border-blue-500 text-blue-700 rounded-lg font-medium">
-                        <Lock className="w-2 h-2" />
-                        <span>OAuth2 (recommended)</span>
-                      </button>
-                      <button className="flex items-center space-x-2 px-4 py-1 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">
-                        <Key className="w-4 h-4" />
-                        <span>API Key</span>
-                      </button>
+                      <div className="flex items-center space-x-2 px-4 py-1 bg-blue-50 border-2 border-blue-500 text-blue-700 rounded-lg font-medium">
+                        <Lock className="w-4 h-4" />
+                        <span>OAuth2 Credentials</span>
+                      </div>
                     </div>
                   </div>
 
                   {/* OAuth Redirect URL */}
                   <div>
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      OAuth Redirect URL
+                      OAuth Redirect URL (Callback URL)
                     </label>
-                    <div className="relative">
+                    <div className="flex items-center space-x-2">
                       <input
                         type="text"
-                        value={`${window.location.origin}/oauth/callback`}
+                        value={`${window.location.origin}/dashboard`}
                         readOnly
-                        className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 font-mono text-sm"
+                        className="flex-1 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 font-mono text-sm"
                       />
+                      <button
+                        onClick={() => copyToClipboard(`${window.location.origin}/oauth/callback`)}
+                        className="px-3 py-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition flex items-center"
+                      >
+                        <Copy className="w-4 h-4 mr-1" />
+                        Copy
+                      </button>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
-                      In {provider.name}, use the URL above when prompted to enter an OAuth callback
-                      or redirect URL
+                      Add this URL as an authorized redirect URI in your {provider.name} developer
+                      console
                     </p>
                   </div>
 
@@ -273,10 +284,10 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
                       onChange={(e) => setClientId(e.target.value)}
                       placeholder="Enter your Client ID"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition font-mono text-sm"
-                      disabled={isValidating}
+                      disabled={isSaving}
                     />
                     <p className="text-xs text-gray-500 mt-2">
-                      Found in your {provider.name} developer console
+                      Found in your {provider.name} developer console or API settings
                     </p>
                   </div>
 
@@ -292,35 +303,26 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
                         onChange={(e) => setClientSecret(e.target.value)}
                         placeholder="Enter your Client Secret"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition font-mono text-sm pr-12"
-                        disabled={isValidating}
+                        disabled={isSaving}
                       />
                       <button
                         type="button"
                         onClick={() => setShowSecret(!showSecret)}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                        disabled={isSaving}
                       >
                         {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
-                      Keep this secret! Never share it publicly
+                      Keep this secret! Never share it publicly. Store it securely.
                     </p>
                   </div>
 
-                  {/* Security notice */}
-                  {/* <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                    <div className="flex items-start">
-                      <AlertCircle className="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                      <p className="text-xs text-blue-600">
-                        Your credentials are encrypted and stored securely in the backend database.
-                      </p>
-                    </div>
-                  </div> */}
-
                   {error && (
-                    <div className="p-1 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                       <div className="flex items-start">
-                        <AlertCircle className="w-2 h-2 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="w-4 h-4 text-red-500 mr-2 mt-0.5 shrink-0" />
                         <div>
                           <p className="text-sm font-medium text-red-700 mb-1">Error</p>
                           <p className="text-sm text-red-600">{error}</p>
