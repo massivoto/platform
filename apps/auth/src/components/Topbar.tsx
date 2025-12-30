@@ -3,6 +3,7 @@ import { Box, User } from 'lucide-react'
 import '../styles/structure.scss'
 import { useEffect, useMemo, useState } from 'react'
 import Login, { GoogleUser } from './Login'
+import { useUser } from '@/context/userContext'
 
 type TitleHandle = { title?: string } | { title?: (match: UIMatch) => string }
 
@@ -29,10 +30,7 @@ function useRouteTitle(fallback = '') {
 export const Topbar = ({ title = '' }: TopbarProps) => {
   const routeTitle = useRouteTitle(title)
 
-  const [user, setUser] = useState<GoogleUser | null>(() => {
-    const stored = localStorage.getItem('google_user')
-    return stored ? JSON.parse(stored) : null
-  })
+  const { user, setUser } = useUser()
 
   useEffect(() => {
     if (routeTitle) document.title = `${routeTitle} · Massivoto`
@@ -40,9 +38,9 @@ export const Topbar = ({ title = '' }: TopbarProps) => {
 
   const shownTitle = useMemo(() => routeTitle || title || '', [routeTitle, title])
 
-  const handleLogin = (u: GoogleUser) => {
-    setUser(u)
-    localStorage.setItem('google_user', JSON.stringify(u))
+  const handleLogin = (user: GoogleUser) => {
+    setUser(user)
+    localStorage.setItem('google_user', JSON.stringify(user))
   }
 
   const logout = () => {
@@ -61,6 +59,14 @@ export const Topbar = ({ title = '' }: TopbarProps) => {
         {shownTitle && <div className="topbar-title">{shownTitle}</div>}
 
         <div className="topbar-user dropdown dropdown-end">
+          {/* <button tabIndex={0} className="btn btn-ghost btn-circle">
+            {!user ? (
+              'Login'
+            ) : (
+              <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full" />
+            )}
+          </button> */}
+
           <ul
             tabIndex={0}
             className="dropdown-content menu p-2 shadow bg-secondary text-base-100 rounded-box w-56 mt-2"
@@ -71,15 +77,7 @@ export const Topbar = ({ title = '' }: TopbarProps) => {
               </li>
             ) : (
               <>
-                <li>
-                  {' '}
-                  <img
-                    src={user.picture}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full"
-                    referrerPolicy="no-referrer"
-                  />
-                </li>
+                <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full" />
                 <li className="px-2 py-1 font-medium">{user.name}</li>
                 <li className="px-2 py-1 text-xs opacity-80">{user.email}</li>
                 <li>
