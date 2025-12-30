@@ -19,6 +19,15 @@ export const GOOGLE_CALENDAR_PROVIDER: Provider = {
   logo: '',
   about: '',
 }
+export const GITHUB_PROVIDER: Provider = {
+  id: 'github',
+  name: 'Github',
+  kind: ProviderKind.OAUTH2_PKCE,
+  categories: ['GITHUB'],
+  scopes: ['read:user', 'user:email'],
+  logo: '',
+  about: '',
+}
 
 export const DOCUMENT_GENERATOR_PROVIDER: Provider = {
   id: 'document-generator',
