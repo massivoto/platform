@@ -9,8 +9,9 @@ This example `.oto` script performs keyword research to find the best camping
 
 ```oto
 @seo/keywordResearch keyword="best camping location" output=clusters
-@generate/content keyword={cluster:main} forEach=clusters->cluster output=locations
-@deploy/content contents=locations destination="https://www.mysite.com/locations"
+@human/validate input=clusters  output=validatedClusters number=10
+@generate/content keyword=cluster forEach=validatedClusters->cluster output=locations
+@deploy/github contents=locations destination="https://www.gihub.com/myblog/content"
 ```
 
 Think “n8n / Make”, but instead of clicking blocks, you write a small DSL
