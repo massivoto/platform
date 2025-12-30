@@ -25,4 +25,4 @@ export enum ProviderKind {
   API_KEY = 'API_KEY',
 }
 
-export type IntegrationCategoryId = 'EMAIL' | 'CALENDAR' | 'DOCUMENT' | 'WEBHOOK'
+export type IntegrationCategoryId = 'EMAIL' | 'CALENDAR' | 'DOCUMENT' | 'WEBHOOK' | 'GITHUB'

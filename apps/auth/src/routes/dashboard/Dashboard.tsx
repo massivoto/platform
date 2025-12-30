@@ -1,9 +1,20 @@
-import { Plug, Zap, Database, Mail, Calendar, FileText, Brain, Terminal } from 'lucide-react'
+import {
+  Plug,
+  Zap,
+  Database,
+  Mail,
+  Calendar,
+  FileText,
+  Brain,
+  Terminal,
+  Github,
+} from 'lucide-react'
 import { Topbar } from '../../components/Topbar'
 import '../../styles/structure.scss'
 import {
   CUSTOM_API_PROVIDER,
   DOCUMENT_GENERATOR_PROVIDER,
+  GITHUB_PROVIDER,
   GMAIL_PROVIDER,
   GOOGLE_CALENDAR_PROVIDER,
   WEBHOOK_PROVIDER,
@@ -40,6 +51,12 @@ const integrationCategories = [
     providers: [GMAIL_PROVIDER],
   },
   {
+    id: 'GITHUB',
+    name: 'GitHub',
+    icon: Github,
+    providers: [GITHUB_PROVIDER],
+  },
+  {
     id: 'CALENDAR',
     name: 'Calendar',
     icon: Calendar,
@@ -66,7 +83,7 @@ const integrationCategories = [
 const renderProviderButton = (provider: any) => {
   switch (provider.kind) {
     case ProviderKind.OAUTH2_PKCE:
-      return <ConnectOAuthButton key={provider.id} provider={provider} />
+      return <ConnectOAuthButton key={provider.id} provider={provider} userId="" />
 
     case ProviderKind.API_KEY:
       return <ConnectApiKeyButton key={provider.id} provider={provider} />
@@ -167,23 +184,7 @@ export const Dashboard = () => {
                       {category.providers.map((provider) => (
                         <div key={provider.id} className="provider-item">
                           <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center space-x-2">
-                              {provider.logo ? (
-                                <img src={provider.logo} alt={provider.name} className="w-6 h-6" />
-                              ) : (
-                                <div className="w-6 h-6 rounded bg-gray-200 flex items-center justify-center">
-                                  <span className="text-xs font-medium text-gray-600">
-                                    {provider.name.charAt(0)}
-                                  </span>
-                                </div>
-                              )}
-                              <span className="text-sm font-medium text-gray-900">
-                                {provider.name}
-                              </span>
-                            </div>
-                            <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
-                              {provider.kind.replace(/_/g, ' ')}
-                            </span>
+                            <div className="flex items-center space-x-2"></div>
                           </div>
 
                           {provider.about && (

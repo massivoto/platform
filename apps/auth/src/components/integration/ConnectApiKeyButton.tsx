@@ -1,11 +1,8 @@
 import { Provider } from '@/lib/providers/provider.types.js'
-import { useState } from 'react'
-import { Key, Eye, EyeOff, Check, X, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Key, Eye, EyeOff, Check, X, AlertCircle, Copy } from 'lucide-react'
+import { useOAuthStorage, ApiKeyStorage } from '@/hooks/useOAuthStorage'
 
-/**
- * ConnectApiKeyButton Component for API Key providers
- * Opens a modal to enter the API Key when clicked
- */
 interface Props {
   provider: Provider
 }
@@ -17,50 +14,33 @@ export function ConnectApiKeyButton({ provider }: Props) {
   const [isValidating, setIsValidating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [connectionInfo, setConnectionInfo] = useState<ApiKeyStorage | null>(null)
 
-  // Add state to track connection status
-  const [isConnected, setIsConnected] = useState(
-    localStorage.getItem(`${provider.name.toLowerCase().replace(/\s+/g, '_')}_api_key`) !== null,
-  )
+  const { saveData, loadData, isConnected, removeData, maskApiKey } = useOAuthStorage()
+  const storageType = 'api-key'
 
-  // Storage key for this provider's API key
-  const storageKey = `${provider.name.toLowerCase().replace(/\s+/g, '_')}_api_key`
+  // Load stored API key on mount
+  useEffect(() => {
+    loadStoredApiKey()
+  }, [])
 
-  // Validate the API key
+  const loadStoredApiKey = () => {
+    const data = loadData<ApiKeyStorage>(provider.id, storageType)
+    setConnectionInfo(data)
+    return data
+  }
+
+  // Check if already connected
+  const isConnectedState = isConnected(provider.id, storageType)
+
   const validateApiKey = async (key: string): Promise<boolean> => {
     setIsValidating(true)
     setError(null)
 
     try {
-      // For Document Generator, just check if it's not empty
       if (provider.name === 'Document Generator') {
         return key.trim().length > 0
       }
-
-      // Provider-specific validation logic (commented for now)
-      /*
-      switch (provider.name) {
-        case 'OpenAI':
-          const openaiResponse = await fetch('https://api.openai.com/v1/models', {
-            headers: { Authorization: `Bearer ${key}` }
-          })
-          return openaiResponse.ok
-        case 'Anthropic':
-          const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-            body: JSON.stringify({ model: 'claude-3-haiku-20240307', max_tokens: 10, messages: [{ role: 'user', content: 'Hello' }] }),
-          })
-          return anthropicResponse.status !== 401 && anthropicResponse.status !== 403
-        case 'Google AI':
-          const googleResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${key}`)
-          return googleResponse.ok
-        default:
-          return key.trim().length > 0
-      }
-      */
-
-      // Default validation
       return key.trim().length > 0
     } catch (err) {
       console.error('Validation error:', err)
@@ -80,13 +60,20 @@ export function ConnectApiKeyButton({ provider }: Props) {
     const isValid = await validateApiKey(apiKey.trim())
 
     if (isValid) {
-      // Save to localStorage
-      localStorage.setItem(storageKey, apiKey.trim())
+      const storageData: ApiKeyStorage = {
+        providerId: provider.id,
+        providerName: provider.name,
+        apiKey: apiKey.trim(),
+        maskedKey: maskApiKey(apiKey.trim()),
+        connectedAt: new Date().toISOString(),
+      }
+
+      // Use centralized storage
+      saveData(provider.id, storageType, storageData)
+      setConnectionInfo(storageData)
       setSuccess(true)
       setError(null)
-      setIsConnected(true) // Update connection state
 
-      // Close modal after success
       setTimeout(() => {
         setIsModalOpen(false)
         setApiKey('')
@@ -98,53 +85,24 @@ export function ConnectApiKeyButton({ provider }: Props) {
     }
   }
 
-  // Handle disconnect - FIXED VERSION
+  // Handle disconnect
   const handleDisconnect = () => {
-    localStorage.removeItem(storageKey)
-    setApiKey('')
-    setError(null)
-    setSuccess(false)
-    setIsConnected(false) // Update connection state
-
-    // Force UI update
-    // Option 1: Simple state update (should work with setIsConnected above)
-    // Option 2: If still not working, use a small timeout
-    setTimeout(() => {
-      // This ensures React re-renders
-      window.dispatchEvent(new Event('storage'))
-    }, 100)
-  }
-
-  // Get masked API key for display
-  const getMaskedKey = () => {
-    const storedKey = localStorage.getItem(storageKey)
-    if (!storedKey) return ''
-
-    if (storedKey.length <= 8) {
-      return '•'.repeat(storedKey.length)
+    if (window.confirm(`Are you sure you want to disconnect ${provider.name}?`)) {
+      removeData(provider.id, storageType)
+      setConnectionInfo(null)
+      setApiKey('')
+      setError(null)
+      setSuccess(false)
     }
-
-    const firstFour = storedKey.substring(0, 4)
-    const lastFour = storedKey.substring(storedKey.length - 4)
-    const middle = '•'.repeat(Math.min(8, storedKey.length - 8))
-
-    return `${firstFour}${middle}${lastFour}`
   }
-
-  // Listen for storage changes
-  useState(() => {
-    const handleStorageChange = () => {
-      setIsConnected(localStorage.getItem(storageKey) !== null)
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
-  })
 
   // Open modal
   const openModal = () => {
+    const data = loadData<ApiKeyStorage>(provider.id, storageType)
+    if (data) {
+      setApiKey(data.apiKey)
+    }
     setIsModalOpen(true)
-    setApiKey('')
     setShowApiKey(false)
     setError(null)
     setSuccess(false)
@@ -159,9 +117,19 @@ export function ConnectApiKeyButton({ provider }: Props) {
     setSuccess(false)
   }
 
+  // Copy to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        console.log('Copied to clipboard')
+      })
+      .catch((err) => console.error('Failed to copy:', err))
+  }
+
   return (
     <div className="w-full">
-      {isConnected ? (
+      {isConnectedState ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -172,16 +140,24 @@ export function ConnectApiKeyButton({ provider }: Props) {
                 <h3 className="font-medium text-sm text-gray-900">Connected to {provider.name}</h3>
                 <p className="text-xs text-gray-600 mt-1 flex items-center">
                   <Key className="w-3 h-3 mr-1" />
-                  API Key: {getMaskedKey()}
+                  API Key: {connectionInfo?.maskedKey || maskApiKey(connectionInfo?.apiKey || '')}
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleDisconnect}
-              className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded border border-red-200 hover:bg-red-50 transition"
-            >
-              Disconnect
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={openModal}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded border border-blue-200 hover:bg-blue-50 transition"
+              >
+                Edit
+              </button>
+              <button
+                onClick={handleDisconnect}
+                className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded border border-red-200 hover:bg-red-50 transition"
+              >
+                Disconnect
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -199,7 +175,7 @@ export function ConnectApiKeyButton({ provider }: Props) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="bg-blue-100 p-2 rounded-lg">
                     <Key className="w-6 h-6 text-blue-600" />
@@ -251,9 +227,34 @@ export function ConnectApiKeyButton({ provider }: Props) {
 
                     {/* Help text */}
                     <p className="text-xs text-gray-500 mt-2 flex items-start">
-                      <AlertCircle className="w-3 h-3 mt-0.5 mr-1 flex-shrink-0" />
+                      <AlertCircle className="w-3 h-3 mt-0.5 mr-1 shrink-0" />
                       Your API key is stored securely in your browser's local storage
                     </p>
+                  </div>
+
+                  {/* Quick actions */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Quick Actions
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => copyToClipboard(apiKey)}
+                        disabled={!apiKey.trim()}
+                        className="flex items-center justify-center px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Key
+                      </button>
+                      <button
+                        onClick={() => setApiKey('')}
+                        disabled={!apiKey.trim()}
+                        className="flex items-center justify-center px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Clear
+                      </button>
+                    </div>
                   </div>
 
                   {error && (
