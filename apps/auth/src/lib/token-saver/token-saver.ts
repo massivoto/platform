@@ -1,27 +1,38 @@
-import { Integration, IntegrationToken } from '../integration/integration.type.js'
+import { IntegrationToken } from '../integration/integration.type.js'
 import { getSafeLocalStorage } from '../localstorage/safe-local-storage.js'
 import { LocalStorageTokenLoader, TokenLoaders } from './token-loader.js'
 
 export interface TokenSaver {
   saveToken(providerId: string, token: IntegrationToken): void
-  revokeToken(providerId: string): void
+
+  // Local only: marks token as revoked/expired
+  markTokenAsRevoked(providerId: string): void
+
+  //  Hard delete from storage
+  removeToken(providerId: string): void
 }
+
+/* Console implementation (dev/debug) */
 
 export class ConsoleTokenSaver implements TokenSaver {
   saveToken(providerId: string, token: IntegrationToken): void {
-    // Implementation to save the token securely
-    console.log(`Saving token for provider ${providerId}: `, token)
-    // This is a placeholder implementation
+    console.log(`Saving token for provider ${providerId}:`, token)
   }
 
-  revokeToken(providerId: string): void {
-    console.log(`Revoking token for provider ${providerId}`)
+  markTokenAsRevoked(providerId: string): void {
+    console.log(`Marking token as revoked for provider ${providerId}`)
+  }
+
+  removeToken(providerId: string): void {
+    console.log(`Removing token for provider ${providerId}`)
   }
 }
 
+/* LocalStorage implementation */
+
 export class LocalStorageTokenSaver implements TokenSaver {
   loader: TokenLoaders
-  storageKey = ''
+  storageKey: string
 
   constructor(public userId: string) {
     this.storageKey = `token_saver_${userId}`
@@ -29,22 +40,50 @@ export class LocalStorageTokenSaver implements TokenSaver {
   }
 
   saveToken(providerId: string, token: IntegrationToken): void {
-    // Implementation to save the token in local storage
     const rawTokens = this.loader.loadRawTokens()
-    rawTokens.set(providerId, token)
-    const serializedTokens = Object.fromEntries(rawTokens)
-    getSafeLocalStorage().setItem(this.storageKey, JSON.stringify(serializedTokens))
+
+    rawTokens.set(providerId, {
+      ...token,
+      updatedAt: new Date().toISOString(),
+    })
+
+    getSafeLocalStorage().setItem(this.storageKey, JSON.stringify(Object.fromEntries(rawTokens)))
   }
 
-  revokeToken(providerId: string): void {
-    const storageKey = `token_${providerId}`
-    // get the key and if exists, set status to revoked
-    const tokenData = this.loader.loadRawTokens().get(providerId)
-    if (tokenData) {
-      tokenData.expiresAt = new Date().toISOString()
-      tokenData.revoked = true
-      // well, this is dirty for now...
-      this.saveToken(providerId, tokenData as IntegrationToken)
-    }
+  markTokenAsRevoked(providerId: string): void {
+    const rawTokens = this.loader.loadRawTokens()
+    const token = rawTokens.get(providerId)
+
+    if (!token) return
+
+    rawTokens.set(providerId, {
+      ...token,
+      revoked: true,
+      expiresAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
+
+    getSafeLocalStorage().setItem(this.storageKey, JSON.stringify(Object.fromEntries(rawTokens)))
+  }
+
+  removeToken(providerId: string): void {
+    const rawTokens = this.loader.loadRawTokens()
+    rawTokens.delete(providerId)
+
+    getSafeLocalStorage().setItem(this.storageKey, JSON.stringify(Object.fromEntries(rawTokens)))
+  }
+}
+
+export async function revokeGoogleToken(accessToken: string): Promise<void> {
+  const res = await fetch('https://oauth2.googleapis.com/revoke', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({ token: accessToken }),
+  })
+
+  if (!res.ok) {
+    throw new Error('Failed to revoke Google token')
   }
 }
