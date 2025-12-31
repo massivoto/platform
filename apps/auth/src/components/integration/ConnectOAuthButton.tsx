@@ -4,7 +4,18 @@
 import { Provider } from '@/lib/providers/provider.types.js'
 import { useEffect, useState } from 'react'
 import { IntegrationToken } from '@/lib/integration/integration.type.js'
-import { LocalStorageTokenSaver } from '@/lib/token-saver/token-saver'
+import { LocalStorageTokenSaver, revokeGoogleToken } from '@/lib/token-saver/token-saver'
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog'
 
 interface Props {
   provider: Provider
@@ -54,6 +65,11 @@ const OAUTH_CONFIG: Record<string, OAuthConfigType> = {
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile',
         'https://mail.google.com/',
+        // Granular Gmail scopes for add-on style permissions
+        'https://www.googleapis.com/auth/gmail.addons.current.action.compose',
+        'https://www.googleapis.com/auth/gmail.addons.current.message.action',
+        'https://www.googleapis.com/auth/gmail.labels',
+        'https://www.googleapis.com/auth/gmail.compose',
       ],
       'Google Calendar': [
         'https://www.googleapis.com/auth/userinfo.email',
@@ -326,14 +342,29 @@ export function ConnectOAuthButton({ provider, userId }: Props) {
     }
   }, [storageKey])
 
-  // Logout
-  const handleLogout = (): void => {
+  // logout
+  const handleLogout = async (): Promise<void> => {
+    if (!user) return
+
+    const providerId = provider.id || provider.name.toLowerCase().replace(/\s+/g, '_')
+    const rawToken = tokenSaver.loader.loadRawTokens().get(providerId)
+
+    if (providerType === 'google' && rawToken?.accessToken?.rawValue) {
+      try {
+        await revokeGoogleToken(rawToken.accessToken.rawValue)
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message)
+        }
+      }
+    }
+
+    // Remove from local storage
+    tokenSaver.removeToken(providerId)
+
+    // Clear UI
     setUser(null)
     localStorage.removeItem(storageKey)
-
-    // Revoke token using LocalStorageTokenSaver
-    const providerId = provider.id || provider.name.toLowerCase().replace(/\s+/g, '_')
-    tokenSaver.revokeToken(providerId)
 
     console.log(`🔓 Logged out from ${provider.name}`)
   }
@@ -358,16 +389,36 @@ export function ConnectOAuthButton({ provider, userId }: Props) {
               <img src={user.picture} alt={user.name} className="w-10 h-10 rounded-full" />
             )}
             <div className="flex-1">
-              <p className="font-medium text-sm"> {user.name}</p>
+              <p className="font-medium text-sm">{user.name}</p>
               <p className="text-xs text-gray-600">{user.email}</p>
               <p className="text-xs text-blue-600 mt-1">{provider.name}</p>
             </div>
-            <button
-              onClick={handleLogout}
-              className="ml-auto bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-            >
-              Disconnect
-            </button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="ml-auto bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                  Disconnect
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-white">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to log out from {provider.name}?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      await handleLogout()
+                    }}
+                  >
+                    Logout
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       ) : (
