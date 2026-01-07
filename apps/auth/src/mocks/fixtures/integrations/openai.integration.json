@@ -1,0 +1,49 @@
+{
+  "integration": {
+    "id": "int_openai_01HZZZ8B3S8D",
+    "userId": "usr_246802468",
+    "providerId": "openai",
+    "externalAccountId": "org-OpenAI-labs-1234",
+    "externalAccountLabel": "OpenAI Labs (org)",
+    "selectedScopes": [],
+    "status": "connected",
+    "createdAt": "2025-01-20T16:22:11.000Z",
+    "updatedAt": "2025-02-05T11:03:27.000Z",
+    "lastSyncAt": "2025-02-05T11:02:58.000Z"
+  },
+  "token": {
+    "integrationId": "int_openai_01HZZZ8B3S8D",
+    "accessToken": {
+      "cipherText": "bXZfZW5jX29wZW5haV9hcGlfa2V5X2NpcGhlcg==",
+      "iv": "T1BFTkFJX0lW",
+      "tag": "T1BFTkFJX1RBRw=="
+    },
+    "refreshToken": null,
+    "idToken": null,
+    "expiresAt": null,
+    "scopes": [],
+    "tokenType": "apiKey",
+    "lastUsedAt": "2025-02-05T11:02:58.000Z",
+    "createdAt": "2025-01-20T16:22:11.000Z",
+    "updatedAt": "2025-02-05T11:02:58.000Z"
+  },
+  "auditTrail": [
+    {
+      "event": "api_key.added",
+      "actor": "user",
+      "at": "2025-01-20T16:22:11.000Z",
+      "metadata": {
+        "providerId": "openai",
+        "hint": "mv_fake_openai_key"
+      }
+    },
+    {
+      "event": "usage.recorded",
+      "actor": "system",
+      "at": "2025-02-05T11:02:58.000Z",
+      "metadata": {
+        "workflowsTriggered": 3
+      }
+    }
+  ]
+}
