@@ -2724,6 +2724,7 @@ __metadata:
   dependencies:
     "@react-oauth/google": "npm:^0.13.4"
     "@types/node": "npm:^22"
+    appwrite: "npm:^21.5.0"
     concurrently: "npm:^8.2.2"
     globals: "npm:^16.5.0"
     jwt-decode: "npm:^4.0.0"
@@ -4074,6 +4075,13 @@ __metadata:
     normalize-path: "npm:^3.0.0"
     picomatch: "npm:^2.0.4"
   checksum: 10c0/57b06ae984bc32a0d22592c87384cd88fe4511b1dd7581497831c56d41939c8a001b28e7b853e1450f2bf61992dfcaa8ae2d0d161a0a90c4fb631ef07098fbac
+  languageName: node
+  linkType: hard
+
+"appwrite@npm:^21.5.0":
+  version: 21.5.0
+  resolution: "appwrite@npm:21.5.0"
+  checksum: 10c0/4671bdcf8023a022abe44c21ab9df03562e39bfbef256f20f0dd6bc2f2c15f08fdc48e046b95e6db905e9d5bb04ef43fc8f80b01cf41d7af32eed2251b16316b
   languageName: node
   linkType: hard
 

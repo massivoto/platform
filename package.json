@@ -38,6 +38,7 @@
   "homepage": "https://massivoto.com",
   "dependencies": {
     "@react-oauth/google": "^0.13.4",
+    "appwrite": "^21.5.0",
     "jwt-decode": "^4.0.0"
   }
 }

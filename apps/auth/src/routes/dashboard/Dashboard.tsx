@@ -19,10 +19,13 @@ import {
   GOOGLE_CALENDAR_PROVIDER,
   WEBHOOK_PROVIDER,
 } from '@/lib/providers/provider'
-import { ProviderKind } from '@/lib/providers/provider.types'
+import { Provider, ProviderKind } from '@/lib/providers/provider.types'
 import { ConnectOAuthButton } from '@/components/integration/ConnectOAuthButton'
 import { ConnectApiKeyButton } from '@/components/integration/ConnectApiKeyButton'
 import { ConnectKeyAndSecretButton } from '@/components/integration/ConnectApiSecretButton'
+import { ConnectGitHub } from '@/components/integration/ConnectGithubButton'
+import { Account, Client } from 'appwrite'
+import { useEffect, useState } from 'react'
 
 // Mock data - will be replaced with IndexedDB later
 const connectedIntegrations = [
@@ -79,10 +82,19 @@ const integrationCategories = [
   },
 ]
 
+const client = new Client()
+  .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT!)
+  .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID!)
+
+const account = new Account(client)
+
 // Helper function to render the appropriate button for each provider kind
-const renderProviderButton = (provider: any) => {
+const renderProviderButton = (provider: Provider) => {
   switch (provider.kind) {
     case ProviderKind.OAUTH2_PKCE:
+      if (provider.id === 'github') {
+        return <ConnectGitHub key={provider.id} provider={provider} userId="" />
+      }
       return <ConnectOAuthButton key={provider.id} provider={provider} userId="" />
 
     case ProviderKind.API_KEY:
@@ -102,7 +114,21 @@ const renderProviderButton = (provider: any) => {
       )
   }
 }
+
 export const Dashboard = () => {
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const session = await account.get()
+        setUserId(session.$id)
+      } catch {
+        console.warn('No user session')
+      }
+    }
+    loadUser()
+  }, [])
   return (
     <div className="page-container">
       <Topbar title="Dashboard" />
