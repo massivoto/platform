@@ -22,6 +22,7 @@
     "type-check": "tsc --noEmit",
     "prettier": "prettier --write \"src/**/*.ts\""
   },
+  "dependencies": {},
   "devDependencies": {
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
