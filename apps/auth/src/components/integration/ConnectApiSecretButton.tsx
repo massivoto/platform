@@ -114,8 +114,8 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
     setConnectionInfo(null)
     setShowDisconnectDialog(false)
 
-    toast.success('Disconnected', {
-      description: `${provider.name} has been disconnected.`,
+    toast.success('Successfully disconnected from ' + provider.name, {
+      description: `You have disconnected ${provider.name}.`,
     })
 
     setTimeout(() => {
