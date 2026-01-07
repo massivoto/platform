@@ -1,0 +1,51 @@
+---
+alwaysApply: true
+---
+
+I usually talk in french, but you must respond in english to avoid technical term confusion.
+
+I want to build a frontend webapp with ReactJS. We use typescript over javascript almost everywhere.
+It is deployed on Netlify, not at all on Vercel with React Server Components
+
+For regular React component, ALAWAYS prefer export named component over default component, except if there is a good
+reasons
+imposed by a framework.
+
+Components are made with react, typescript, SCSS, tailwind and DaisyUI.
+
+I will give requirement, with a number, such as : R-FOUNDATION-21
+Do one requirement at a time, except if I give in the current prompt multiple ones.
+Don't anticipate the further requirements
+
+Add these requirements in comments when it makes sens.
+
+## UNit test
+
+Usee vitest, and always import the needed imports:
+
+import { expect, describe, it } from 'vitest'
+
+Name the test files as component.spec.tsx or file.spec.ts
+Put the file and the testfile in the same directory
+
+After touching typescript file, compile to check, then run the unit test with npm test
+
+Ideally, each component should have at least one test file, even for simple components.
+
+We want to test the behavior of the component, when the user interact with it.
+
+## Storybook
+
+After creating a component, create a storybook file for it.
+Storybook files are named as Component.stories.tsx and are put in :
+
+- src/stories/low for low level components such as buttons, inputs, modals, etc
+- src/stories/high for high level components such as pages, complex components
+- src/stories/mid for components like specialized cards, lists, TopBar, etc
+
+### types
+
+For files describing types, use a .type.ts extension
+
+For example, providers.types.ts
+
