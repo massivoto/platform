@@ -116,19 +116,7 @@ const renderProviderButton = (provider: Provider) => {
 }
 
 export const Dashboard = () => {
-  const [userId, setUserId] = useState<string | null>(null)
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const session = await account.get()
-        setUserId(session.$id)
-      } catch {
-        console.warn('No user session')
-      }
-    }
-    loadUser()
-  }, [])
   return (
     <div className="page-container">
       <Topbar title="Dashboard" />

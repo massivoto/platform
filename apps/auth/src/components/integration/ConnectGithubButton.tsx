@@ -51,22 +51,37 @@ export function ConnectGitHub({ provider, userId }: Props) {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    loadSession()
+    hydrateFromLocal()
+    hydrateFromSession()
   }, [])
 
-  const loadSession = async () => {
+  /*UI first: si déjà connecté, afficher Connected */
+  const hydrateFromLocal = () => {
+    const connected = localStorage.getItem('github_connected') === 'true'
+    if (connected) {
+      setUser({ login: 'connected' } as GitHubUser)
+    }
+  }
+
+  /*Session Appwrite: récupérer token si dispo */
+  const hydrateFromSession = async () => {
     try {
       const session = await account.getSession('current')
+
+      // IMPORTANT: ne plus dépendre du providerAccessToken
+      if (session.provider !== 'github') return
+
+      localStorage.setItem('github_connected', 'true')
+
       if (!session.providerAccessToken) return
 
-      // Save token
       const integrationToken: IntegrationToken = {
         integrationId: 'github',
         kind: ProviderKind.OAUTH2_PKCE,
         accessToken: { rawValue: session.providerAccessToken },
         refreshToken: null,
         idToken: null,
-        expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
+        expiresAt: new Date(Date.now() + 3600_000).toISOString(),
         scopes: ['user', 'repo', 'read:org'],
         lastUsedAt: new Date().toISOString(),
         createdAt: new Date().toISOString(),
@@ -74,14 +89,11 @@ export function ConnectGitHub({ provider, userId }: Props) {
         revoked: false,
       }
 
-      const tokenSaver = new LocalStorageTokenSaver(userId)
-      tokenSaver.saveToken('github', integrationToken)
+      new LocalStorageTokenSaver(userId).saveToken('github', integrationToken)
 
-      // Fetch GitHub user
       const githubUser = await fetchGitHubUser(session.providerAccessToken)
       setUser(githubUser)
 
-      // Save user info in localStorage
       localStorage.setItem(
         'github_user',
         JSON.stringify({
@@ -93,32 +105,32 @@ export function ConnectGitHub({ provider, userId }: Props) {
         }),
       )
     } catch {
-      /* no session */
+      /* ignore */
     }
   }
 
   const connect = async () => {
     setLoading(true)
     const origin = window.location.origin
+
     await account.createOAuth2Session(
       OAuthProvider.Github,
       `${origin}/dashboard`,
       `${origin}/?error=github`,
       ['user', 'repo', 'read:org'],
     )
-    setLoading(false)
   }
 
   const handleLogout = async () => {
     await account.deleteSession('current')
+
+    localStorage.removeItem('github_connected')
+    localStorage.removeItem('github_user')
+
+    new LocalStorageTokenSaver(userId).removeToken('github')
     setUser(null)
 
-    const tokenSaver = new LocalStorageTokenSaver(userId)
-    tokenSaver.removeToken('github')
-    localStorage.removeItem('github_user')
-    localStorage.removeItem('oauth_state_github')
-
-    toast.success('logged out from GitHub')
+    toast.success('Logged out from GitHub')
   }
 
   return (
