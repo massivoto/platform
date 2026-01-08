@@ -57,7 +57,7 @@ export function ConnectApiKeyButton({ provider }: Props) {
     setError(null)
 
     try {
-      // alidation logic here
+      // validation logic here
       if (provider.name === 'Document Generator') {
         return key.trim().length > 0
       }
