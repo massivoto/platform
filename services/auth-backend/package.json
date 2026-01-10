@@ -1,0 +1,35 @@
+{
+  "name": "@massivoto/auth-backend",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "test": "npm run clean && npm run build && vitest run \"./src/compiler/parser\" ",
+    "prettier": "prettier --write \"src/**/*.ts\" \"./*.json\""
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "vite-node": "^3.1.1",
+    "vitest": "^3.2.4"
+  },
+  "description": "Backend to exchange Oauth codes, and store user tokens securely",
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "homepage": "https://www.massivoto.com"
+}
