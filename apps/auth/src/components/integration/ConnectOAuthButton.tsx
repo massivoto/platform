@@ -1,21 +1,21 @@
 /**
  * ConnectOAuth Component - Supports Google OAuth
  */
-import { Provider } from '@/lib/providers/provider.types.js'
-import { useEffect, useState } from 'react'
-import { IntegrationToken } from '@/lib/integration/integration.type.js'
-import { LocalStorageTokenSaver, revokeGoogleToken } from '@/lib/token-saver/token-saver'
 import {
   AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
   AlertDialogAction,
   AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { IntegrationToken } from '@/lib/integration/integration.type.js'
+import { Provider } from '@/lib/providers/provider.types.js'
+import { LocalStorageTokenSaver, revokeGoogleToken } from '@/lib/token-saver/token-saver'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 interface Props {
@@ -229,10 +229,11 @@ export function ConnectOAuthButton({ provider, userId }: Props) {
 
     // Process token
     if (accessToken) {
-      processAccessToken(accessToken)
-      window.history.replaceState({}, document.title, window.location.pathname)
-      sessionStorage.removeItem(`oauth_state_${provider.name}`)
-      sessionStorage.removeItem('current_provider')
+      processAccessToken(accessToken).then(() => {
+        window.history.replaceState({}, document.title, window.location.pathname)
+        sessionStorage.removeItem(`oauth_state_${provider.name}`)
+        sessionStorage.removeItem('current_provider')
+      })
     }
   }, [provider.name])
 

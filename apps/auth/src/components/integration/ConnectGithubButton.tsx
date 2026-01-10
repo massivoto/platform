@@ -1,20 +1,17 @@
-import { useEffect, useState } from 'react'
-import { Client, Account, OAuthProvider } from 'appwrite'
-import { toast } from 'sonner'
-import { LocalStorageTokenSaver } from '@/lib/token-saver/token-saver'
-import { IntegrationToken } from '@/lib/integration/integration.type'
-import { ProviderKind } from '@/lib/providers/provider.types'
 import {
   AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
   AlertDialogAction,
   AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { LocalStorageTokenSaver } from '@/lib/token-saver/token-saver'
+import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 interface Props {
   provider: { id: string; name: string }
@@ -27,12 +24,6 @@ interface GitHubUser {
   email: string | null
   avatar_url: string
 }
-
-const account = new Account(
-  new Client()
-    .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT!)
-    .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID!),
-)
 
 async function fetchGitHubUser(token: string): Promise<GitHubUser> {
   const res = await fetch('https://api.github.com/user', {
@@ -47,90 +38,54 @@ async function fetchGitHubUser(token: string): Promise<GitHubUser> {
 }
 
 export function ConnectGitHub({ provider, userId }: Props) {
+  const saver = useRef<LocalStorageTokenSaver>(new LocalStorageTokenSaver(userId)).current
+  const loader = saver.loader
+  const sonnerToast = useRef(toast).current
+
   const [user, setUser] = useState<GitHubUser | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     hydrateFromLocal()
-    hydrateFromSession()
+    // hydrateFromSession()
   }, [])
 
   /*UI first: si déjà connecté, afficher Connected */
   const hydrateFromLocal = () => {
+    const githubToken = loader.loadRawTokens().get('github')
+
+    if (githubToken && githubToken.accessToken) {
+      fetchGitHubUser(githubToken.accessToken.rawValue)
+        .then((githubUser) => {
+          console.log('Fetched GitHub user from local token:', githubUser)
+          setUser(githubUser)
+        })
+        .catch(() => {
+          console.log(
+            'Failed to fetch GitHub user with stored token, removing local connection status.',
+          )
+          toast.error('GitHub token expired or invalid, please reconnect.')
+        })
+    }
     const connected = localStorage.getItem('github_connected') === 'true'
     if (connected) {
       setUser({ login: 'connected' } as GitHubUser)
     }
   }
 
-  /*Session Appwrite: récupérer token si dispo */
-  const hydrateFromSession = async () => {
-    try {
-      const session = await account.getSession('current')
-
-      // IMPORTANT: ne plus dépendre du providerAccessToken
-      if (session.provider !== 'github') return
-
-      localStorage.setItem('github_connected', 'true')
-
-      if (!session.providerAccessToken) return
-
-      const integrationToken: IntegrationToken = {
-        integrationId: 'github',
-        kind: ProviderKind.OAUTH2_PKCE,
-        accessToken: { rawValue: session.providerAccessToken },
-        refreshToken: null,
-        idToken: null,
-        expiresAt: new Date(Date.now() + 3600_000).toISOString(),
-        scopes: ['user', 'repo', 'read:org'],
-        lastUsedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        revoked: false,
-      }
-
-      new LocalStorageTokenSaver(userId).saveToken('github', integrationToken)
-
-      const githubUser = await fetchGitHubUser(session.providerAccessToken)
-      setUser(githubUser)
-
-      localStorage.setItem(
-        'github_user',
-        JSON.stringify({
-          login: githubUser.login,
-          name: githubUser.name,
-          email: githubUser.email,
-          avatar_url: githubUser.avatar_url,
-          provider: 'GitHub',
-        }),
-      )
-    } catch {
-      /* ignore */
-    }
-  }
-
   const connect = async () => {
     setLoading(true)
     const origin = window.location.origin
-
-    await account.createOAuth2Session(
-      OAuthProvider.Github,
-      `${origin}/dashboard`,
-      `${origin}/?error=github`,
-      ['user', 'repo', 'read:org'],
-    )
   }
 
-  const handleLogout = async () => {
-    await account.deleteSession('current')
+  const handleRevoke = async () => {
+    // TODO AI: Need to  revoke token via GitHub API if possible
 
-    localStorage.removeItem('github_connected')
-    localStorage.removeItem('github_user')
-
-    new LocalStorageTokenSaver(userId).removeToken('github')
+    // Then delere local data
+    saver.markTokenAsRevoked('github')
     setUser(null)
 
-    toast.success('Logged out from GitHub')
+    toast.success('Authorization revoked from GitHub')
   }
 
   return (
@@ -159,7 +114,7 @@ export function ConnectGitHub({ provider, userId }: Props) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleLogout}>Disconnect</AlertDialogAction>
+                <AlertDialogAction onClick={handleRevoke}>Disconnect</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
