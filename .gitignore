@@ -1,5 +1,8 @@
 .env
 
+# Claude Code temp files
+tmpclaude-*
+
 # MasalaParser customization
 masala-parser
 
