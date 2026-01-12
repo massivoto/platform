@@ -11,11 +11,13 @@
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
     "test": "npm run clean && npm run build && vitest run \"./src/compiler/parser\" ",
-    "prettier": "prettier --write \"src/**/*.ts\" \"./*.json\""
+    "prettier": "prettier --write \"src/**/*.ts\" \"./*.json\"",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^5.2.1"
   },
   "devDependencies": {

@@ -15,7 +15,8 @@
   },
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "services/*"
   ],
   "devDependencies": {
     "@types/node": "^22",

@@ -10,7 +10,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { LocalStorageTokenSaver } from '@/lib/token-saver/token-saver'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { ProviderKind } from '@/lib/providers/provider.types'
 import { toast } from 'sonner'
 
 interface Props {
@@ -38,9 +39,8 @@ async function fetchGitHubUser(token: string): Promise<GitHubUser> {
 }
 
 export function ConnectGitHub({ provider, userId }: Props) {
-  const saver = useRef<LocalStorageTokenSaver>(new LocalStorageTokenSaver(userId)).current
+  const saver = useMemo(() => new LocalStorageTokenSaver(userId), [userId])
   const loader = saver.loader
-  const sonnerToast = useRef(toast).current
 
   const [user, setUser] = useState<GitHubUser | null>(null)
   const [loading, setLoading] = useState(false)
@@ -73,10 +73,57 @@ export function ConnectGitHub({ provider, userId }: Props) {
     }
   }
 
+  const backendUrl = useMemo(
+    () => import.meta.env.VITE_AUTH_BACKEND_URL ?? 'http://localhost:3001',
+    [],
+  )
+
   const connect = async () => {
     setLoading(true)
-    const origin = window.location.origin
+    const redirectUri = window.location.origin
+    window.location.href = `${backendUrl}/oauth/github/start?redirect_uri=${encodeURIComponent(redirectUri)}`
   }
+
+  useEffect(() => {
+    const hash = window.location.hash.startsWith('#')
+      ? new URLSearchParams(window.location.hash.slice(1))
+      : null
+
+    const accessToken = hash?.get('access_token')
+    const provider = hash?.get('provider')
+    if (provider === 'github' && accessToken) {
+      const expiresIn = hash?.get('expires_in')
+      const scopes = hash?.get('scope')?.split(' ').filter(Boolean) ?? []
+      const now = new Date()
+      const expiresAt = expiresIn ? new Date(now.getTime() + Number(expiresIn) * 1000) : null
+
+      const integrationToken = {
+        integrationId: 'github',
+        kind: ProviderKind.OAUTH2_PKCE,
+        accessToken: { rawValue: accessToken },
+        refreshToken: null,
+        idToken: null,
+        expiresAt: expiresAt ? expiresAt.toISOString() : null,
+        scopes,
+        lastUsedAt: now.toISOString(),
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
+        revoked: false,
+      }
+
+      saver.saveToken('github', integrationToken)
+      fetchGitHubUser(accessToken)
+        .then((githubUser) => {
+          setUser(githubUser)
+          toast.success('Connected to GitHub')
+        })
+        .catch(() => {
+          toast.error('GitHub token invalid, please reconnect.')
+        })
+
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search)
+    }
+  }, [saver])
 
   const handleRevoke = async () => {
     // TODO AI: Need to  revoke token via GitHub API if possible
