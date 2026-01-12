@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express, { NextFunction, Request, Response } from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
@@ -45,10 +46,15 @@ export function createApp() {
     const codeVerifier = generateCodeVerifier()
     const codeChallenge = await generateCodeChallenge(codeVerifier)
 
+    const redirectUri =
+      typeof req.query.redirect_uri === 'string' && req.query.redirect_uri.length > 0
+        ? req.query.redirect_uri
+        : env.frontendOrigin
+
     const authorizeUrl = driver.buildAuthorizeUrl({ state, codeChallenge })
     const cookieName = getCookieName(providerId)
 
-    res.cookie(cookieName, JSON.stringify({ state, codeVerifier }), {
+    res.cookie(cookieName, JSON.stringify({ state, codeVerifier, redirectUri }), {
       httpOnly: true,
       sameSite: 'lax',
       secure: env.isProduction,
@@ -75,7 +81,7 @@ export function createApp() {
         return
       }
 
-      let parsed: { state: string; codeVerifier: string }
+      let parsed: { state: string; codeVerifier: string; redirectUri?: string }
       try {
         parsed = JSON.parse(cookieValue)
       } catch {
@@ -93,7 +99,29 @@ export function createApp() {
 
       const tokens = await driver.exchangeCode({ code, codeVerifier: parsed.codeVerifier })
       res.clearCookie(cookieName, { path: `/oauth/${providerId}` })
-      res.json({ provider: providerId, ...tokens })
+
+      const frontendRedirect =
+        typeof parsed.redirectUri === 'string' && parsed.redirectUri.length > 0
+          ? parsed.redirectUri
+          : env.frontendOrigin
+
+      try {
+        const url = new URL(frontendRedirect)
+        url.hash = new URLSearchParams({
+          provider: providerId,
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token ?? '',
+          expires_in: tokens.expires_in?.toString() ?? '',
+          scope: tokens.scope ?? '',
+          token_type: tokens.token_type ?? '',
+        }).toString()
+        res.redirect(url.toString())
+        return
+      } catch {
+        // Fallback to JSON if redirect URI is malformed
+        res.json({ provider: providerId, ...tokens })
+        return
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unexpected error'
       res.status(500).json({ error: message })
