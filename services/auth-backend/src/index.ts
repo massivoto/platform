@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser'
 import { loadEnv } from './env.js'
 import { buildProviderRegistry, getProviderDriver } from './providers/registry.js'
 import { generateCodeChallenge, generateCodeVerifier, generateState } from './utils/pkce.js'
+import { encodeMockCode, generateMockTokens, MockOAuthError, parseScenario } from './providers/mock/index.js'
+import { getMockSessionStore, MockSessionStates, MockSessionState } from '@massivoto/auth-domain'
 
 const COOKIE_PREFIX = 'oauth_ctx'
 const COOKIE_MAX_AGE_MS = 10 * 60 * 1000 // 10 minutes
@@ -42,6 +44,25 @@ export function createApp() {
       return
     }
 
+    // Parse query params
+    const instant = req.query.instant === 'true'
+    const scenario = parseScenario(req.query.scenario)
+
+    // Instant mode: skip redirect dance, return tokens directly (mock mode only)
+    if (env.authMode === 'mock' && instant) {
+      try {
+        const tokens = generateMockTokens(scenario, providerId)
+        res.json({ provider: providerId, ...tokens })
+      } catch (error) {
+        if (error instanceof MockOAuthError) {
+          res.status(400).json({ error: error.code, error_description: error.message })
+        } else {
+          res.status(500).json({ error: 'server_error', error_description: 'Unexpected error' })
+        }
+      }
+      return
+    }
+
     const state = generateState()
     const codeVerifier = generateCodeVerifier()
     const codeChallenge = await generateCodeChallenge(codeVerifier)
@@ -54,7 +75,12 @@ export function createApp() {
     const authorizeUrl = driver.buildAuthorizeUrl({ state, codeChallenge })
     const cookieName = getCookieName(providerId)
 
-    res.cookie(cookieName, JSON.stringify({ state, codeVerifier, redirectUri }), {
+    // Store scenario in cookie for mock mode (so callback knows what to return)
+    const cookieData = env.authMode === 'mock'
+      ? { state, codeVerifier, redirectUri, scenario }
+      : { state, codeVerifier, redirectUri }
+
+    res.cookie(cookieName, JSON.stringify(cookieData), {
       httpOnly: true,
       sameSite: 'lax',
       secure: env.isProduction,
@@ -127,6 +153,104 @@ export function createApp() {
       res.status(500).json({ error: message })
     }
   })
+
+  // Mock authorize endpoint - only registered in mock mode
+  // Simulates the OAuth provider's authorization page
+  if (env.authMode === 'mock') {
+    app.get('/mock/authorize', (req: Request, res: Response) => {
+      const state = req.query.state as string
+      const redirectUri = req.query.redirect_uri as string
+      const scenario = parseScenario(req.query.scenario)
+      const providerId = (req.query.provider as string) || 'unknown'
+
+      if (!state || !redirectUri) {
+        res.status(400).json({ error: 'Missing required parameters: state, redirect_uri' })
+        return
+      }
+
+      try {
+        const url = new URL(redirectUri)
+
+        // For 'denied' scenario, simulate user clicking "Deny"
+        if (scenario === 'denied') {
+          url.searchParams.set('error', 'access_denied')
+          url.searchParams.set('error_description', 'The user denied the authorization request')
+          url.searchParams.set('state', state)
+          res.redirect(url.toString())
+          return
+        }
+
+        // For 'error' scenario, simulate provider error
+        if (scenario === 'error') {
+          url.searchParams.set('error', 'server_error')
+          url.searchParams.set('error_description', 'The authorization server encountered an unexpected error')
+          url.searchParams.set('state', state)
+          res.redirect(url.toString())
+          return
+        }
+
+        // For success/expired scenarios, simulate user clicking "Allow"
+        // Generate a mock code that encodes the scenario
+        const mockCode = encodeMockCode(scenario, providerId)
+        url.searchParams.set('code', mockCode)
+        url.searchParams.set('state', state)
+        res.redirect(url.toString())
+      } catch {
+        res.status(400).json({ error: 'Invalid redirect_uri' })
+      }
+    })
+
+    // Session management endpoints for testing
+    app.get('/mock/sessions', (_req: Request, res: Response) => {
+      const store = getMockSessionStore()
+      res.json({ sessions: store.listSessions() })
+    })
+
+    app.get('/mock/sessions/:id', (req: Request, res: Response) => {
+      const store = getMockSessionStore()
+      const session = store.getSession(req.params.id)
+      if (!session) {
+        res.status(404).json({ error: 'Session not found' })
+        return
+      }
+      res.json(session)
+    })
+
+    app.post('/mock/sessions/:id/state', (req: Request, res: Response) => {
+      const { state } = req.body as { state?: string }
+      if (!state || !MockSessionStates.includes(state as MockSessionState)) {
+        res.status(400).json({
+          error: 'Invalid state',
+          validStates: MockSessionStates,
+        })
+        return
+      }
+
+      const store = getMockSessionStore()
+      const session = store.getSession(req.params.id)
+      if (!session) {
+        res.status(404).json({ error: 'Session not found' })
+        return
+      }
+
+      store.updateState(req.params.id, state as MockSessionState)
+      res.json({ ...session, state })
+    })
+
+    app.delete('/mock/sessions/:id', (req: Request, res: Response) => {
+      const store = getMockSessionStore()
+      store.deleteSession(req.params.id)
+      res.json({ deleted: true })
+    })
+
+    app.delete('/mock/sessions', (_req: Request, res: Response) => {
+      const store = getMockSessionStore()
+      store.clear()
+      res.json({ cleared: true })
+    })
+
+    console.log('Mock mode enabled - /mock/* endpoints registered')
+  }
 
   // Basic error handler (fallback)
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
