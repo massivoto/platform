@@ -75,3 +75,35 @@ export {
   TokenRevokedError,
   TokenRevocationError,
 } from './errors.js'
+
+// Mock Session Store
+export {
+  MockSessionStates,
+  MockSessionStateSchema,
+  type MockSessionState,
+  type MockUser,
+  MockUserSchema,
+  type MockSession,
+  MockSessionSchema,
+  type MockSessionStore,
+  DEFAULT_MOCK_USERS,
+  getDefaultMockUser,
+  InMemoryMockSessionStore,
+  LocalStorageMockSessionStore,
+} from './mock-session.js'
+
+// Mock Token Utilities
+export {
+  isMockToken,
+  parseMockToken,
+  createMockToken,
+  setMockSessionStore,
+  getMockSessionStore,
+  resetMockSessionStore,
+  getMockTokenState,
+  getMockTokenSession,
+  validateMockToken,
+  createMockTokenForProvider,
+  expireMockToken,
+  revokeMockToken,
+} from './mock-token.js'
