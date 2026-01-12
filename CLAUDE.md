@@ -37,6 +37,11 @@ Monorepo for the Massivoto automation platform.
 - Use `@massivoto/` npm scope
 - Single entry point exports (no subpath exports complexity)
 
+### Testing
+- Test framework: vitest
+- Tests are colocated with source files: `xyz.spec.ts` next to `xyz.ts`
+- Never create `__tests__` directories
+
 ## Key Packages
 
 - `@massivoto/auth-domain` - Shared auth types, OAuth utilities, PKCE, token management
@@ -47,5 +52,7 @@ Monorepo for the Massivoto automation platform.
 ```bash
 yarn install          # Install all dependencies
 yarn build            # Build all packages
+yarn test             # Run all tests
+npx vitest run <path> # Run specific test file
 yarn clean:claude     # Remove Claude temp files
 ```
