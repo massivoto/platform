@@ -14,7 +14,8 @@
   },
   "references": [
     { "path": "./packages/kit" },
-    { "path": "./packages/engine" }
+    { "path": "./packages/engine" },
+    { "path": "./packages/auth-domain" }
   ],
   "files": [],
   "exclude": ["src"]
