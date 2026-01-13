@@ -20,7 +20,9 @@
       "Bash(git push)",
       "Bash(curl:*)",
       "Bash(AUTH_MODE=mock PORT=3001 FRONTEND_ORIGIN=http://localhost:8080 node:*)",
-      "Bash(AUTH_MODE=mock PORT=3001 FRONTEND_ORIGIN=http://localhost:8080 npx vite-node:*)"
+      "Bash(AUTH_MODE=mock PORT=3001 FRONTEND_ORIGIN=http://localhost:8080 npx vite-node:*)",
+      "Skill(concept)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

@@ -38,8 +38,10 @@ When the user asks for more detail:
 
 **Phase 4 - Persistence**
 When user says `--save` or asks to save:
-1. Write/update the appropriate `.archi.md` file
-2. Update parent/child links in related .archi.md files
+1. **Propose the file path** - Show the user where you plan to create/update the `.archi.md` file with a brief rationale
+2. **Wait for confirmation** - Do not write until user approves the location
+3. Write/update the `.archi.md` file at the approved location
+4. Update parent/child links in related .archi.md files
 
 ## Architecture File Structure
 
@@ -158,6 +160,7 @@ project/
 6. **Unlimited depth** - follow user as deep as they want to go
 7. **Reuse existing knowledge** - always check for .archi.md files first
 8. **Keep files updated** - when saving, update Last updated date
+9. **Always prompt for file location** - before creating or updating any .archi.md file, propose the path and wait for user approval
 
 ## Memory (--resume)
 
