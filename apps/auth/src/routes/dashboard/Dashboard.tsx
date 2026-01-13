@@ -20,7 +20,7 @@ import {
   WEBHOOK_PROVIDER,
 } from '@/lib/providers/provider'
 import { Provider, ProviderKind } from '@/lib/providers/provider.types'
-import { ConnectOAuthButton } from '@/components/integration/ConnectOAuthButton'
+import { ConnectGoogleButton } from '@/components/integration/ConnectGoogleButton'
 import { ConnectApiKeyButton } from '@/components/integration/ConnectApiKeyButton'
 import { ConnectKeyAndSecretButton } from '@/components/integration/ConnectApiSecretButton'
 import { ConnectGitHub } from '@/components/integration/ConnectGithubButton'
@@ -91,7 +91,7 @@ const renderProviderButton = (provider: Provider, userId: string) => {
       if (provider.id === 'github') {
         return <ConnectGitHub key={provider.id} provider={provider} userId={userId} />
       }
-      return <ConnectOAuthButton key={provider.id} provider={provider} userId={userId} />
+      return <ConnectGoogleButton key={provider.id} provider={provider} userId={userId} />
 
     case ProviderKind.API_KEY:
       return <ConnectApiKeyButton key={provider.id} provider={provider} />
@@ -112,10 +112,6 @@ const renderProviderButton = (provider: Provider, userId: string) => {
 }
 
 export const Dashboard = () => {
-  const { user } = useUser()
-
-  // Use user email as ID, or fallback to dev ID
-  const userId = user?.email || DEV_USER_ID
 
   return (
     <div className="page-container">
