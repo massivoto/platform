@@ -2,11 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     /* Bundler mode */
@@ -25,34 +21,15 @@
     "noFallthroughCasesInSwitch": false,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/components/*": [
-        "./src/components/*"
-      ],
-      "@/hooks/*": [
-        "./src/hooks/*"
-      ],
-      "@/lib/*": [
-        "./src/lib/*"
-      ],
-      "@/pages/*": [
-        "./src/pages/*"
-      ],
-      "@/styles/*": [
-        "./src/styles/*"
-      ],
-      "@/mocks/*": [
-        "./src/mocks/*"
-      ],
-      "@/tests/*": [
-        "./src/tests/*"
-      ]
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/styles/*": ["./src/styles/*"],
+      "@/mocks/*": ["./src/mocks/*"],
+      "@/tests/*": ["./src/tests/*"]
     }
   },
-  "include": [
-    "src",
-    "apps/integrations/src"
-  ]
+  "include": ["src", "apps/integrations/src"]
 }

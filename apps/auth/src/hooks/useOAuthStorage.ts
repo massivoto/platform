@@ -1,4 +1,12 @@
 // Types pour les différents types de stockage
+
+export interface GitHubUser {
+  login: string
+  name: string | null
+  email: string | null
+  avatar_url: string
+}
+
 export interface OAuthCredentials {
   providerId: string
   providerName: string
@@ -20,15 +28,13 @@ export interface ApiKeyStorage {
 export interface OAuthTokenStorage {
   providerId: string
   providerName: string
-  accessToken: string
-  refreshToken?: string
   expiresAt: string
+  connectedAt: string
   userInfo?: {
     email: string
     name: string
     picture?: string
   }
-  connectedAt: string
 }
 
 type StorageType = 'oauth-credentials' | 'api-key' | 'oauth-token'

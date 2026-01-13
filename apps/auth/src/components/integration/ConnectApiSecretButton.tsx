@@ -1,7 +1,6 @@
 import { Provider } from '@/lib/providers/provider.types.js'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Save, Eye, EyeOff, Check, AlertCircle, HelpCircle, Lock, Copy } from 'lucide-react'
-import { OAuthCredentials, useOAuthStorage } from '@/hooks/useOAuthStorage'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -10,132 +9,45 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { DisconnectDialog } from '@/layouts/DisconnectDialog'
+import { useApiSecretConnection } from '@/hooks/useApiSecretConnection'
+import { copyToClipboard } from '@/utilities/oauth-helpers'
 
 interface Props {
   provider: Provider
 }
 
 export function ConnectKeyAndSecretButton({ provider }: Props) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false)
   const [clientId, setClientId] = useState('')
   const [clientSecret, setClientSecret] = useState('')
   const [showSecret, setShowSecret] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [connectionInfo, setConnectionInfo] = useState<OAuthCredentials | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false)
 
-  const { saveData, loadData, isConnected, removeData } = useOAuthStorage()
-  const storageType = 'oauth-credentials'
-
-  // Load stored credentials on mount
-  useEffect(() => {
-    loadCredentials()
-  }, [])
-
-  const loadCredentials = () => {
-    const data = loadData<OAuthCredentials>(provider.id, storageType)
-    setConnectionInfo(data)
-    return data
-  }
-
-  // Check if already connected
-  const isConnectedState = isConnected(provider.id, storageType)
-
-  // Handle save credentials
-  const handleSave = async () => {
-    if (!clientId.trim()) {
-      setError('Client ID is required')
-      toast.error('Client ID is required')
-      return
-    }
-
-    if (!clientSecret.trim()) {
-      setError('Client Secret is required')
-      toast.error('Client Secret is required')
-      return
-    }
-
-    setIsSaving(true)
-    setError(null)
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      const credentials: OAuthCredentials = {
-        providerId: provider.id,
-        providerName: provider.name,
-        clientId: clientId.trim(),
-        clientSecret: clientSecret.trim(),
-        redirectUri: `${window.location.origin}/oauth/callback`,
-        connectedAt: new Date().toISOString(),
-      }
-
-      saveData(provider.id, storageType, credentials)
-      setConnectionInfo(credentials)
-      setSuccess(true)
-
-      toast.success('Credentials saved!', {
-        description: `${provider.name} OAuth2 credentials have been saved successfully.`,
-      })
-
-      setTimeout(() => {
-        setIsModalOpen(false)
-        setClientId('')
-        setClientSecret('')
-        setShowSecret(false)
-        setSuccess(false)
-        setIsSaving(false)
-      }, 1500)
-    } catch (err) {
-      const errorMsg = 'Failed to save credentials. Please try again.'
-      setError(errorMsg)
-      toast.error('Failed to save', {
-        description: errorMsg,
-      })
-      setIsSaving(false)
-    }
-  }
-
-  // Handle disconnect
-  const handleDisconnect = () => {
-    removeData(provider.id, storageType)
-    setConnectionInfo(null)
-    setShowDisconnectDialog(false)
-
-    toast.success('Successfully disconnected from ' + provider.name, {
-      description: `You have disconnected ${provider.name}.`,
-    })
-
-    setTimeout(() => {
-      window.location.reload()
-    }, 1000)
-  }
+  const {
+    connectionInfo,
+    isConnected,
+    isValidating,
+    success,
+    error,
+    connect,
+    disconnect,
+    clearError,
+    clearSuccess,
+  } = useApiSecretConnection(provider)
 
   // Open modal with current credentials if available
   const openModal = () => {
-    const data = loadData<OAuthCredentials>(provider.id, storageType)
-    if (data) {
-      setClientId(data.clientId)
-      setClientSecret(data.clientSecret)
+    if (connectionInfo) {
+      setClientId(connectionInfo.clientId)
+      setClientSecret(connectionInfo.clientSecret)
     } else {
       setClientId('')
       setClientSecret('')
     }
     setShowSecret(false)
-    setError(null)
-    setSuccess(false)
+    clearError()
+    clearSuccess()
     setIsModalOpen(true)
   }
 
@@ -145,31 +57,46 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
     setClientId('')
     setClientSecret('')
     setShowSecret(false)
-    setError(null)
-    setSuccess(false)
-    setIsSaving(false)
+    clearError()
+    clearSuccess()
+  }
+
+  // Handle save credentials
+  const handleSave = async () => {
+    const connected = await connect(clientId, clientSecret)
+    if (connected) {
+      // Clear form fields on success
+      setClientId('')
+      setClientSecret('')
+
+      // Close modal after delay
+      setTimeout(() => {
+        setIsModalOpen(false)
+        setShowSecret(false)
+      }, 1500)
+    }
+  }
+
+  // Handle disconnect
+  const handleDisconnect = () => {
+    disconnect()
+    setShowDisconnectDialog(false)
+    window.location.reload()
+
+    // Reload page after delay
+    // setTimeout(() => {
+    //   window.location.reload()
+    // }, 1000)
   }
 
   // Copy to clipboard
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        toast.success('Copied to clipboard!', {
-          description: 'The URL has been copied to your clipboard.',
-        })
-      })
-      .catch((err) => {
-        console.error('Failed to copy:', err)
-        toast.error('Failed to copy', {
-          description: 'Could not copy to clipboard.',
-        })
-      })
+  const handleCopy = (text: string) => {
+    if (text) copyToClipboard(text)
   }
 
   return (
     <div className="w-full">
-      {isConnectedState ? (
+      {isConnected ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -215,7 +142,7 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle className="text-xl">
-              {isConnectedState ? 'Edit Connection' : 'Connect'} {provider.name}
+              {isConnected ? 'Edit Connection' : 'Connect'} {provider.name}
             </DialogTitle>
             <DialogDescription>
               <button
@@ -234,7 +161,7 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
                 <Check className="w-8 h-8 text-green-600" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {isConnectedState ? 'Updated' : 'Connected'} Successfully!
+                {isConnected ? 'Updated' : 'Connected'} Successfully!
               </h3>
               <p className="text-gray-600">{provider.name} OAuth2 credentials have been saved.</p>
             </div>
@@ -264,7 +191,7 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
                     className="flex-1 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 font-mono text-sm"
                   />
                   <button
-                    onClick={() => copyToClipboard(`${window.location.origin}/dashboard`)}
+                    onClick={() => handleCopy(`${window.location.origin}/dashboard`)}
                     className="px-3 py-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition flex items-center"
                   >
                     <Copy className="w-4 h-4 mr-1" />
@@ -286,7 +213,7 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
                   onChange={(e) => setClientId(e.target.value)}
                   placeholder="Enter your Client ID"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition font-mono text-sm"
-                  disabled={isSaving}
+                  disabled={isValidating}
                 />
                 <p className="text-xs text-gray-500 mt-2">
                   Found in your {provider.name} developer console or API settings
@@ -305,13 +232,13 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
                     onChange={(e) => setClientSecret(e.target.value)}
                     placeholder="Enter your Client Secret"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition font-mono text-sm pr-12"
-                    disabled={isSaving}
+                    disabled={isValidating}
                   />
                   <button
                     type="button"
                     onClick={() => setShowSecret(!showSecret)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
-                    disabled={isSaving}
+                    disabled={isValidating}
                   >
                     {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -338,16 +265,16 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
                 <button
                   onClick={closeModal}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
-                  disabled={isSaving}
+                  disabled={isValidating}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
-                  disabled={isSaving || !clientId.trim() || !clientSecret.trim()}
+                  disabled={isValidating || !clientId.trim() || !clientSecret.trim()}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  {isSaving ? (
+                  {isValidating ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                       Saving...
@@ -363,23 +290,12 @@ export function ConnectKeyAndSecretButton({ provider }: Props) {
       </Dialog>
 
       {/* Shadcn AlertDialog for disconnect confirmation */}
-      <AlertDialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
-        <AlertDialogContent className="bg-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will disconnect {provider.name} from your account. Your OAuth credentials will be
-              removed. You can always reconnect later.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDisconnect} className="bg-red-600 hover:bg-red-700">
-              Disconnect
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DisconnectDialog
+        open={showDisconnectDialog}
+        onOpenChange={setShowDisconnectDialog}
+        providerName={provider.name}
+        onConfirm={handleDisconnect}
+      />
     </div>
   )
 }
