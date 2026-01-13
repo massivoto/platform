@@ -53,7 +53,11 @@ When the user decides on an approach:
 
 ### Phase 4: PRD Creation/Update
 
-Write or update the PRD following the format below.
+Before writing or updating any PRD:
+1. **Propose the file path** - Show the user where you plan to create/update the `.prd.md` file with a brief rationale
+2. **Wait for confirmation** - Do not write until user approves the location
+
+Then write or update the PRD following the format below.
 
 ## PRD File Structure
 
@@ -178,6 +182,7 @@ If user's request contradicts an existing requirement:
 4. **Test-first thinking** - Each requirement section must have a test command
 5. **Flexible process** - It's OK to code first to validate a PRD, then update status
 6. **Git for versioning** - Don't add version history sections, git tracks changes
+7. **Always prompt for file location** - before creating or updating any .prd.md file, propose the path and wait for user approval
 
 ## Memory (--resume)
 
