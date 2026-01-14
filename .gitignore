@@ -2,6 +2,7 @@
 
 # Claude Code temp files
 tmpclaude-*
+.claude/settings.local.json
 
 # MasalaParser customization
 masala-parser
