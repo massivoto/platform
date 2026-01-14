@@ -4,8 +4,12 @@ import { createGithubDriver } from './github/github.provider.js'
 import { createGoogleDriver } from './google/google.provider.js'
 import { createMockDriver } from './mock/index.js'
 
-/** Known provider IDs that can be mocked */
-const KNOWN_PROVIDERS = ['github', 'google'] as const
+/**
+ * Known provider IDs that can be mocked.
+ * Google services use the pattern `google-<service>` (e.g., google-gmail, google-calendar).
+ * In mock mode, any `google-*` ID is supported dynamically.
+ */
+const KNOWN_PROVIDERS = ['github', 'google', 'google-gmail', 'google-calendar', 'google-sheets', 'google-drive'] as const
 
 /**
  * Build provider registry based on auth mode
@@ -24,6 +28,32 @@ export function buildProviderRegistry(env: EnvConfig): Map<string, ProviderDrive
   return new Map(drivers.map((driver) => [driver.config.id, driver]))
 }
 
-export function getProviderDriver(registry: Map<string, ProviderDriver>, id: string): ProviderDriver | undefined {
-  return registry.get(id)
+/**
+ * Check if a provider ID matches the Google service pattern.
+ * Used for dynamic mock driver creation for unknown Google services.
+ */
+function isGoogleServiceProvider(id: string): boolean {
+  return id.startsWith('google-')
+}
+
+/**
+ * Get a provider driver by ID.
+ * In mock mode with dynamic registry, creates mock drivers on-demand for google-* providers.
+ */
+export function getProviderDriver(
+  registry: Map<string, ProviderDriver>,
+  id: string,
+  env?: EnvConfig
+): ProviderDriver | undefined {
+  const driver = registry.get(id)
+  if (driver) return driver
+
+  // In mock mode, dynamically create driver for unknown google-* providers
+  if (env?.authMode === 'mock' && isGoogleServiceProvider(id)) {
+    const mockDriver = createMockDriver(id, env)
+    registry.set(id, mockDriver)
+    return mockDriver
+  }
+
+  return undefined
 }
