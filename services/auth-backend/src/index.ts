@@ -44,7 +44,7 @@ export function createApp(deps: AppDependencies = {}) {
 
   app.get('/oauth/:provider/start', async (req: Request, res: Response) => {
     const providerId = req.params.provider
-    const driver = getProviderDriver(registry, providerId)
+    const driver = getProviderDriver(registry, providerId, env)
     if (!driver) {
       res.status(404).json({ error: 'Provider not found' })
       return
@@ -116,7 +116,7 @@ export function createApp(deps: AppDependencies = {}) {
   app.get('/oauth/:provider/callback', async (req: Request, res: Response) => {
     try {
       const providerId = req.params.provider
-      const driver = getProviderDriver(registry, providerId)
+      const driver = getProviderDriver(registry, providerId, env)
       if (!driver) {
         res.status(404).json({ error: 'Provider not found' })
         return
@@ -361,7 +361,13 @@ export function createApp(deps: AppDependencies = {}) {
   return { app, env, tokenRepository }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Check if this is the entry point (works on Windows and Unix)
+import { fileURLToPath } from 'url'
+import { resolve } from 'path'
+
+const isEntryPoint = fileURLToPath(import.meta.url) === resolve(process.argv[1])
+
+if (isEntryPoint) {
   const { app, env } = createApp()
   app.listen(env.port, () => {
     console.log(`Auth backend listening on port ${env.port}`)

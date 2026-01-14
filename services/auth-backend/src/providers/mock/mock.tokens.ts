@@ -96,7 +96,8 @@ export function encodeMockCode(scenario: MockScenario, providerId: string): stri
  * Returns null if not a valid mock code
  */
 export function decodeMockCode(code: string): { scenario: MockScenario; providerId: string } | null {
-  const match = code.match(/^mock_code_(success|expired|revoked|denied|error)_([a-z]+)_\d+$/)
+  // Provider ID can include lowercase letters and hyphens (e.g., google-gmail)
+  const match = code.match(/^mock_code_(success|expired|revoked|denied|error)_([a-z][a-z0-9-]*)_\d+$/)
   if (!match) {
     return null
   }
