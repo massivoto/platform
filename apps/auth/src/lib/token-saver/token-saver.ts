@@ -1,3 +1,8 @@
+/**
+ * @deprecated This module is deprecated. Tokens are now stored server-side via auth-backend.
+ * Use the useIntegrations hook instead for OAuth connections.
+ * TODO AI: Remove this file and token-loader.ts once confirmed no longer needed.
+ */
 import { IntegrationToken } from '../integration/integration.type.js'
 import { getSafeLocalStorage } from '../localstorage/safe-local-storage.js'
 import { LocalStorageTokenLoader, TokenLoaders } from './token-loader.js'

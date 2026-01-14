@@ -24,8 +24,6 @@ import { ConnectOAuthButton } from '@/components/integration/ConnectOAuthButton'
 import { ConnectApiKeyButton } from '@/components/integration/ConnectApiKeyButton'
 import { ConnectKeyAndSecretButton } from '@/components/integration/ConnectApiSecretButton'
 import { ConnectGitHub } from '@/components/integration/ConnectGithubButton'
-import { Account, Client } from 'appwrite'
-import { useEffect, useState } from 'react'
 
 // Mock data - will be replaced with IndexedDB later
 const connectedIntegrations = [
@@ -81,12 +79,6 @@ const integrationCategories = [
     providers: [WEBHOOK_PROVIDER],
   },
 ]
-
-const client = new Client()
-  .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT!)
-  .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID!)
-
-const account = new Account(client)
 
 // Helper function to render the appropriate button for each provider kind
 const renderProviderButton = (provider: Provider) => {

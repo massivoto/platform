@@ -1,5 +1,11 @@
 /**
- * ConnectOAuth Component - Supports Google OAuth
+ * ConnectOAuthButton - OAuth connection button using backend-mediated PKCE flow
+ *
+ * This component uses the useIntegrations hook which:
+ * 1. Redirects to backend /oauth/:provider/start
+ * 2. Backend handles PKCE flow with OAuth provider
+ * 3. Backend saves tokens, redirects with status in URL hash
+ * 4. Hook parses hash and updates UI state
  */
 import {
   AlertDialog,
@@ -12,272 +18,36 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { IntegrationToken } from '@/lib/integration/integration.type.js'
+import { useIntegrations } from '@/hooks/useIntegrations'
 import { Provider } from '@/lib/providers/provider.types.js'
-import { LocalStorageTokenSaver, revokeGoogleToken } from '@/lib/token-saver/token-saver'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
 
 interface Props {
   provider: Provider
   userId: string
 }
 
-// Type definitions
-interface UserInfo {
-  email: string
-  name: string
-  picture?: string
-  provider: string
-}
-
-interface OAuthConfigType {
-  clientId: string
-  authEndpoint: string
-  tokenEndpoint: string
-  userInfoEndpoint: string
-  scopes: Record<string, string[]>
-}
-
-const GOOGLE_OAUTH_CONFIG: OAuthConfigType = {
-  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-  authEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-  tokenEndpoint: 'https://oauth2.googleapis.com/token',
-  userInfoEndpoint: 'https://www.googleapis.com/oauth2/v2/userinfo',
-  scopes: {
-    Gmail: [
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://mail.google.com/',
-      // Granular Gmail scopes for add-on style permissions
-      'https://www.googleapis.com/auth/gmail.addons.current.action.compose',
-      'https://www.googleapis.com/auth/gmail.addons.current.message.action',
-      'https://www.googleapis.com/auth/gmail.labels',
-      'https://www.googleapis.com/auth/gmail.compose',
-    ],
-    'Google Calendar': [
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/calendar',
-      'https://www.googleapis.com/auth/calendar.events',
-    ],
-    'Google Drive': [
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/drive.file',
-      'https://www.googleapis.com/auth/drive.readonly',
-    ],
-  },
-}
-
-const REDIRECT_URI = window.location.origin + '/dashboard'
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'
 
 export function ConnectOAuthButton({ provider, userId }: Props) {
-  const [user, setUser] = useState<UserInfo | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
+  const {
+    loading,
+    error,
+    isConnected,
+    connect,
+    disconnect,
+  } = useIntegrations({
+    backendUrl: BACKEND_URL,
+    userId,
+  })
 
-  // Initialize token saver
-  const tokenSaver = new LocalStorageTokenSaver(userId)
+  const connected = isConnected(provider.id)
 
-  // Storage keys for user info
-  const storageKey = `${provider.name.toLowerCase().replace(/\s+/g, '_')}_user`
-
-  // Generate random string for state
-  const generateRandomString = (length: number): string => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'
-    let result = ''
-    const randomValues = new Uint8Array(length)
-    crypto.getRandomValues(randomValues)
-    randomValues.forEach((byte) => {
-      result += chars[byte % chars.length]
-    })
-    return result
+  const handleConnect = () => {
+    connect(provider.id)
   }
 
-  // Initiate OAuth login
-  const handleConnect = async () => {
-    try {
-      if (!GOOGLE_OAUTH_CONFIG.clientId) {
-        setError('GOOGLE_CLIENT_ID is not configured. Please check your .env file')
-        return
-      }
-
-      const state = generateRandomString(32)
-      sessionStorage.setItem(`oauth_state_${provider.name}`, state)
-      sessionStorage.setItem('current_provider', provider.name)
-
-      // Get scopes for this specific provider
-      const scopesArray =
-        GOOGLE_OAUTH_CONFIG.scopes[provider.name as keyof typeof GOOGLE_OAUTH_CONFIG.scopes] || []
-      const scopes = scopesArray.join(' ')
-
-      const params = {
-        client_id: GOOGLE_OAUTH_CONFIG.clientId,
-        redirect_uri: REDIRECT_URI,
-        response_type: 'token',
-        state: state,
-        scope: scopes,
-        prompt: 'consent',
-      }
-
-      const authUrl = `${GOOGLE_OAUTH_CONFIG.authEndpoint}?${new URLSearchParams(params)}`
-      window.location.href = authUrl
-    } catch (err) {
-      setError('Connection error: ' + (err as Error).message)
-    }
-  }
-
-  // Fetch user info from Google
-  const fetchGoogleUserInfo = async (accessToken: string): Promise<UserInfo> => {
-    const response = await fetch(GOOGLE_OAUTH_CONFIG.userInfoEndpoint, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-
-    if (!response.ok) throw new Error('Failed to fetch user data')
-
-    const data = await response.json()
-    return {
-      email: data.email,
-      name: data.name,
-      picture: data.picture,
-      provider: provider.name,
-    }
-  }
-
-  // Process access token and save
-  const processAccessToken = async (accessToken: string): Promise<void> => {
-    try {
-      setLoading(true)
-
-      // Fetch user info from Google
-      const userInfo = await fetchGoogleUserInfo(accessToken)
-
-      setUser(userInfo)
-      setError(null)
-
-      // Save user info for display purposes
-      localStorage.setItem(storageKey, JSON.stringify(userInfo))
-
-      // Create IntegrationToken object
-      const now = new Date().toISOString()
-      const providerId = provider.id || provider.name.toLowerCase().replace(/\s+/g, '_')
-
-      // Note: Implicit flow doesn't provide exact expiry
-      // We'll set a conservative expiry (1 hour)
-      const expiresAt = new Date()
-      expiresAt.setHours(expiresAt.getHours() + 1)
-
-      const scopesArray =
-        GOOGLE_OAUTH_CONFIG.scopes[provider.name as keyof typeof GOOGLE_OAUTH_CONFIG.scopes] || []
-
-      const integrationToken: IntegrationToken = {
-        integrationId: providerId,
-        kind: provider.kind,
-        accessToken: {
-          rawValue: accessToken,
-        },
-        refreshToken: null,
-        idToken: null,
-        expiresAt: expiresAt.toISOString(),
-        scopes: scopesArray.map((s) => s.toString()),
-        lastUsedAt: now,
-        createdAt: now,
-        updatedAt: now,
-        revoked: false,
-      }
-
-      // Save token using LocalStorageTokenSaver
-      tokenSaver.saveToken(providerId, integrationToken)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Handle OAuth callback
-  useEffect(() => {
-    const hash = window.location.hash.substring(1)
-    const hashParams = new URLSearchParams(hash)
-
-    const accessToken = hashParams.get('access_token')
-    const errorParam = hashParams.get('error')
-    const state = hashParams.get('state')
-    const currentProvider = sessionStorage.getItem('current_provider')
-
-    // Only process if this is for the current provider
-    if (currentProvider !== provider.name) return
-
-    if (errorParam) {
-      setError('Authentication cancelled or failed: ' + errorParam)
-      window.history.replaceState({}, document.title, window.location.pathname)
-      sessionStorage.removeItem('current_provider')
-      return
-    }
-
-    // Verify state
-    if (state) {
-      const savedState = sessionStorage.getItem(`oauth_state_${provider.name}`)
-      if (state !== savedState) {
-        setError('Security error: state mismatch')
-        return
-      }
-    }
-
-    // Process token
-    if (accessToken) {
-      processAccessToken(accessToken).then(() => {
-        window.history.replaceState({}, document.title, window.location.pathname)
-        sessionStorage.removeItem(`oauth_state_${provider.name}`)
-        sessionStorage.removeItem('current_provider')
-      })
-    }
-  }, [provider.name])
-
-  // Check if already connected on load
-  useEffect(() => {
-    const userInfo = localStorage.getItem(storageKey)
-    if (userInfo) {
-      try {
-        setUser(JSON.parse(userInfo))
-      } catch (e) {
-        localStorage.removeItem(storageKey)
-      }
-    }
-  }, [storageKey])
-
-  // Logout
-  const handleLogout = async (): Promise<void> => {
-    if (!user) return
-
-    const providerId = provider.id || provider.name.toLowerCase().replace(/\s+/g, '_')
-    const rawToken = tokenSaver.loader.loadRawTokens().get(providerId)
-
-    if (rawToken?.accessToken?.rawValue) {
-      try {
-        await revokeGoogleToken(rawToken.accessToken.rawValue).catch(() => {
-          // Ignore CORS failure — token is likely revoked anyway
-        })
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message)
-        }
-      }
-    }
-
-    // Remove from local storage
-    tokenSaver.removeToken(providerId)
-
-    // Clear UI
-    setUser(null)
-    localStorage.removeItem(storageKey)
-
-    toast.success('Successfully disconnected from ' + provider.name, {
-      description: `You have logged out from ${provider.name}.`,
-    })
+  const handleDisconnect = async () => {
+    await disconnect(provider.id)
   }
 
   return (
@@ -291,18 +61,17 @@ export function ConnectOAuthButton({ provider, userId }: Props) {
       {loading ? (
         <div className="text-center py-4">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <p className="mt-2 text-sm">Connecting...</p>
+          <p className="mt-2 text-sm">Loading...</p>
         </div>
-      ) : user ? (
+      ) : connected ? (
         <div className="bg-green-50 p-4 rounded-lg mb-4">
           <div className="flex items-center space-x-3">
-            {user.picture && (
-              <img src={user.picture} alt={user.name} className="w-10 h-10 rounded-full" />
+            {provider.logo && (
+              <img src={provider.logo} alt={provider.name} className="w-10 h-10 rounded-full" />
             )}
             <div className="flex-1">
-              <p className="font-medium text-sm">{user.name}</p>
-              <p className="text-xs text-gray-600">{user.email}</p>
-              <p className="text-xs text-blue-600 mt-1">{provider.name}</p>
+              <p className="font-medium text-sm">{provider.name}</p>
+              <p className="text-xs text-green-600 mt-1">Connected</p>
             </div>
 
             <AlertDialog>
@@ -313,19 +82,15 @@ export function ConnectOAuthButton({ provider, userId }: Props) {
               </AlertDialogTrigger>
               <AlertDialogContent className="bg-white">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                  <AlertDialogTitle>Confirm Disconnect</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to log out from {provider.name}?
+                    Are you sure you want to disconnect from {provider.name}?
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={async () => {
-                      await handleLogout()
-                    }}
-                  >
-                    Logout
+                  <AlertDialogAction onClick={handleDisconnect}>
+                    Disconnect
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
