@@ -59,12 +59,12 @@ describe('OAuth Integration Tests', () => {
         .redirects(0)
         .expect(302)
 
-      const cookies = res.headers['set-cookie']
+      const cookies = res.headers['set-cookie'] as unknown as string[] | undefined
       expect(cookies).toBeDefined()
-      expect(cookies.some((c: string) => c.includes('oauth_ctx_github'))).toBe(true)
+      expect(cookies!.some((c: string) => c.includes('oauth_ctx_github'))).toBe(true)
 
       // Parse the cookie to verify contents
-      const cookieHeader = cookies.find((c: string) => c.includes('oauth_ctx_github'))
+      const cookieHeader = cookies!.find((c: string) => c.includes('oauth_ctx_github'))!
       const cookieValue = decodeURIComponent(cookieHeader.split(';')[0].split('=')[1])
       const parsed = JSON.parse(cookieValue)
 
@@ -263,6 +263,62 @@ describe('OAuth Integration Tests', () => {
   })
 
   describe('Multiple Providers', () => {
+    it('handles google-gmail OAuth flow', async () => {
+      const { app } = createApp({ tokenRepository })
+      const agent = request.agent(app)
+
+      const startRes = await agent
+        .get('/oauth/google-gmail/start?user_id=test-user')
+        .redirects(0)
+        .expect(302)
+
+      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3001')
+      const authorizeRes = await agent
+        .get(authorizeUrl.pathname + authorizeUrl.search)
+        .redirects(0)
+
+      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3001')
+      const callbackRes = await agent
+        .get(callbackUrl.pathname + callbackUrl.search)
+        .redirects(0)
+        .expect(302)
+
+      expect(callbackRes.headers.location).toContain('#provider=google-gmail')
+      expect(callbackRes.headers.location).toContain('status=success')
+
+      const token = await tokenRepository.getToken('test-user', 'google-gmail')
+      expect(token).toBeDefined()
+      expect(token?.providerId).toBe('google-gmail')
+    })
+
+    it('handles google-calendar OAuth flow', async () => {
+      const { app } = createApp({ tokenRepository })
+      const agent = request.agent(app)
+
+      const startRes = await agent
+        .get('/oauth/google-calendar/start?user_id=test-user')
+        .redirects(0)
+        .expect(302)
+
+      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3001')
+      const authorizeRes = await agent
+        .get(authorizeUrl.pathname + authorizeUrl.search)
+        .redirects(0)
+
+      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3001')
+      const callbackRes = await agent
+        .get(callbackUrl.pathname + callbackUrl.search)
+        .redirects(0)
+        .expect(302)
+
+      expect(callbackRes.headers.location).toContain('#provider=google-calendar')
+      expect(callbackRes.headers.location).toContain('status=success')
+
+      const token = await tokenRepository.getToken('test-user', 'google-calendar')
+      expect(token).toBeDefined()
+      expect(token?.providerId).toBe('google-calendar')
+    })
+
     it('handles Google OAuth flow', async () => {
       const { app } = createApp({ tokenRepository })
       const agent = request.agent(app)
