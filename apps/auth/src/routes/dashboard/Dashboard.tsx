@@ -24,6 +24,10 @@ import { ConnectOAuthButton } from '@/components/integration/ConnectOAuthButton'
 import { ConnectApiKeyButton } from '@/components/integration/ConnectApiKeyButton'
 import { ConnectKeyAndSecretButton } from '@/components/integration/ConnectApiSecretButton'
 import { ConnectGitHub } from '@/components/integration/ConnectGithubButton'
+import { useUser } from '@/context/userContext'
+
+// Mock user ID for development when not logged in
+const DEV_USER_ID = 'dev-user-123'
 
 // Mock data - will be replaced with IndexedDB later
 const connectedIntegrations = [
@@ -81,13 +85,13 @@ const integrationCategories = [
 ]
 
 // Helper function to render the appropriate button for each provider kind
-const renderProviderButton = (provider: Provider) => {
+const renderProviderButton = (provider: Provider, userId: string) => {
   switch (provider.kind) {
     case ProviderKind.OAUTH2_PKCE:
       if (provider.id === 'github') {
-        return <ConnectGitHub key={provider.id} provider={provider} userId="" />
+        return <ConnectGitHub key={provider.id} provider={provider} userId={userId} />
       }
-      return <ConnectOAuthButton key={provider.id} provider={provider} userId="" />
+      return <ConnectOAuthButton key={provider.id} provider={provider} userId={userId} />
 
     case ProviderKind.API_KEY:
       return <ConnectApiKeyButton key={provider.id} provider={provider} />
@@ -108,6 +112,10 @@ const renderProviderButton = (provider: Provider) => {
 }
 
 export const Dashboard = () => {
+  const { user } = useUser()
+
+  // Use user email as ID, or fallback to dev ID
+  const userId = user?.email || DEV_USER_ID
 
   return (
     <div className="page-container">
@@ -198,7 +206,7 @@ export const Dashboard = () => {
                           )}
 
                           {/* Render the appropriate button */}
-                          {renderProviderButton(provider)}
+                          {renderProviderButton(provider, userId)}
                         </div>
                       ))}
                     </div>
