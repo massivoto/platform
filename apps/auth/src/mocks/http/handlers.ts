@@ -26,6 +26,7 @@ export type Handler = {
 export const db = {
   tokens: new Map<string, unknown>(),
   configs: new Map<string, unknown>(),
+  integrations: new Map<string, { providerId: string; status: string; connectedAt: string; expiresAt: string | null }>(),
 }
 
 export function json<T>(
