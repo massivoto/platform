@@ -57,6 +57,7 @@ export const TokenResponseSchema = z.object({
 // ============================================================================
 
 export interface IntegrationToken {
+  id?: string // undefined before save, set after (UUID for sensitive data)
   integrationId: string
   kind: ProviderKind
   accessToken?: TokenSecret
@@ -73,6 +74,7 @@ export interface IntegrationToken {
 }
 
 export const IntegrationTokenSchema = z.object({
+  id: z.string().uuid().optional(),
   integrationId: z.string(),
   kind: ProviderKindSchema,
   accessToken: TokenSecretSchema.optional(),

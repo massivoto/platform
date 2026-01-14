@@ -1,3 +1,8 @@
+/**
+ * @deprecated This module is deprecated. Tokens are now stored server-side via auth-backend.
+ * Use the useIntegrations hook instead for OAuth connections.
+ * TODO AI: Remove this file once confirmed no longer needed.
+ */
 import { IntegrationStatus, IntegrationToken } from '../integration/integration.type.js'
 import { getIntegrationStatus } from '../integration/token-status.js'
 import { getSafeLocalStorage } from '../localstorage/safe-local-storage.js'

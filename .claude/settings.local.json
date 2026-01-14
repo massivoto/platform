@@ -22,7 +22,14 @@
       "Bash(AUTH_MODE=mock PORT=3001 FRONTEND_ORIGIN=http://localhost:8080 node:*)",
       "Bash(AUTH_MODE=mock PORT=3001 FRONTEND_ORIGIN=http://localhost:8080 npx vite-node:*)",
       "Skill(concept)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(claude mcp add context7 --transport sse https://mcp.context7.com/sse)",
+      "Bash(claude mcp list:*)",
+      "Bash(npm test)",
+      "Bash(claude mcp remove:*)",
+      "Bash(claude mcp add:*)",
+      "WebSearch",
+      "Bash(claude conversation rename \"migrateAgent\")"
     ]
   }
 }

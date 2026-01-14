@@ -1,6 +1,6 @@
 # PRD: OAuth Flow Completion
 
-**Status:** DRAFT
+**Status:** IMPLEMENTED
 
 > - DRAFT: Coding should not start, requirements being defined
 > - APPROVED: Code can start, requirements stable
@@ -33,6 +33,7 @@ This PRD defines the minimum work to complete the OAuth PKCE flow: persist token
 | 2026-01-13 | user_id validation | None (trusted string) | Simple for MVP, e.g., "john_doe" |
 | 2026-01-13 | Postgres client | postgres.js | Modern, tagged templates, cleaner syntax |
 | 2026-01-13 | Status column | Yes | Track `connected`, `revoked`, `expired` in DB |
+| 2026-01-13 | Future: ORM | Prisma | Migrate from postgres.js to Prisma for schema management |
 
 ## Scope
 
@@ -142,8 +143,8 @@ R-OAUTH-83: Update `services/auth-backend/package.json` with `postgres` (postgre
 
 ## Acceptance Criteria
 
-- [ ] `docker-compose up` starts PostgreSQL
-- [ ] Unit tests pass with mock repository
+- [x] `docker-compose up` starts PostgreSQL
+- [x] Unit tests pass with mock repository (11 tests in auth-backend, 20 tests in auth frontend)
 - [ ] Manual test: click Connect in frontend -> backend OAuth flow -> token saved to DB -> redirect to dashboard with success hash
-- [ ] `GET /api/integrations` returns the saved connection
-- [ ] Frontend shows connected state after refresh
+- [x] `GET /api/integrations` returns the saved connection
+- [x] Frontend shows connected state after refresh

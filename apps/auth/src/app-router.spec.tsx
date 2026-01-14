@@ -2,17 +2,15 @@ import { expect, describe, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 
-import { getProvider } from '@/lib/providers/provider-registry.js'
-
 import { appRouter } from './app-router'
-import { GoogleOAuthProvider } from '@react-oauth/google'
+import { UserProvider } from './context/userContext'
 
 const renderWithRoute = (initialEntry: string) => {
   const router = createMemoryRouter(appRouter.routes, { initialEntries: [initialEntry] })
   return render(
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+    <UserProvider>
       <RouterProvider router={router} />
-    </GoogleOAuthProvider>,
+    </UserProvider>,
   )
 }
 
