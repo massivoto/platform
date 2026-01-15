@@ -1,23 +1,25 @@
-import { GenLex, IGenLex, SingleParser } from '@masala/parser'
+import { GenLex, IGenLex, leanToken, SingleParser } from '@masala/parser'
 import { createArgGrammar } from './arg-parser.js'
 import {
   ArgTokens,
   createArgumentTokens,
 } from './args-details/tokens/argument-tokens.js'
 
-import { ArgumentNode, IdentifierNode, InstructionNode } from './ast.js'
-import { createCommandGrammar } from './command/command-parser.js'
-import { CommandTokens, createCommandTokens } from './command/command-tokens.js'
+import { ArgumentNode, CommandNode, IdentifierNode, InstructionNode } from './ast.js'
+import { buildCommandParser } from './command/command-parser.js'
 
-export interface InstructionTokens extends ArgTokens, CommandTokens {}
+export interface InstructionTokens extends ArgTokens {
+  COMMAND: SingleParser<CommandNode>
+}
 
 function getInstructionTokens(genlex: IGenLex): InstructionTokens {
-  // TODO: in fact the command should be one of the tokens,
-  // and we should create a separated Genlex with no separator to parse the command only
+  // Command parser uses its own GenLex with no separators to reject "@pkg/ name" with internal spaces
+  const commandParser = buildCommandParser()
 
   return {
-    ...createCommandTokens(genlex),
     ...createArgumentTokens(genlex),
+    // Register command as a single token with high priority, unwrap with leanToken (convention)
+    COMMAND: genlex.tokenize(commandParser, 'COMMAND', 3000).map(leanToken),
   }
 }
 
@@ -25,9 +27,9 @@ export function createInstructionGrammar(
   tokens: InstructionTokens,
 ): SingleParser<InstructionNode> {
   const arg = createArgGrammar(tokens)
-  const command = createCommandGrammar(tokens)
+  const { COMMAND } = tokens
 
-  const instruction = command.then(arg.optrep()).map((t) => {
+  const instruction = COMMAND.then(arg.optrep()).map((t) => {
     const command = t.first()
     const args = t.array().slice(1) as ArgumentNode[]
     const { output, args: argsWithoutOutput } = extractOutputFromArgs(args)
