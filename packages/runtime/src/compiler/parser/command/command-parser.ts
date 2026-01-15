@@ -16,31 +16,42 @@
  *
  */
 
-import { SingleParser } from '@masala/parser'
+import { C, SingleParser } from '@masala/parser'
 import { CommandNode } from '../ast.js'
-import { CommandTokens } from './command-tokens.js'
+import { identifier } from '../shared-parser.js'
 
-export function createCommandGrammar(
-  tokens: CommandTokens,
-): SingleParser<CommandNode> {
-  const { AT, SLASH, PACKAGE, FUNCTION } = tokens
+/**
+ * Build a standalone command parser using character-level combinators (NO GenLex).
+ * This ensures commands like "@pkg/ name" with internal spaces are rejected,
+ * because character-level parsing doesn't skip whitespace.
+ *
+ * Grammar: @package/function(/function)*
+ * - Must start with @
+ * - Must have at least one segment after package (e.g., @pkg/cmd)
+ * - No spaces allowed anywhere inside the command
+ */
+export function buildCommandParser(): SingleParser<CommandNode> {
+  const at = C.char('@')
+  const slash = C.char('/')
 
-  const _package = AT.drop().then(PACKAGE).first()
+  // @package
+  const packagePart = at.drop().then(identifier)
 
-  const segment = SLASH.drop().then(FUNCTION).first()
+  // /function (at least one required)
+  const segment = slash.drop().then(identifier)
 
-  const command: SingleParser<CommandNode> = _package
+  const command: SingleParser<CommandNode> = packagePart
     .then(segment.rep())
     .map((t) => {
-      const pack = t.first()
-      const name = t.last()
-      const path = t.array()
+      const parts = t.array() as string[]
+      const pack = parts[0]
+      const name = parts[parts.length - 1]
 
       return {
         type: 'command',
         package: pack,
         name,
-        path,
+        path: parts,
       }
     })
 
