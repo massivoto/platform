@@ -6,11 +6,11 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf dist",
+    "clean": "rimraf dist",
     "prebuild": "npm run clean",
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
-    "test": "npm run clean && npm run build && vitest run \"./src/compiler/parser\" ",
+    "test": "npm run build && vitest run \"./src/compiler/parser\" ",
     "prettier": "prettier --write \"src/**/*.ts\" \"./*.json\""
   },
   "dependencies": {
