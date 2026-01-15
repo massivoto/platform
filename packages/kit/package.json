@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf dist",
+    "clean": "rimraf dist",
     "prebuild": "npm run clean",
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
