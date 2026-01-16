@@ -188,4 +188,4 @@ export interface UnaryTokens {
 2. How to handle `forEachKey` equivalent?
 3. Mapping token syntax: `monitors->name` vs `{monitors:mappedBy:'name'}`
 4. String interpolation escaping rules (`${}` vs `$${}`)
-5. Array literals in expressions - currently not supported
+5. ~~Array literals in expressions~~ → PRD created: [array-literals.prd.md](../src/compiler/parser/array-literals.prd.md)
