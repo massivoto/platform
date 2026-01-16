@@ -1,15 +1,15 @@
 # Architecture: OAuth System
 
-**Last updated:** 2026-01-13
+**Last updated:** 2026-01-14
 
 ## Parent
 
-- [Platform Root](../../root.archi.md) (not yet created)
+- [Platform Root](../../root.archi.md)
 
 ## Children
 
-- [auth-backend service](../../services/auth-backend/auth-backend.archi.md) (planned)
-- [auth app](../../apps/auth/auth.archi.md) (not yet created)
+- [auth-backend service](../../services/auth-backend/auth-backend.archi.md)
+- [auth app](../../apps/auth/auth.archi.md)
 
 ## Overview
 
@@ -240,16 +240,17 @@ const hash = buildOAuthRedirectHash({
 ## Dependencies
 
 - **Depends on:** zod (schema validation)
-- **Used by:** apps/auth (frontend), services/auth-backend (planned)
+- **Used by:** apps/auth (frontend), services/auth-backend
 
-## What's Missing (Implementation Status)
+## Implementation Status
 
 | Component | Status |
 |-----------|--------|
 | auth-domain types | Done |
 | auth-domain PKCE | Done |
 | auth-domain URL builders | Done |
-| Frontend OAuth initiation | Needs refactor (currently implicit flow) |
-| Backend callback handler | Not started |
-| Backend token exchange | Not started |
-| Database token storage | Not started |
+| Frontend OAuth initiation | Done (useIntegrations hook) |
+| Backend callback handler | Done |
+| Backend token exchange | Done |
+| Database token storage | Done (PostgreSQL + InMemory) |
+| Mock testing infrastructure | Done |
