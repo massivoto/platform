@@ -145,6 +145,6 @@ R-OAUTH-83: Update `services/auth-backend/package.json` with `postgres` (postgre
 
 - [x] `docker-compose up` starts PostgreSQL
 - [x] Unit tests pass with mock repository (11 tests in auth-backend, 20 tests in auth frontend)
-- [ ] Manual test: click Connect in frontend -> backend OAuth flow -> token saved to DB -> redirect to dashboard with success hash
+- [x] Manual test: click Connect in frontend -> backend OAuth flow -> token saved to DB -> redirect to dashboard with success hash
 - [x] `GET /api/integrations` returns the saved connection
 - [x] Frontend shows connected state after refresh
