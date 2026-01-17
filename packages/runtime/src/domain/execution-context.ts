@@ -1,10 +1,10 @@
-import { Serializable, ReadableDate } from '@massivoto/kit'
+import { SerializableObject, ReadableDate } from '@massivoto/kit'
 
 import { fakeStorePointer, SerializableStorePointer } from './store.js'
 
 export interface ExecutionContext {
   env: Record<string, string> // will not be saved nor shared
-  data: Record<string, any>
+  data: SerializableObject
   extra: any
   meta: {
     tool?: string
@@ -13,7 +13,7 @@ export interface ExecutionContext {
   }
   user: {
     id: string
-    extra: Serializable
+    extra: SerializableObject
   }
   store: SerializableStorePointer
   prompts: string[]
@@ -37,7 +37,7 @@ export interface InstructionLog {
 
 export function createEmptyExecutionContext(
   userId: string,
-  extra: Serializable = {},
+  extra: SerializableObject = {},
 ): ExecutionContext {
   return {
     env: {},
