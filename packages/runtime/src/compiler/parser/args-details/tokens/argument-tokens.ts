@@ -116,7 +116,7 @@ export function createArgumentTokens(genlex: IGenLex): ArgTokens {
     })),
     STRING: STRING_LITERAL.map(leanToken).map((v: string) => ({
       type: 'literal-string',
-      value: v.slice(1, -1),
+      value: v,
     })),
 
     NUMBER: NUMBER_LITERAL.map(leanToken).map((v) => ({
