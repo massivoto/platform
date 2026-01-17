@@ -109,6 +109,30 @@ export interface ArgumentNode {
   name: IdentifierNode
   value: ExpressionNode
 }
+
+/**
+ * Reserved argument: output=identifier
+ * Stores the result of an instruction in a variable.
+ */
+export interface OutputArgNode {
+  type: 'output-arg'
+  target: IdentifierNode
+}
+
+/**
+ * Reserved argument: if=expression
+ * Conditionally executes the instruction based on the expression.
+ */
+export interface IfArgNode {
+  type: 'if-arg'
+  condition: ExpressionNode
+}
+
+/**
+ * Union of all reserved argument types.
+ */
+export type ReservedArgNode = OutputArgNode | IfArgNode
+
 /**
  * ActionNode represents the @package/name identifier in OTO source.
  * This is the "what" - which action to perform.
@@ -123,14 +147,15 @@ export interface ActionNode {
 }
 
 /**
- * InstructionNode is a complete executable unit: action + arguments + output.
+ * InstructionNode is a complete executable unit: action + arguments + reserved args.
  * A Program is a sequence of Instructions.
  */
 export interface InstructionNode {
   type: 'instruction'
   action: ActionNode
   args: ArgumentNode[]
-  output?: IdentifierNode
+  output?: IdentifierNode // from output=identifier
+  condition?: ExpressionNode // from if=expression
 }
 
 export type DslAstNode =
