@@ -12,10 +12,16 @@ import { atomicParser } from './tokens/literals-parser.js'
 export function createExpressionWithPipe(
   tokens: ArgTokens,
 ): SingleParser<ExpressionNode> {
-  const { LEFT, RIGHT } = tokens
+  const { LEFT, RIGHT, OPEN, CLOSE } = tokens
 
   const parenthesisExpression = F.lazy(() =>
     LEFT.drop().then(fullExpression).then(RIGHT.drop()),
+  ).map((t) => t.single())
+
+  // Braced expressions: {expr} - for complex expressions in arguments like if={x > 10}
+  // Must be lazy to avoid infinite recursion with fullExpression
+  const bracedExpression = F.lazy(() =>
+    OPEN.drop().then(fullExpression).then(CLOSE.drop()),
   ).map((t) => t.single())
 
   // Array literals: [1, 2, 3] - uses fullExpression for elements
@@ -34,8 +40,11 @@ export function createExpressionWithPipe(
     simpleExpression,
   )
 
-  const fullExpression: SingleParser<ExpressionNode> =
-    pipeExpression.or(simpleExpression)
+  // Order matters: try pipe expression first (requires |> segments),
+  // then braced expression (simple expr in braces), then bare simple expression
+  const fullExpression: SingleParser<ExpressionNode> = F.try(pipeExpression)
+    .or(F.try(bracedExpression))
+    .or(simpleExpression)
 
   return fullExpression
 }

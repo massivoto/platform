@@ -1,40 +1,27 @@
-import { ArgumentNode, IfNode, InstructionNode } from '../parser/ast.js'
-
-function isIfArg(arg: ArgumentNode | undefined): boolean {
-  return (
-    !!arg &&
-    arg.type === 'argument' &&
-    arg.name?.type === 'identifier' &&
-    arg.name.value === 'if'
-  )
-}
+import { IfNode, InstructionNode } from '../parser/ast.js'
 
 /**
- * Check if the instruction has an If argument
- * Not sure if it's useful
- * @param node
+ * Transform an instruction with if=condition into an IfNode.
+ * The condition is now parsed directly by the instruction parser
+ * and stored in node.condition (no arg searching needed).
  */
 export function normalizeIf(node: InstructionNode): InstructionNode | IfNode {
-  if (!node.args || node.args.length === 0) return node
+  // No condition = return unchanged
+  if (!node.condition) return node
 
-  const idx = node.args.findIndex(isIfArg)
-  if (idx === -1) return node
-
-  const testExpr = node.args[idx].value
-  const newArgs = node.args.toSpliced(idx, 1)
-
-  const instructionWithoutIf: InstructionNode = {
+  // Create instruction without condition for the consequent
+  const instructionWithoutCondition: InstructionNode = {
     type: 'instruction',
     action: node.action,
-    args: newArgs,
+    args: node.args,
     output: node.output,
+    // condition is intentionally omitted
   }
 
   const ifNode: IfNode = {
     type: 'if',
-    test: testExpr,
-    // consequent is the instruction to execute if test is true
-    consequent: instructionWithoutIf,
+    test: node.condition,
+    consequent: instructionWithoutCondition,
   }
 
   return ifNode

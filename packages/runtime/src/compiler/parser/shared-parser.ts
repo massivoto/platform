@@ -29,6 +29,7 @@ const reservedWords = [
   'let',
   'const',
   'var',
+  'output', // reserved for output=identifier
 ]
 
 export const identifier = F.regex(/[a-zA-Z_][a-zA-Z0-9_-]*/)

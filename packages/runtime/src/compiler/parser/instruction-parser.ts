@@ -1,15 +1,26 @@
-import { GenLex, IGenLex, leanToken, SingleParser } from '@masala/parser'
+import { C, F, GenLex, IGenLex, leanToken, SingleParser } from '@masala/parser'
 import { createArgGrammar } from './arg-parser.js'
 import {
   ArgTokens,
   createArgumentTokens,
 } from './args-details/tokens/argument-tokens.js'
 
-import { ArgumentNode, ActionNode, IdentifierNode, InstructionNode } from './ast.js'
+import {
+  ArgumentNode,
+  ActionNode,
+  ExpressionNode,
+  IdentifierNode,
+  IfArgNode,
+  InstructionNode,
+  OutputArgNode,
+} from './ast.js'
 import { buildActionParser } from './action/action-parser.js'
+import { createExpressionWithPipe } from './args-details/full-expression-parser.js'
 
 export interface InstructionTokens extends ArgTokens {
   ACTION: SingleParser<ActionNode>
+  OUTPUT_KEY: SingleParser<'output='>
+  IF_KEY: SingleParser<'if='>
 }
 
 function getInstructionTokens(genlex: IGenLex): InstructionTokens {
@@ -20,50 +31,78 @@ function getInstructionTokens(genlex: IGenLex): InstructionTokens {
     ...createArgumentTokens(genlex),
     // Register action as a single token with high priority, unwrap with leanToken (convention)
     ACTION: genlex.tokenize(actionParser, 'ACTION', 3000).map(leanToken),
+    // Reserved arg tokens: priority 500 (lower = higher priority, tried before IDENTIFIER at 1000)
+    // C.string() ensures no whitespace - literal match only (strict: output= not output =)
+    OUTPUT_KEY: genlex
+      .tokenize(C.string('output='), 'OUTPUT_KEY', 500)
+      .map(leanToken) as SingleParser<'output='>,
+    IF_KEY: genlex
+      .tokenize(C.string('if='), 'IF_KEY', 500)
+      .map(leanToken) as SingleParser<'if='>,
   }
 }
 
 export function createInstructionGrammar(
   tokens: InstructionTokens,
 ): SingleParser<InstructionNode> {
-  const arg = createArgGrammar(tokens)
-  const { ACTION } = tokens
+  const regularArg = createArgGrammar(tokens)
+  const { ACTION, OUTPUT_KEY, IF_KEY, IDENTIFIER } = tokens
 
-  const instruction = ACTION.then(arg.optrep()).map((t) => {
+  // Expression parser for if= value
+  const expression = createExpressionWithPipe(tokens)
+
+  // Reserved arg parsers
+  // output=identifier - OUTPUT_KEY is dropped, IDENTIFIER becomes the target
+  const outputArg: SingleParser<OutputArgNode> = OUTPUT_KEY.drop()
+    .then(IDENTIFIER)
+    .map((tuple) => ({
+      type: 'output-arg' as const,
+      target: tuple.single() as IdentifierNode,
+    }))
+
+  // if=expression - IF_KEY is dropped, expression becomes the condition
+  const ifArg: SingleParser<IfArgNode> = IF_KEY.drop()
+    .then(expression)
+    .map((tuple) => ({
+      type: 'if-arg' as const,
+      condition: tuple.single() as ExpressionNode,
+    }))
+
+  // Combined reserved arg parser with backtracking
+  const reservedArg = F.try(outputArg).or(ifArg)
+
+  // Any arg: try reserved first, then regular
+  const anyArg = F.try(reservedArg).or(regularArg)
+
+  const instruction = ACTION.then(anyArg.optrep()).map((t) => {
     const action = t.first()
-    const args = t.array().slice(1) as ArgumentNode[]
-    const { output, args: argsWithoutOutput } = extractOutputFromArgs(args)
+    const allArgs = t.array().slice(1) as (ArgumentNode | OutputArgNode | IfArgNode)[]
+
+    // Separate reserved args from regular args
+    const regularArgs: ArgumentNode[] = []
+    let output: IdentifierNode | undefined
+    let condition: ExpressionNode | undefined
+
+    for (const arg of allArgs) {
+      if (arg.type === 'output-arg') {
+        output = arg.target
+      } else if (arg.type === 'if-arg') {
+        condition = arg.condition
+      } else {
+        regularArgs.push(arg)
+      }
+    }
 
     const instructionNode: InstructionNode = {
       type: 'instruction',
       action,
-      args: argsWithoutOutput,
+      args: regularArgs,
       output,
+      condition,
     }
     return instructionNode
   })
   return instruction as SingleParser<InstructionNode>
-}
-
-function extractOutputFromArgs(args: ArgumentNode[]): {
-  output: IdentifierNode | undefined
-  args: ArgumentNode[]
-} {
-  const outputArg = args.find((arg) => arg.name.value === 'output')
-  if (outputArg) {
-    const output = outputArg as ArgumentNode
-    const argsWithoutOutput = args.filter((arg) => arg.name.value !== 'output')
-    if (output.value.type === 'identifier') {
-      return {
-        output: { type: 'identifier', value: output.value.value },
-        args: argsWithoutOutput,
-      }
-    }
-  }
-  return {
-    output: undefined,
-    args: args,
-  }
 }
 
 export function buildInstructionParserForTest(): SingleParser<InstructionNode> {
