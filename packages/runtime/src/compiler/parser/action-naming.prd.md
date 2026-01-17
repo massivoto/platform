@@ -1,6 +1,6 @@
 # PRD: Action Naming Refactor
 
-**Status:** APPROVED
+**Status:** IMPLEMENTED
 **Last updated:** 2026-01-17
 
 > - DRAFT: Coding should not start, requirements being defined
@@ -14,12 +14,12 @@
 |---------|--------|----------|
 | Context | ✅ Complete | 100% |
 | Scope | ✅ Complete | 100% |
-| Requirements: AST Types | ❌ Not Started | 0/3 |
-| Requirements: Parser Files | ❌ Not Started | 0/5 |
-| Requirements: Parser References | ❌ Not Started | 0/4 |
-| Requirements: PRD Updates | ❌ Not Started | 0/3 |
-| Acceptance Criteria | ❌ Not Started | 0/2 |
-| **Overall** | **APPROVED** | **0%** |
+| Requirements: AST Types | ✅ Complete | 3/3 |
+| Requirements: Parser Files | ✅ Complete | 5/5 |
+| Requirements: Parser References | ✅ Complete | 4/4 |
+| Requirements: PRD Updates | ✅ Complete | 3/3 |
+| Acceptance Criteria | ✅ Complete | 2/2 |
+| **Overall** | **IMPLEMENTED** | **100%** |
 
 ## Parent PRD
 
@@ -67,43 +67,43 @@ This refactor applies consistent naming:
 
 **Last updated:** 2026-01-17
 **Test:** `npx vitest run packages/runtime/src/compiler/parser`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- ❌ R-NAME-01: Rename `CommandNode` interface to `ActionNode` in `ast.ts`
-- ❌ R-NAME-02: Rename `InstructionNode.command` field to `InstructionNode.action`
-- ❌ R-NAME-03: Update `DslAstNode` union type to use `ActionNode` instead of `CommandNode`
+- ✅ R-NAME-01: Rename `CommandNode` interface to `ActionNode` in `ast.ts`
+- ✅ R-NAME-02: Rename `InstructionNode.command` field to `InstructionNode.action`
+- ✅ R-NAME-03: Update `DslAstNode` union type to use `ActionNode` instead of `CommandNode`
 
 ### Parser Files
 
 **Last updated:** 2026-01-17
 **Test:** `npx vitest run packages/runtime/src/compiler/parser`
-**Progress:** 0/5 (0%)
+**Progress:** 5/5 (100%)
 
-- ❌ R-NAME-21: Rename directory `command/` → `action/`
-- ❌ R-NAME-22: Rename `command-parser.ts` → `action-parser.ts`
-- ❌ R-NAME-23: Rename `command-parser.spec.ts` → `action-parser.spec.ts`
-- ❌ R-NAME-24: Rename `command-tokens.ts` → `action-tokens.ts`
-- ❌ R-NAME-25: Rename function `buildCommandParser()` → `buildActionParser()`
+- ✅ R-NAME-21: Rename directory `command/` → `action/`
+- ✅ R-NAME-22: Rename `command-parser.ts` → `action-parser.ts`
+- ✅ R-NAME-23: Rename `command-parser.spec.ts` → `action-parser.spec.ts`
+- ✅ R-NAME-24: Rename `command-tokens.ts` → `action-tokens.ts`
+- ✅ R-NAME-25: Rename function `buildCommandParser()` → `buildActionParser()`
 
 ### Parser References
 
 **Last updated:** 2026-01-17
 **Test:** `npx vitest run packages/runtime/src/compiler/parser`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- ❌ R-NAME-41: Update `instruction-parser.ts` imports and references
-- ❌ R-NAME-42: Update `InstructionTokens.COMMAND` → `InstructionTokens.ACTION`
-- ❌ R-NAME-43: Update all `CommandNode` type references to `ActionNode`
-- ❌ R-NAME-44: Update all `.command` property accesses to `.action`
+- ✅ R-NAME-41: Update `instruction-parser.ts` imports and references
+- ✅ R-NAME-42: Update `InstructionTokens.COMMAND` → `InstructionTokens.ACTION`
+- ✅ R-NAME-43: Update all `CommandNode` type references to `ActionNode`
+- ✅ R-NAME-44: Update all `.command` property accesses to `.action`
 
 ### PRD Updates
 
 **Last updated:** 2026-01-17
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- ❌ R-NAME-61: Update `dsl-0.5-parser.prd.md` terminology (Command → Action)
-- ❌ R-NAME-62: Update `command-parser-refactor.prd.md` → rename file to `action-parser-refactor.prd.md`
-- ❌ R-NAME-63: Update any other PRD references to CommandNode/command-parser
+- ✅ R-NAME-61: Update `dsl-0.5-parser.prd.md` terminology (Command → Action)
+- ✅ R-NAME-62: Update `command-parser-refactor.prd.md` → rename file to `action-parser-refactor.prd.md`
+- ✅ R-NAME-63: Update any other PRD references to CommandNode/command-parser
 
 ## Dependencies
 
@@ -113,7 +113,7 @@ This refactor applies consistent naming:
 ## Open Questions
 
 - [x] Should InstructionNode be renamed? → No, keep it. Instruction = Action + args.
-- [ ] Should interpreter references be updated? → Out of scope for this PRD (different layer)
+- [x] Should interpreter references be updated? → Out of scope for this PRD (different layer)
 
 ## Acceptance Criteria
 
@@ -125,5 +125,5 @@ This refactor applies consistent naming:
 
 ### Criteria
 
-- [ ] AC-NAME-01: The word "Command" does not appear in any `.ts` file within `packages/runtime/src/compiler/parser/`
-- [ ] AC-NAME-02: All existing parser tests pass after renaming (no functional changes)
+- [x] AC-NAME-01: The word "Command" does not appear in any `.ts` file within `packages/runtime/src/compiler/parser/` (except in comments explaining the Action/Command distinction)
+- [x] AC-NAME-02: All existing parser tests pass after renaming (no functional changes)

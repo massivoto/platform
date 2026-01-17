@@ -109,24 +109,33 @@ export interface ArgumentNode {
   name: IdentifierNode
   value: ExpressionNode
 }
-export interface CommandNode {
-  type: 'command'
+/**
+ * ActionNode represents the @package/name identifier in OTO source.
+ * This is the "what" - which action to perform.
+ * The actual execution is handled by Command (JS handler) in the handlers layer.
+ */
+export interface ActionNode {
+  type: 'action'
   // TODO: rename to segments
   path: string[] // robusta/deploy/app -> ['robusta', 'deploy', 'app']
   package: string // @robusta/print -> 'robusta'
   name: string // value of the last segment -> 'app'
 }
 
+/**
+ * InstructionNode is a complete executable unit: action + arguments + output.
+ * A Program is a sequence of Instructions.
+ */
 export interface InstructionNode {
   type: 'instruction'
-  command: CommandNode
+  action: ActionNode
   args: ArgumentNode[]
   output?: IdentifierNode
 }
 
 export type DslAstNode =
   | ProgramNode
-  | CommandNode
+  | ActionNode
   | ArgumentNode
   | ExpressionNode
 
