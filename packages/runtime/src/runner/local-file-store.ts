@@ -22,6 +22,7 @@ export class LocalFileStore implements StoreProvider {
     return {
       uri: `file://${this.filePath}`,
       name: 'local-file-store',
+      option: undefined,
     }
   }
 }
