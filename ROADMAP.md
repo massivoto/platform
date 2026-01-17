@@ -14,21 +14,62 @@
 
 The goal is to have a working local runner to validate the product concept.
 
-### Reserved Arguments & Output
+### Identifier Semantics
 
-Current state: `output`, `if`, `forEach` are treated as regular arguments with post-processing hacks.
-One problem is that an identifier can't be a reserved word, of if can't be an argument name.
-(in shared-parser:)
+There are two distinct uses of identifiers that share the same AST type but have different runtime semantics:
 
-```ts
-export const identifier = F.regex(/[a-zA-Z_][a-zA-Z0-9_-]*/)
-.filter((s) => s.charAt(s.length - 1) !== '-')
-.filter((s) => !reservedWords.includes(s))
+| Use | Example | Semantics | Current Type |
+|-----|---------|-----------|--------------|
+| **Value identifier** | `arg1=myValue` | Evaluated from context | `IdentifierNode` |
+| **Key identifier** | `output=result` | Used as variable name (string key) | `IdentifierNode` |
+
+The same problem applies to:
+- `output=varName` - `varName` is a key, not a value
+- `forEach="item of items"` - `item` is a key (iterator variable), `items` is a value
+
+**Problem:** Both use `IdentifierNode` but:
+- Value identifiers are evaluated: `context.get("myValue")`
+- Key identifiers are used as strings: `context.set("result", value)`
+
+**Options to explore:**
+- [ ] **Separate AST types**: `KeyIdentifierNode` vs `ValueIdentifierNode`
+- [ ] **Single type with flag**: `IdentifierNode { value: string, isKey?: boolean }`
+- [ ] **Context-based**: Let the interpreter/evaluator know based on position (output.target is always a key)
+
+This affects the evaluator and needs resolution before forEach implementation.
+
+### Variable Resolution & Scope
+
+Variables can exist at two levels:
+
+| Level | Source | Lifetime | Example |
+|-------|--------|----------|---------|
+| **Scope** | Program-local, created by `output=`, `forEach` iterator | Within program execution | `output=result` creates `result` in scope |
+| **ExecutionContext** | External, passed in from runner/caller | Across program | API credentials, input data |
+
+**Resolution rule:** Scope wins on collision.
+
+```
+ExecutionContext: { user: "external-user", token: "xxx" }
+Program:
+  @api/call output=user    # creates scope.user
+  @log/print msg=user      # uses scope.user (shadows context.user)
 ```
 
-- [ ] **Reserved argument system**: define `reservedArg` with priority over regular args
-- [ ] **Native output handling**: `output` should not go through standard arg parsing
-- [ ] **Clean normalizer**: remove dirty tricks for `if` detection; use proper reserved word handling
+**Implementation needs:**
+- [ ] Separate `Scope` from `ExecutionContext` in runtime
+- [ ] Variable lookup: check scope first, then context
+- [ ] Clear scope semantics for nested blocks (forEach body has its own scope?)
+- [ ] Consider: should scope variables be mutable? (`output=x` twice)
+
+### Cleanup (end of v0.5)
+
+- [ ] **Remove normalizers**: `normalizeIf`, `normalizeForEach` - interpreter should handle `condition` directly on `InstructionNode`
+- [ ] **Document braced expressions**: `{expr}` was added to `full-expression-parser.ts` for `if={condition}` but is not documented in `expression-grammar.md`. Braced expressions should be first-class citizens in the expression grammar documentation, not a hidden feature.
+
+### Syntax Strictness
+
+- [x] **No spaces around `=`**: `key=value` only, reject `key = value` and `key= value`
 
 ### Parser Enhancements
 
