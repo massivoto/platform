@@ -60,6 +60,8 @@ export interface ArgTokens extends UnaryTokens {
   COLON: SingleParser<':'>
   COMMA: SingleParser<','>
   DOT: SingleParser<'.'>
+  LBRACKET: SingleParser<'['>
+  RBRACKET: SingleParser<']'>
   //EQUALITY_OP: Token<'==' | '!='>
   // ADDITION_OPS: SingleParser<'+' | '-'>
   // MULTIPLY_OPS: SingleParser<'*' | '/' | '%'>
@@ -78,6 +80,7 @@ export function createArgumentTokens(genlex: IGenLex): ArgTokens {
   ])
   const [AND, OR] = genlex.keywords(['&&', '||'])
   const [LEFT, RIGHT, OPEN, CLOSE] = genlex.keywords(['(', ')', '{', '}'])
+  const [LBRACKET, RBRACKET] = genlex.keywords(['[', ']'])
   const [COLON, COMMA, DOT] = genlex.keywords([':', ',', '.'])
   const PIPE = genlex.tokenize('|', 'PIPE', 1200)
 
@@ -147,5 +150,7 @@ export function createArgumentTokens(genlex: IGenLex): ArgTokens {
     COLON: COLON.map(leanToken) as SingleParser<':'>,
     COMMA: COMMA.map(leanToken) as SingleParser<','>,
     DOT: DOT.map(leanToken) as SingleParser<'.'>,
+    LBRACKET: LBRACKET.map(leanToken) as SingleParser<'['>,
+    RBRACKET: RBRACKET.map(leanToken) as SingleParser<']'>,
   }
 }

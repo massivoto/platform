@@ -67,6 +67,11 @@ export interface LiteralNullNode {
   value: null
 }
 
+export interface ArrayLiteralNode {
+  type: 'array-literal'
+  elements: ExpressionNode[]
+}
+
 /**
  * Unary and binary can be applied on these
  */
@@ -81,6 +86,7 @@ export interface IdentifierNode {
 export type SimpleExpressionNode =
   | IdentifierNode
   | LiteralNode
+  | ArrayLiteralNode
   | MemberExpressionNode
   | UnaryExpressionNode
   | BinaryExpressionNode
@@ -90,6 +96,7 @@ export type SimpleExpressionNode =
 export type ExpressionNode =
   | IdentifierNode
   | LiteralNode
+  | ArrayLiteralNode
   | MemberExpressionNode
   | UnaryExpressionNode
   | BinaryExpressionNode
