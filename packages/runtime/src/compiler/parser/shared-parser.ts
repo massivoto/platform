@@ -11,10 +11,10 @@ const reservedWords = [
   'true',
   'false',
   'for',
-  // 'forEach', TODO: needed for forEach syntactic sugar
+  'forEach',
   'for-each',
   'in',
-  // 'if', TODO: needed for if syntactic sugar
+  'if',
   'else',
   'endif',
   'repeat',
@@ -41,7 +41,35 @@ export const booleanLiteral: SingleParser<boolean> = C.stringIn([
   'true',
   'false',
 ]).map((v) => v === 'true')
+// Process escape sequences in a string: \", \\, \n, \t
+function processEscapes(str: string): string {
+  return str.replace(/\\(["\\/nt])/g, (_, char) => {
+    switch (char) {
+      case 'n':
+        return '\n'
+      case 't':
+        return '\t'
+      default:
+        return char // " or \ or /
+    }
+  })
+}
+
+// String literal: matches "..." and processes escape sequences
+// Matches any char except unescaped " or literal newline
 export const stringLiteral = quote
-  .then(F.not(C.charIn('"\n')).rep())
+  .then(
+    C.char('\\')
+      .then(C.charIn('"\\nt'))
+      .or(F.not(C.charIn('"\n')))
+      .optrep(),
+  )
   .then(quote)
-  .join()
+  .map((tuple) => {
+    const raw = tuple
+      .array()
+      .flat()
+      .join('')
+    // raw includes quotes, remove them and process escapes
+    return processEscapes(raw.slice(1, -1))
+  })
