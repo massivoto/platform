@@ -54,7 +54,7 @@ export function normalizeForEach(
 
   const body: InstructionNode = {
     type: 'instruction',
-    command: node.command,
+    action: node.action,
     args: newArgs,
     output: node.output,
   }
