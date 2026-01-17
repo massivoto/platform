@@ -1,5 +1,6 @@
 import { F, SingleParser } from '@masala/parser'
 import { ExpressionNode, SimpleExpressionNode } from '../ast.js'
+import { createArrayParser } from './array-parser.js'
 import {
   createPipeParser,
   PipeExpressionNode,
@@ -16,10 +17,14 @@ export function createExpressionWithPipe(
   const parenthesisExpression = F.lazy(() =>
     LEFT.drop().then(fullExpression).then(RIGHT.drop()),
   ).map((t) => t.single())
-  const atomic: SingleParser<ExpressionNode> = atomicParser(tokens).or(
-    parenthesisExpression,
-  )
-  const primary = atomic
+
+  // Array literals: [1, 2, 3] - uses fullExpression for elements
+  const arrayLiteral = createArrayParser(tokens, () => fullExpression)
+
+  const atomic: SingleParser<ExpressionNode> = atomicParser(tokens)
+  const primary = F.try(arrayLiteral)
+    .or(F.try(parenthesisExpression))
+    .or(atomic)
 
   const simpleExpression: SingleParser<SimpleExpressionNode> =
     createSimpleExpressionParser(tokens, primary)
