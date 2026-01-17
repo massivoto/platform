@@ -4,13 +4,13 @@
 
 export type Serializable = Record<
   string,
-  Primitive | BaseSerializableArray | SerializableObject | undefined
+  Primitive | BaseSerializableArray | SerializableObject
 >
 
-type Primitive = string | number | boolean | null
+type Primitive = string | number | boolean| undefined // undefined is needed for optional field
 type BaseSerializableArray = Primitive[]
 
-interface SerializableObject {
+export interface SerializableObject {
   [key: string]:
     | Primitive
     | SerializableObject

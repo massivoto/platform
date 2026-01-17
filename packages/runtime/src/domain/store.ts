@@ -1,4 +1,5 @@
 import { Serializable } from '@massivoto/kit'
+import { SerializableObject } from '@massivoto/kit/dist'
 
 /**
  * Interface allowing the Store to read and write data.
@@ -16,10 +17,10 @@ export interface StoreProvider {
  * Will be transferred from the interpreter to the Runner in another machine,
  * so it needs to be serializable.
  */
-export interface SerializableStorePointer extends Serializable {
+export interface SerializableStorePointer extends SerializableObject {
   uri: string // e.g. file://store.json, db://team/123, memory://demo-store, jdbc:mysql://localhost/myDataSource
   name: string // jdbc/myDataSource, file/store, memory/demo-store
-  option?: string // free, depends on the provider implementation
+  option: string|undefined // free, depends on the provider implementation
 }
 
 export function fakeStorePointer(): SerializableStorePointer {
