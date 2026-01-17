@@ -11,8 +11,8 @@ describe('Genlex for instruction parser', () => {
     expect(parsing.isAccepted()).toBe(true)
     expect(parsing.value).toEqual({
       type: 'instruction',
-      command: {
-        type: 'command',
+      action: {
+        type: 'action',
         package: 'package',
         name: 'name',
         path: ['package', 'name'],

@@ -5,21 +5,21 @@ import {
   createArgumentTokens,
 } from './args-details/tokens/argument-tokens.js'
 
-import { ArgumentNode, CommandNode, IdentifierNode, InstructionNode } from './ast.js'
-import { buildCommandParser } from './command/command-parser.js'
+import { ArgumentNode, ActionNode, IdentifierNode, InstructionNode } from './ast.js'
+import { buildActionParser } from './action/action-parser.js'
 
 export interface InstructionTokens extends ArgTokens {
-  COMMAND: SingleParser<CommandNode>
+  ACTION: SingleParser<ActionNode>
 }
 
 function getInstructionTokens(genlex: IGenLex): InstructionTokens {
-  // Command parser uses its own GenLex with no separators to reject "@pkg/ name" with internal spaces
-  const commandParser = buildCommandParser()
+  // Action parser uses its own GenLex with no separators to reject "@pkg/ name" with internal spaces
+  const actionParser = buildActionParser()
 
   return {
     ...createArgumentTokens(genlex),
-    // Register command as a single token with high priority, unwrap with leanToken (convention)
-    COMMAND: genlex.tokenize(commandParser, 'COMMAND', 3000).map(leanToken),
+    // Register action as a single token with high priority, unwrap with leanToken (convention)
+    ACTION: genlex.tokenize(actionParser, 'ACTION', 3000).map(leanToken),
   }
 }
 
@@ -27,16 +27,16 @@ export function createInstructionGrammar(
   tokens: InstructionTokens,
 ): SingleParser<InstructionNode> {
   const arg = createArgGrammar(tokens)
-  const { COMMAND } = tokens
+  const { ACTION } = tokens
 
-  const instruction = COMMAND.then(arg.optrep()).map((t) => {
-    const command = t.first()
+  const instruction = ACTION.then(arg.optrep()).map((t) => {
+    const action = t.first()
     const args = t.array().slice(1) as ArgumentNode[]
     const { output, args: argsWithoutOutput } = extractOutputFromArgs(args)
 
     const instructionNode: InstructionNode = {
       type: 'instruction',
-      command,
+      action,
       args: argsWithoutOutput,
       output,
     }
