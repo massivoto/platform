@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { F, Stream } from '@masala/parser'
+import { Stream } from '@masala/parser'
 import { buildInstructionParserForTest } from '../parser/instruction-parser.js'
 import { normalizeIf } from './normalize-if.js'
 
 describe('Normalize-if  instruction parser', () => {
-  it('normalizes an instruction with reserved `if` into an IfNode', () => {
+  it('normalizes an instruction with if=identifier into an IfNode', () => {
     const instruction = '@package/name arg1=10 if=testValue'
     const stream = Stream.ofChars(instruction)
     const grammar = buildInstructionParserForTest()
@@ -39,6 +39,34 @@ describe('Normalize-if  instruction parser', () => {
     expect(
       ifNode.consequent.args.find((a: any) => a.name.value === 'if'),
     ).toBeUndefined()
+  })
+
+  it('normalizes an instruction with if={expression} into an IfNode', () => {
+    const instruction = '@package/name arg1=10 if={followers > 100}'
+    const stream = Stream.ofChars(instruction)
+    const grammar = buildInstructionParserForTest()
+    const parsing = grammar.parse(stream)
+
+    expect(parsing.isAccepted()).toBe(true)
+
+    const instr = parsing.value
+    expect(instr.condition).toBeDefined()
+
+    const normalized = normalizeIf(instr)
+
+    // We should now have an IfNode
+    expect((normalized as any).type).toBe('if')
+    const ifNode = normalized as any
+
+    // Test expression is a binary expression (followers > 100)
+    expect(ifNode.test.type).toBe('binary')
+    expect(ifNode.test.operator).toBe('>')
+    expect(ifNode.test.left).toEqual({ type: 'identifier', value: 'followers' })
+    expect(ifNode.test.right).toEqual({ type: 'literal-number', value: 100 })
+
+    // Consequent has the regular arg
+    expect(ifNode.consequent.args.length).toBe(1)
+    expect(ifNode.consequent.args[0].name.value).toBe('arg1')
   })
 
   it('returns the instruction unchanged when no reserved `if` argument is present', () => {
