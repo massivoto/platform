@@ -16,7 +16,7 @@ export class Interpreter {
     context: ExecutionContext,
   ): Promise<ExecutionContext> {
     const start = nowTs()
-    const { package: pkg, name } = instruction.command
+    const { package: pkg, name } = instruction.action
     const id = `@${pkg}/${name}`
     const handler = this.registry.resolve(id)
     if (!handler) throw new Error(`Command not found: ${id}`)

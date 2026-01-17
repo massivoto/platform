@@ -1,6 +1,6 @@
 /**
  *
- * Parser for building the AST part of  args in a command line
+ * Parser for building the AST part of args in an instruction
  * @tweeter/users  ids={tweets:mappedBy:id} output = users
  *
  * ids={tweets:mappedBy:id} and output = users  are both args

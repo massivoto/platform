@@ -10,65 +10,25 @@
 
 ---
 
-## Foundation: Domain Naming
-
-Before implementation, establish clear terminology. Naming defines how we think about the system.
-
-### Core Execution Model
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              PRODUCT LAYER                                   │
-│                                                                             │
-│   User writes:  @ai/generate model="gemini" prompt="..."                    │
-│                         │                                                    │
-│                         ▼                                                    │
-│                 ┌───────────────┐                                           │
-│                 │    ACTION     │  ← user-facing, product concept           │
-│                 └───────────────┘                                           │
-│                                                                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                              BINDING LAYER                                   │
-│                                                                             │
-│                 ┌───────────────┐                                           │
-│                 │ActionResolver │  ← resolves Action → Command(s)           │
-│                 └───────────────┘                                           │
-│                                                                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                              TECHNICAL LAYER                                 │
-│                                                                             │
-│                 ┌───────────────┐                                           │
-│                 │    COMMAND    │  ← JS implementation                      │
-│                 │   (Handler)   │                                           │
-│                 └───────────────┘                                           │
-│                                                                             │
-│   Executes:  GeminiHandler.run(args, context)                               │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Naming Decisions
-
-| Layer | Term | Definition | Status |
-|-------|------|------------|--------|
-| Product | **Action** | What the user writes: `@ai/generate model="gemini"` | Decided |
-| Technical | **Command** | TypeScript handler that executes the action | Decided |
-| Binding | **ActionResolver** | Maps Action + args → Command(s) | Decided |
-| Storage | **CommandRegistry** | Stores available Command implementations | Exists |
-| Credentials | **CredentialVault** | Provides OAuth tokens/API keys to commands | Decided |
-
-### Naming Tasks
-
-- [ ] **Rename in codebase**: apply Action/Command terminology consistently
-- [ ] **Update AST types**: `InstructionNode` → consider `ActionNode`?
-- [ ] **Document in code**: add JSDoc explaining the layer distinction
-- [ ] **CredentialVault implementation**: rename Auth Registry, define interface
-
----
-
 ## v0.5 - Local Execution
 
 The goal is to have a working local runner to validate the product concept.
+
+### Reserved Arguments & Output
+
+Current state: `output`, `if`, `forEach` are treated as regular arguments with post-processing hacks.
+One problem is that an identifier can't be a reserved word, of if can't be an argument name.
+(in shared-parser:)
+
+```ts
+export const identifier = F.regex(/[a-zA-Z_][a-zA-Z0-9_-]*/)
+.filter((s) => s.charAt(s.length - 1) !== '-')
+.filter((s) => !reservedWords.includes(s))
+```
+
+- [ ] **Reserved argument system**: define `reservedArg` with priority over regular args
+- [ ] **Native output handling**: `output` should not go through standard arg parsing
+- [ ] **Clean normalizer**: remove dirty tricks for `if` detection; use proper reserved word handling
 
 ### Parser Enhancements
 
@@ -76,14 +36,9 @@ The goal is to have a working local runner to validate the product concept.
 - [ ] **If statement**: `@if condition { ... }`
 - [ ] **ForEach statement**: `@forEach item of items { ... }`
 - [ ] **Goto/Label**: control flow jumps for complex workflows
+- [ ] **Unary operators**: 2 skipped tests in `unary-parser.spec.ts` need investigation
 
-### Reserved Arguments & Output
 
-Current state: `output`, `if`, `forEach` are treated as regular arguments with post-processing hacks.
-
-- [ ] **Reserved argument system**: define `reservedArg` with priority over regular args
-- [ ] **Native output handling**: `output` should not go through standard arg parsing
-- [ ] **Clean normalizer**: remove dirty tricks for `if` detection; use proper reserved word handling
 
 ### Evaluator
 
@@ -98,7 +53,7 @@ Current state: `output`, `if`, `forEach` are treated as regular arguments with p
 
 ### Action Resolution System
 
-Using the terminology from Foundation: **Action** (product) → **ActionResolver** (binding) → **Command** (technical).
+**Action** (product) → **ActionResolver** (binding) → **Command** (technical).
 
 #### ActionResolver
 
@@ -230,4 +185,3 @@ Focus on adoption and usability, no new runtime features.
 1. **Goto/Label semantics**: How do labels interact with blocks and loops?
 2. **Validation app**: Separate service or embedded in runner?
 3. **Type system depth**: How strict should pipe type checking be in v1.0?
-4. **ActionNode vs InstructionNode**: Should we rename AST types to match Action terminology?

@@ -1,48 +1,48 @@
 import { Stream } from '@masala/parser'
 import { describe, expect, it } from 'vitest'
-import { buildCommandParser } from './command-parser.js'
+import { buildActionParser } from './action-parser.js'
 
-// Uses buildCommandParser() which has its own GenLex with no separators
-const grammar = buildCommandParser()
+// Uses buildActionParser() which has its own GenLex with no separators
+const grammar = buildActionParser()
 
-describe('Command parser (no-separator GenLex)', () => {
-  it('should accept a simple command', () => {
+describe('Action parser (no-separator GenLex)', () => {
+  it('should accept a simple action', () => {
     const stream = Stream.ofChars('@package/name')
     const parsing = grammar.parse(stream)
     expect(parsing.isAccepted()).toBe(true)
     expect(parsing.value).toEqual({
-      type: 'command',
+      type: 'action',
       package: 'package',
       name: 'name',
       path: ['package', 'name'],
     })
   })
 
-  it('should accept a sub command', () => {
+  it('should accept a sub action', () => {
     const stream = Stream.ofChars('@package/path/name')
     const parsing = grammar.parse(stream)
     expect(parsing.isAccepted()).toBe(true)
     expect(parsing.value).toEqual({
-      type: 'command',
+      type: 'action',
       package: 'package',
       name: 'name',
       path: ['package', 'path', 'name'],
     })
   })
 
-  it('should decline command without @ prefix', () => {
+  it('should decline action without @ prefix', () => {
     const stream = Stream.ofChars('package/name')
     const parsing = grammar.parse(stream)
     expect(parsing.isAccepted()).toBe(false)
   })
 
-  it('should decline command without segment (@package alone)', () => {
+  it('should decline action without segment (@package alone)', () => {
     const stream = Stream.ofChars('@package')
     const parsing = grammar.parse(stream)
     expect(parsing.isAccepted()).toBe(false)
   })
 
-  describe('rejects commands with internal spaces', () => {
+  describe('rejects actions with internal spaces', () => {
     it('should reject @package name (space instead of /)', () => {
       const stream = Stream.ofChars('@package name')
       const parsing = grammar.parse(stream)

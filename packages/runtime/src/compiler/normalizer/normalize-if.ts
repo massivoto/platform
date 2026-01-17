@@ -25,7 +25,7 @@ export function normalizeIf(node: InstructionNode): InstructionNode | IfNode {
 
   const instructionWithoutIf: InstructionNode = {
     type: 'instruction',
-    command: node.command,
+    action: node.action,
     args: newArgs,
     output: node.output,
   }
