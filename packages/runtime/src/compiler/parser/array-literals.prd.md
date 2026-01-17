@@ -1,6 +1,6 @@
 # PRD: Array Literals
 
-**Status:** DRAFT
+**Status:** IMPLEMENTED
 **Last updated:** 2026-01-17
 
 > - DRAFT: Coding should not start, requirements being defined
@@ -14,12 +14,12 @@
 |---------|--------|----------|
 | Context | ✅ Complete | 100% |
 | Scope | ✅ Complete | 100% |
-| Requirements: Syntax | ❌ Not Started | 0/4 |
-| Requirements: Elements | ❌ Not Started | 0/4 |
-| Requirements: AST | ❌ Not Started | 0/3 |
-| Requirements: Parser Integration | ❌ Not Started | 0/4 |
-| Acceptance Criteria | ❌ Not Started | 0/6 |
-| **Overall** | **DRAFT** | **0%** |
+| Requirements: Syntax | ✅ Complete | 4/4 |
+| Requirements: Elements | ✅ Complete | 4/4 |
+| Requirements: AST | ✅ Complete | 3/3 |
+| Requirements: Parser Integration | ✅ Complete | 4/4 |
+| Acceptance Criteria | ✅ Complete | 6/6 |
+| **Overall** | **IMPLEMENTED** | **100%** |
 
 ## Parent PRD
 
@@ -76,39 +76,39 @@ Arrays will be added to the `ExpressionNode` type and parsed as primary expressi
 
 **Last updated:** 2026-01-17
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/args-details/array-parser.spec.ts`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- ❌ R-ARR-01: Array literals use bracket syntax: `[1, 2, 3]`
-- ❌ R-ARR-02: Elements separated by commas with optional whitespace: `[1, 2, 3]` or `[1,2,3]`
-- ❌ R-ARR-03: Empty arrays are valid: `[]`
-- ❌ R-ARR-04: Trailing commas are **not** allowed: `[1, 2,]` is rejected
+- ✅ R-ARR-01: Array literals use bracket syntax: `[1, 2, 3]`
+- ✅ R-ARR-02: Elements separated by commas with optional whitespace: `[1, 2, 3]` or `[1,2,3]`
+- ✅ R-ARR-03: Empty arrays are valid: `[]`
+- ✅ R-ARR-04: Trailing commas are **not** allowed: `[1, 2,]` is rejected
 
 ### Elements
 
 **Last updated:** 2026-01-17
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/args-details/array-parser.spec.ts`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- ❌ R-ARR-21: Elements can be any expression type (literals, identifiers, member, unary, binary, logical)
-- ❌ R-ARR-22: Mixed element types allowed: `[1, "two", true, user.name]`
-- ❌ R-ARR-23: Nested arrays allowed: `[[1, 2], [3, 4]]`
-- ❌ R-ARR-24: Sparse arrays rejected: `[1, , 3]` is invalid (no empty slots)
+- ✅ R-ARR-21: Elements can be any expression type (literals, identifiers, member, unary, binary, logical)
+- ✅ R-ARR-22: Mixed element types allowed: `[1, "two", true, user.name]`
+- ✅ R-ARR-23: Nested arrays allowed: `[[1, 2], [3, 4]]`
+- ✅ R-ARR-24: Sparse arrays rejected: `[1, , 3]` is invalid (no empty slots)
 
 ### AST
 
 **Last updated:** 2026-01-17
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/args-details/array-parser.spec.ts`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- ❌ R-ARR-41: Add `ArrayLiteralNode` type to `ast.ts`:
+- ✅ R-ARR-41: Add `ArrayLiteralNode` type to `ast.ts`:
   ```typescript
   interface ArrayLiteralNode {
     type: 'array-literal'
     elements: ExpressionNode[]
   }
   ```
-- ❌ R-ARR-42: Add `ArrayLiteralNode` to `ExpressionNode` union type
-- ❌ R-ARR-43: Add `ArrayLiteralNode` to `SimpleExpressionNode` union type
+- ✅ R-ARR-42: Add `ArrayLiteralNode` to `ExpressionNode` union type
+- ✅ R-ARR-43: Add `ArrayLiteralNode` to `SimpleExpressionNode` union type
 
 > **Note:** Arrays are **NOT** added to `LiteralNode`. `LiteralNode` is for primitive atomic values (string, number, boolean, null). Arrays are composite structures containing expressions, so they belong in `ExpressionNode` and `SimpleExpressionNode` directly.
 
@@ -116,12 +116,12 @@ Arrays will be added to the `ExpressionNode` type and parsed as primary expressi
 
 **Last updated:** 2026-01-17
 **Test:** `npx vitest run packages/runtime/src/compiler/parser`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- ❌ R-ARR-61: Add `LBRACKET` `[` and `RBRACKET` `]` tokens to `ArgTokens` in `argument-tokens.ts` (following LEFT/RIGHT for `()`, OPEN/CLOSE for `{}`)
-- ❌ R-ARR-62: Array is a **primary** expression (same level as literals, identifiers, parenthesized)
-- ❌ R-ARR-63: Array elements use `fullExpression` parser (allows binary, logical, pipes inside)
-- ❌ R-ARR-64: Arrays do not require braces when used as argument value: `ids=[1, 2, 3]` is valid
+- ✅ R-ARR-61: Add `LBRACKET` `[` and `RBRACKET` `]` tokens to `ArgTokens` in `argument-tokens.ts` (following LEFT/RIGHT for `()`, OPEN/CLOSE for `{}`)
+- ✅ R-ARR-62: Array is a **primary** expression (same level as literals, identifiers, parenthesized)
+- ✅ R-ARR-63: Array elements use `fullExpression` parser (allows binary, logical, pipes inside)
+- ✅ R-ARR-64: Arrays do not require braces when used as argument value: `ids=[1, 2, 3]` is valid
 
 ## Expression Boundary Update
 
@@ -155,14 +155,14 @@ Update `expression-boundaries.prd.md` to include arrays in the simple expression
 
 ### Criteria
 
-- [ ] AC-ARR-01: Given `@twitter/post tags=["tech", "ai"]`, when parsed, then `tags` has `ArrayLiteralNode` with 2 string elements
-- [ ] AC-ARR-02: Given `@batch/process ids=[1, 2, 3]`, when parsed, then `ids` has `ArrayLiteralNode` with 3 number elements
-- [ ] AC-ARR-03: Given `@filter/users scores=[a + b, c * 2]`, when parsed, then array contains 2 `BinaryExpressionNode` elements
-- [ ] AC-ARR-04: Given `@set/matrix data=[[1, 2], [3, 4]]`, when parsed, then nested `ArrayLiteralNode` structure
-- [ ] AC-ARR-05: Given `@set/empty list=[]`, when parsed, then `ArrayLiteralNode` with empty elements array
-- [ ] AC-ARR-06: Given `@set/bad list=[1, 2,]`, when parsed, then parser rejects (trailing comma)
-- [ ] All automated tests pass
-- [ ] Edge cases in `array-parser.edge.spec.ts`
+- [x] AC-ARR-01: Given `@twitter/post tags=["tech", "ai"]`, when parsed, then `tags` has `ArrayLiteralNode` with 2 string elements
+- [x] AC-ARR-02: Given `@batch/process ids=[1, 2, 3]`, when parsed, then `ids` has `ArrayLiteralNode` with 3 number elements
+- [x] AC-ARR-03: Given `@filter/users scores=[a + b, c * 2]`, when parsed, then array contains 2 `BinaryExpressionNode` elements
+- [x] AC-ARR-04: Given `@set/matrix data=[[1, 2], [3, 4]]`, when parsed, then nested `ArrayLiteralNode` structure
+- [x] AC-ARR-05: Given `@set/empty list=[]`, when parsed, then `ArrayLiteralNode` with empty elements array
+- [x] AC-ARR-06: Given `@set/bad list=[1, 2,]`, when parsed, then parser rejects (trailing comma)
+- [x] All automated tests pass (25 tests in array-parser.spec.ts)
+- [ ] Edge cases in `array-parser.edge.spec.ts` (deferred)
 
 ## Implementation Context for LLM
 
