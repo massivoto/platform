@@ -18,9 +18,9 @@
 | Requirements: Tokens | ❌ Not Started | 0/3 |
 | Requirements: Block Parser | ❌ Not Started | 0/6 |
 | Requirements: Statement Parser | ❌ Not Started | 0/4 |
-| Requirements: Program Parser | ❌ Not Started | 0/4 |
+| Requirements: Program Parser | ✅ Complete | 4/4 |
 | Requirements: Error Handling | ❌ Not Started | 0/3 |
-| Acceptance Criteria | ❌ Not Started | 0/10 |
+| Acceptance Criteria | ⏳ In Progress | 2/10 |
 | **Overall** | **DRAFT** | **0%** |
 
 ## Parent PRD
@@ -230,19 +230,17 @@ Blocks enable:
 
 **Last updated:** 2026-01-19
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/program-parser.spec.ts`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- ❌ R-BLK-81: Program is a sequence of newline-separated statements
-  ```typescript
-  const program = statement.then((NEWLINE.then(statement)).optrep())
-  ```
+- ✅ R-BLK-81: Program is a sequence of newline-separated statements
+  - Two-pass approach: split by newlines, parse each line as instruction
 
-- ❌ R-BLK-82: Empty program (no statements) produces `ProgramNode` with empty `body`
+- ✅ R-BLK-82: Empty program (no statements) produces `ProgramNode` with empty `body`
 
-- ❌ R-BLK-83: Program with single instruction produces `ProgramNode` with one `InstructionNode`
+- ✅ R-BLK-83: Program with single instruction produces `ProgramNode` with one `InstructionNode`
   - Backwards compatible with current single-instruction parsing
 
-- ❌ R-BLK-84: Leading and trailing newlines are ignored
+- ✅ R-BLK-84: Leading and trailing newlines are ignored
   ```oto
 
   @first/action
@@ -306,7 +304,7 @@ Blocks enable:
 
 ### Criteria
 
-- [ ] AC-BLK-01: Given a program with two instructions separated by newline, when parsed, then `ProgramNode.body` has 2 `InstructionNode` elements
+- [x] AC-BLK-01: Given a program with two instructions separated by newline, when parsed, then `ProgramNode.body` has 2 `InstructionNode` elements
 - [ ] AC-BLK-02: Given `@block/begin` followed by instruction and `@block/end`, when parsed, then `BlockNode` contains the instruction in `body`
 - [ ] AC-BLK-03: Given `@block/begin name="setup"`, when parsed, then `BlockNode.name` is `"setup"`
 - [ ] AC-BLK-04: Given `@block/begin if=isAdmin`, when parsed, then `BlockNode.condition` is `IdentifierNode { value: "isAdmin" }`
@@ -315,7 +313,7 @@ Blocks enable:
 - [ ] AC-BLK-07: Given `@block/begin` without `@block/end`, when parsed, then error mentions "Unclosed block" and line number
 - [ ] AC-BLK-08: Given `@block/end` without `@block/begin`, when parsed, then error mentions "Unexpected @block/end"
 - [ ] AC-BLK-09: Given program with mixed instructions and blocks, when parsed, then `ProgramNode.body` contains both types in order
-- [ ] AC-BLK-10: Given single instruction (no blocks), when parsed, then result is backwards-compatible `ProgramNode` with one instruction
+- [x] AC-BLK-10: Given single instruction (no blocks), when parsed, then result is backwards-compatible `ProgramNode` with one instruction
 - [ ] All automated tests pass
 - [ ] Edge cases covered in `block-parser.edge.spec.ts`
 
