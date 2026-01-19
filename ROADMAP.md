@@ -83,7 +83,7 @@ Program:
 - [ ] **ForEach statement**: `@forEach item of items { ... }`
 - [ ] **Goto/Label**: control flow jumps for complex workflows
 - [ ] **Unary operators**: 2 skipped tests in `unary-parser.spec.ts` need investigation
-
+- [ ] **Error format**: Errors sent need to be absolutely readable by a LLM
 
 
 ### Evaluator
@@ -91,7 +91,7 @@ Program:
 - [ ] **Complete node coverage**: handle all AST node types (binary, unary, logical, member, array, pipe)
 - [ ] **Block evaluation**: evaluate `BlockNode` sequences
 - [ ] **Pipe evaluation**: execute pipe chains with data transformation
-
+- [ ] **Error format**: Errors sent need to be absolutely readable by a LLM
 
 ### Action Resolution System
 
@@ -106,6 +106,7 @@ Example: `@ai/generate model="gemini"` resolves to `GeminiCommand`, while `model
 - [ ] **CommandRegistry implementation**: resolve Action + args → Command(s)
 - [ ] **Argument-based routing**: different handlers based on arg values
 - [ ] **Command bundles**: package related commands together
+- [ ] **Error format**: Errors sent need to be absolutely readable by a LLM
 
 #### CredentialVault and ProviderRegistry
 
@@ -275,6 +276,7 @@ Focus on adoption and usability, no new runtime features.
 
 - [ ] **Monaco integration**: web-based code editor
 - [ ] **Language Server Protocol (LSP)**: real-time parsing and error reporting
+- [ ] **Line/column tracking**: parser tracks source positions for error messages and diagnostics
 - [ ] **AST error recovery**: parser produces partial AST on syntax errors
 - [ ] **Syntax highlighting**: OTO language definition for editors
 - [ ] **Autocomplete**: action and argument suggestions
