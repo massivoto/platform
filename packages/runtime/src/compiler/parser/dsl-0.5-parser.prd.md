@@ -82,9 +82,6 @@ The parser transforms DSL source text into an Abstract Syntax Tree (AST) that ca
 - Empty argument shorthand (`flag` meaning `flag=true`)
 
 **Next Moves**
-- `@notify/send active=isVerified && hasEmail || isAdmin` not accepted, but `@notify/send active={isVerified && hasEmail || isAdmin}` accepted
-  - but then what about x.y.z ?
-- better reserved keyword management
 - output improvements
 - single string acceptation
 - define what is a typing (number, string, boolean, mapping, array)
