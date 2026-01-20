@@ -65,8 +65,9 @@ Program:
 
 ## Code Comments
 
-- [ ] **Line comments**: `// this is a comment` - ignore rest of line
-- [ ] **Block comments**: `/* ... */` - ignore everything between delimiters
+- [x] **Line comments**: `// this is a comment` - ignore rest of line
+- [x] **Block comments**: `/* ... */` - ignore everything between delimiters
+- [x] **String awareness**: comments inside `"..."` are NOT stripped
 - **PRD:** [comments.prd.md](packages/runtime/src/compiler/parser/comments.prd.md)
 
 ### Cleanup (end of v0.5)
