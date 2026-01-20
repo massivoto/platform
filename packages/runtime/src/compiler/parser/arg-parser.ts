@@ -1,11 +1,6 @@
 /**
- *
- * Parser for building the AST part of args in an instruction
- * @tweeter/users  ids={tweets:mappedBy:id} output = users
- *
- * ids={tweets:mappedBy:id} and output = users  are both args
- *
- * So left is
+ * Parser for building regular arguments in an instruction.
+ * Reserved arguments (output=, if=) are handled in instruction-parser.ts
  */
 
 import { SingleParser } from '@masala/parser'
@@ -24,19 +19,12 @@ export function createArgGrammar(
 
   const arg = IDENTIFIER.then(IS.drop()).then(expression)
 
-  const unfilteredParser = arg
+  return arg
     .map((tuple: MixedTuple<IdentifierNode, LiteralNode | IdentifierNode>) => ({
       name: tuple.first().value,
       valueNode: tuple.last(),
     }))
     .map(argMapper)
-
-  /**
-   * For the moment, the grammar accepts only output as identifier
-   * ie: output = users or output = tweets
-   * but not output = "users" or output = {tweets}
-   */
-  return filterOutputType(unfilteredParser)
 }
 
 function argMapper(argData: {
@@ -49,15 +37,4 @@ function argMapper(argData: {
     value: argData.valueNode,
   }
   return argNode
-}
-
-function filterOutputType(
-  parser: SingleParser<ArgumentNode>,
-): SingleParser<ArgumentNode> {
-  return parser.filter((arg) => {
-    if (arg.type === 'argument' && arg.name.value === 'output') {
-      return arg.value.type === 'identifier'
-    }
-    return true
-  })
 }
