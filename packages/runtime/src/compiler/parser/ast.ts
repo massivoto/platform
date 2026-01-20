@@ -170,6 +170,8 @@ export type StatementNode = InstructionNode | BlockNode | TemplateNode
 
 export interface BlockNode {
   type: 'block'
+  name?: string // from name="label" argument on @block/begin
+  condition?: ExpressionNode // from if=expression argument on @block/begin
   body: StatementNode[]
 }
 

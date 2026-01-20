@@ -7,29 +7,32 @@ export const oneSpace = C.char(' ')
   .or(F.eos())
 export const spaces = oneSpace.rep()
 
+// Reserved words that cannot be used as identifiers.
+// - Literals: parsed by dedicated parsers (booleanLiteral)
+// - Reserved args: parsed by dedicated tokens (OUTPUT_KEY, IF_KEY)
+// - Control flow: reserved for future @if/begin, @forEach/begin, @while/begin blocks
 const reservedWords = [
+  // Literals
   'true',
   'false',
+  // Reserved arguments
+  'output',
+  'if',
+  // Control flow (future)
   'for',
   'forEach',
   'for-each',
   'in',
-  'if',
   'else',
   'endif',
-  'repeat',
   'while',
-  'function',
-  'return',
+  'repeat',
   'break',
   'continue',
   'switch',
   'case',
   'default',
-  'let',
-  'const',
-  'var',
-  'output', // reserved for output=identifier
+  'return',
 ]
 
 export const identifier = F.regex(/[a-zA-Z_][a-zA-Z0-9_-]*/)
