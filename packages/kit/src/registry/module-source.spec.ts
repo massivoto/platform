@@ -107,7 +107,9 @@ describe('ModuleSource', () => {
     it('can transform module exports in any format', async () => {
       // Custom adapter that transforms differently
       const customAdapter = (exports: unknown) => {
-        const typed = exports as { albums: Array<{ key: string; value: Album }> }
+        const typed = exports as {
+          albums: Array<{ key: string; value: Album }>
+        }
         const map = new Map<string, Album>()
         for (const { key, value } of typed.albums) {
           // Prefix all keys with "custom:"

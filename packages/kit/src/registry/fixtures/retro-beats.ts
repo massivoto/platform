@@ -13,6 +13,7 @@ export const albums = [
       'Abbey Road (Remastered)',
       'The Beatles',
       2019,
+      'Come Together (2019 Mix)',
     ),
   },
   {
@@ -22,6 +23,7 @@ export const albums = [
       'The Dark Side of the Moon',
       'Pink Floyd',
       1973,
+      'Speak to Me',
     ),
   },
 ]
