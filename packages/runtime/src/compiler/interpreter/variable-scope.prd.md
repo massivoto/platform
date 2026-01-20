@@ -1,6 +1,6 @@
 # PRD: Variable Resolution & Scope
 
-**Status:** APPROVED
+**Status:** IMPLEMENTED
 **Last updated:** 2026-01-20
 
 > - DRAFT: Coding should not start, requirements being defined
@@ -14,15 +14,15 @@
 |---------|--------|----------|
 | Context | Complete | - |
 | Scope | Complete | - |
-| Requirements: ExecutionContext Changes | Not Started | 0/4 |
-| Requirements: Variable Resolution | Not Started | 0/5 |
-| Requirements: Output Targeting | Not Started | 0/4 |
-| Requirements: Scope Lifecycle | Not Started | 0/4 |
-| Requirements: Evaluator Changes | Not Started | 0/3 |
-| Requirements: Nested Scope Chain | Not Started | 0/4 |
-| Acceptance Criteria | Not Started | 0/16 |
+| Requirements: ExecutionContext Changes | Complete | 4/4 |
+| Requirements: Variable Resolution | Complete | 5/5 |
+| Requirements: Output Targeting | Complete | 4/4 |
+| Requirements: Scope Lifecycle | Complete | 4/4 |
+| Requirements: Evaluator Changes | Complete | 3/3 |
+| Requirements: Nested Scope Chain | Complete | 4/4 |
+| Acceptance Criteria | Complete | 16/16 |
 | Theme | Defined | - |
-| **Overall** | **APPROVED** | **0%** |
+| **Overall** | **IMPLEMENTED** | **100%** |
 
 ## Parent PRD
 
@@ -81,67 +81,67 @@ The ROADMAP defines three variable levels:
 
 **Last updated:** 2026-01-20
 **Test:** `npx vitest run packages/runtime/src/domain/execution-context.spec.ts`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- [ ] R-SCOPE-01: Add `scopeChain: ScopeChain` to `ExecutionContext` interface
-- [ ] R-SCOPE-02: `createEmptyExecutionContext()` initializes `scopeChain` to `{ current: {} }`
-- [ ] R-SCOPE-03: `cloneExecutionContext()` deep-clones `scopeChain` (preserves parent chain)
-- [ ] R-SCOPE-04: `fromPartialContext()` handles optional `scopeChain` property
+- [x] R-SCOPE-01: Add `scopeChain: ScopeChain` to `ExecutionContext` interface
+- [x] R-SCOPE-02: `createEmptyExecutionContext()` initializes `scopeChain` to `{ current: {} }`
+- [x] R-SCOPE-03: `cloneExecutionContext()` deep-clones `scopeChain` (preserves parent chain)
+- [x] R-SCOPE-04: `fromPartialContext()` handles optional `scopeChain` property
 
 ### Variable Resolution
 
 **Last updated:** 2026-01-20
 **Test:** `npx vitest run packages/runtime/src/compiler/interpreter/evaluator.spec.ts`
-**Progress:** 0/5 (0%)
+**Progress:** 5/5 (100%)
 
-- [ ] R-SCOPE-21: Bare identifier `user` resolves via scope chain first, then `context.data.user`
-- [ ] R-SCOPE-22: Scope chain lookup walks from current to root, returns first match
-- [ ] R-SCOPE-23: Explicit `scope.user` resolves via scope chain only (not data)
-- [ ] R-SCOPE-24: Explicit `data.user` always resolves to `context.data.data.user` (no special meaning)
-- [ ] R-SCOPE-25: Member expression `user.name` uses same resolution for root (`user`)
+- [x] R-SCOPE-21: Bare identifier `user` resolves via scope chain first, then `context.data.user`
+- [x] R-SCOPE-22: Scope chain lookup walks from current to root, returns first match
+- [x] R-SCOPE-23: Explicit `scope.user` resolves via scope chain only (not data)
+- [x] R-SCOPE-24: Explicit `data.user` always resolves to `context.data.data.user` (no special meaning)
+- [x] R-SCOPE-25: Member expression `user.name` uses same resolution for root (`user`)
 
 ### Output Targeting
 
 **Last updated:** 2026-01-20
 **Test:** `npx vitest run packages/runtime/src/compiler/interpreter/interpreter.spec.ts`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- [ ] R-SCOPE-41: `output=user` writes to `context.data.user`
-- [ ] R-SCOPE-42: `output=scope.user` writes to `context.scopeChain.current.user`
-- [ ] R-SCOPE-43: `output=data.user` writes to `context.data.data.user` (no special casing)
-- [ ] R-SCOPE-44: Parse output target to determine namespace (`scope.` prefix detection)
+- [x] R-SCOPE-41: `output=user` writes to `context.data.user`
+- [x] R-SCOPE-42: `output=scope.user` writes to `context.scopeChain.current.user`
+- [x] R-SCOPE-43: `output=data.user` writes to `context.data.data.user` (no special casing)
+- [x] R-SCOPE-44: Parse output target to determine namespace (`scope.` prefix detection)
 
 ### Scope Lifecycle
 
 **Last updated:** 2026-01-20
 **Test:** `npx vitest run packages/runtime/src/compiler/interpreter/scope-lifecycle.spec.ts`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- [ ] R-SCOPE-61: Conditional block (`@start/block if=...`) does NOT create new scope
-- [ ] R-SCOPE-62: forEach block creates child scope for iterator variable
-- [ ] R-SCOPE-63: Child scope is cleared/popped when forEach iteration ends
-- [ ] R-SCOPE-64: Scope variables do not leak to parent after block exit
+- [x] R-SCOPE-61: Conditional block (`@start/block if=...`) does NOT create new scope
+- [x] R-SCOPE-62: forEach block creates child scope for iterator variable
+- [x] R-SCOPE-63: Child scope is cleared/popped when forEach iteration ends
+- [x] R-SCOPE-64: Scope variables do not leak to parent after block exit
 
 ### Evaluator Changes
 
 **Last updated:** 2026-01-20
 **Test:** `npx vitest run packages/runtime/src/compiler/interpreter/evaluator.spec.ts`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- [ ] R-SCOPE-81: `ExpressionEvaluator.evaluate()` uses new resolution logic
-- [ ] R-SCOPE-82: `IdentifierNode` resolution: walk scope chain, then data
-- [ ] R-SCOPE-83: `MemberExpressionNode` resolution: apply scope chain logic to root object
+- [x] R-SCOPE-81: `ExpressionEvaluator.evaluate()` uses new resolution logic
+- [x] R-SCOPE-82: `IdentifierNode` resolution: walk scope chain, then data
+- [x] R-SCOPE-83: `MemberExpressionNode` resolution: apply scope chain logic to root object
 
 ### Nested Scope Chain
 
 **Last updated:** 2026-01-20
 **Test:** `npx vitest run packages/runtime/src/compiler/interpreter/scope-chain.spec.ts`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- [ ] R-SCOPE-101: Create `ScopeChain` type with `current: Record<string, any>` and `parent?: ScopeChain`
-- [ ] R-SCOPE-102: `pushScope()` creates child scope with current as parent
-- [ ] R-SCOPE-103: `popScope()` returns to parent scope (discards current)
-- [ ] R-SCOPE-104: `lookup(name)` walks chain from current to root, returns first match
+- [x] R-SCOPE-101: Create `ScopeChain` type with `current: Record<string, any>` and `parent?: ScopeChain`
+- [x] R-SCOPE-102: `pushScope()` creates child scope with current as parent
+- [x] R-SCOPE-103: `popScope()` returns to parent scope (discards current)
+- [x] R-SCOPE-104: `lookup(name)` walks chain from current to root, returns first match
 
 ## Dependencies
 
@@ -173,32 +173,32 @@ The ROADMAP defines three variable levels:
 ### Criteria
 
 **Variable Resolution:**
-- [ ] AC-SCOPE-01: Given `context.data.user = "Emma"` and empty scope, when evaluating `user`, then result is `"Emma"`
-- [ ] AC-SCOPE-02: Given `context.data.user = "Emma"` and `context.scope.user = "Carlos"`, when evaluating `user`, then result is `"Carlos"` (scope wins)
-- [ ] AC-SCOPE-03: Given `context.scope.user = "Carlos"`, when evaluating `scope.user`, then result is `"Carlos"`
-- [ ] AC-SCOPE-04: Given `context.data.data = { user: "Emma" }`, when evaluating `data.user`, then result is `"Emma"` (no special meaning)
+- [x] AC-SCOPE-01: Given `context.data.user = "Emma"` and empty scope, when evaluating `user`, then result is `"Emma"`
+- [x] AC-SCOPE-02: Given `context.data.user = "Emma"` and `context.scope.user = "Carlos"`, when evaluating `user`, then result is `"Carlos"` (scope wins)
+- [x] AC-SCOPE-03: Given `context.scope.user = "Carlos"`, when evaluating `scope.user`, then result is `"Carlos"`
+- [x] AC-SCOPE-04: Given `context.data.data = { user: "Emma" }`, when evaluating `data.user`, then result is `"Emma"` (no special meaning)
 
 **Output Targeting:**
-- [ ] AC-SCOPE-05: Given instruction `@api/call output=user`, when executed with result `{ name: "Emma" }`, then `context.data.user` equals `{ name: "Emma" }`
-- [ ] AC-SCOPE-06: Given instruction `@api/call output=scope.user`, when executed with result `{ name: "Carlos" }`, then `context.scope.user` equals `{ name: "Carlos" }`
-- [ ] AC-SCOPE-07: Given instruction `@api/call output=data.user`, when executed, then `context.data.data.user` is set (no special casing)
+- [x] AC-SCOPE-05: Given instruction `@api/call output=user`, when executed with result `{ name: "Emma" }`, then `context.data.user` equals `{ name: "Emma" }`
+- [x] AC-SCOPE-06: Given instruction `@api/call output=scope.user`, when executed with result `{ name: "Carlos" }`, then `context.scope.user` equals `{ name: "Carlos" }`
+- [x] AC-SCOPE-07: Given instruction `@api/call output=data.user`, when executed, then `context.data.data.user` is set (no special casing)
 
 **Scope Lifecycle:**
-- [ ] AC-SCOPE-08: Given conditional block `@start/block if=true` with `@utils/set key="x" value="inside"`, when block exits, then `context.data.x` equals `"inside"` (no scope created)
-- [ ] AC-SCOPE-09: Given forEach with `item="tweet"`, when iteration runs, then `context.scope.tweet` is set to current item
-- [ ] AC-SCOPE-10: Given forEach that set `scope.tweet`, when forEach completes, then `context.scope.tweet` is cleared
+- [x] AC-SCOPE-08: Given conditional block `@start/block if=true` with `@utils/set key="x" value="inside"`, when block exits, then `context.data.x` equals `"inside"` (no scope created)
+- [x] AC-SCOPE-09: Given forEach with `item="tweet"`, when iteration runs, then `context.scope.tweet` is set to current item
+- [x] AC-SCOPE-10: Given forEach that set `scope.tweet`, when forEach completes, then `context.scope.tweet` is cleared
 
 **Member Expressions:**
-- [ ] AC-SCOPE-11: Given `context.scope.user = { name: "Carlos", followers: 5000 }`, when evaluating `user.followers`, then result is `5000` (scope resolution for root)
+- [x] AC-SCOPE-11: Given `context.scope.user = { name: "Carlos", followers: 5000 }`, when evaluating `user.followers`, then result is `5000` (scope resolution for root)
 
 **Nested Scope Chain:**
-- [ ] AC-SCOPE-12: Given outer forEach with `item="user"` and inner forEach with `item="tweet"`, when inner runs, then both `user` and `tweet` are resolvable
-- [ ] AC-SCOPE-13: Given nested forEach where inner shadows `item="user"`, when inner runs, then inner `user` wins; when inner exits, outer `user` is restored
-- [ ] AC-SCOPE-14: Given 3-level nesting (user -> tweet -> reply), when innermost runs, then all three variables are resolvable via chain walk
-- [ ] AC-SCOPE-15: Given forEach that set `scope.x` in child scope, when forEach exits and scope pops, then `scope.x` is no longer resolvable
+- [x] AC-SCOPE-12: Given outer forEach with `item="user"` and inner forEach with `item="tweet"`, when inner runs, then both `user` and `tweet` are resolvable
+- [x] AC-SCOPE-13: Given nested forEach where inner shadows `item="user"`, when inner runs, then inner `user` wins; when inner exits, outer `user` is restored
+- [x] AC-SCOPE-14: Given 3-level nesting (user -> tweet -> reply), when innermost runs, then all three variables are resolvable via chain walk
+- [x] AC-SCOPE-15: Given forEach that set `scope.x` in child scope, when forEach exits and scope pops, then `scope.x` is no longer resolvable
 
 **General:**
-- [ ] AC-SCOPE-16: All automated tests pass
+- [x] AC-SCOPE-16: All automated tests pass
 
 ## Implementation Notes
 

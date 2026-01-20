@@ -46,15 +46,26 @@ export function createInstructionGrammar(
   tokens: InstructionTokens,
 ): SingleParser<InstructionNode> {
   const regularArg = createArgGrammar(tokens)
-  const { ACTION, OUTPUT_KEY, IF_KEY, IDENTIFIER } = tokens
+  const { ACTION, OUTPUT_KEY, IF_KEY, IDENTIFIER, DOT } = tokens
 
   // Expression parser for if= value
   const expression = createExpressionWithPipe(tokens)
 
+  // Dotted path parser: identifier(.identifier)* -> joined as "scope.user.profile"
+  // Used for output targets like output=scope.user
+  const dottedPath = IDENTIFIER.then(DOT.drop().then(IDENTIFIER).optrep()).map(
+    (tuple) => {
+      const first = tuple.first() as IdentifierNode
+      const rest = tuple.array().slice(1) as IdentifierNode[]
+      const fullPath = [first.value, ...rest.map((id) => id.value)].join('.')
+      return { type: 'identifier' as const, value: fullPath }
+    },
+  )
+
   // Reserved arg parsers
-  // output=identifier - OUTPUT_KEY is dropped, IDENTIFIER becomes the target
+  // output=identifier or output=scope.user - OUTPUT_KEY is dropped, path becomes the target
   const outputArg: SingleParser<OutputArgNode> = OUTPUT_KEY.drop()
-    .then(IDENTIFIER)
+    .then(dottedPath)
     .map((tuple) => ({
       type: 'output-arg' as const,
       target: tuple.single() as IdentifierNode,

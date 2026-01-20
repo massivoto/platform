@@ -1,4 +1,5 @@
 import { nowTs, toReadableDate } from '@massivoto/kit'
+import lodashSet from 'lodash.set'
 import { cloneExecutionContext } from '../../domain/execution-context.js'
 import {
   InstructionNode,
@@ -9,6 +10,40 @@ import {
 import { CommandRegistry } from '../handlers/command-registry.js'
 import { ExpressionEvaluator } from './evaluators.js'
 import { ExecutionContext } from '../../domain/index.js'
+import { write } from './scope-chain.js'
+
+/**
+ * Output target namespace and key parsed from output=... argument.
+ */
+export interface OutputTarget {
+  namespace: 'data' | 'scope'
+  key: string
+}
+
+/**
+ * Parses an output target string to determine namespace and key.
+ *
+ * - `scope.user` -> { namespace: 'scope', key: 'user' }
+ * - `scope.user.profile` -> { namespace: 'scope', key: 'user.profile' }
+ * - `user` -> { namespace: 'data', key: 'user' }
+ * - `data.user` -> { namespace: 'data', key: 'data.user' } (no special casing)
+ *
+ * @param output - The output target string from output=...
+ * @returns Parsed namespace and key
+ */
+export function parseOutputTarget(output: string): OutputTarget {
+  if (output.startsWith('scope.')) {
+    return {
+      namespace: 'scope',
+      key: output.slice(6), // Remove 'scope.' prefix
+    }
+  }
+  // Default to data namespace (no special casing for 'data.' prefix)
+  return {
+    namespace: 'data',
+    key: output,
+  }
+}
 
 export class Interpreter {
   constructor(
@@ -48,8 +83,16 @@ export class Interpreter {
     const end = nowTs()
     const returnedContext = cloneExecutionContext(context)
 
-    if (outputKey) {
-      returnedContext.data[outputKey] = outcome.value
+    // Write output to appropriate namespace
+    if (outputKey && hasOutput) {
+      const target = parseOutputTarget(outputKey)
+      if (target.namespace === 'scope') {
+        // Write to scope chain (current scope only)
+        write(target.key, outcome.value, returnedContext.scopeChain)
+      } else {
+        // Write to data namespace using lodash set for nested paths
+        lodashSet(returnedContext.data, target.key, outcome.value)
+      }
     }
 
     // Add cost from handler to context
