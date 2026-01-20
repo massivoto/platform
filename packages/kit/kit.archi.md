@@ -1,6 +1,6 @@
 # Architecture: Kit (Shared Utilities)
 
-**Last updated:** 2026-01-19
+**Last updated:** 2026-01-20
 
 ## Parent
 
@@ -42,7 +42,7 @@ TypeScript types and is a dependency of both the runtime and other packages.
 │ │error- │ │cuid-  │ │skip-  │ │timest-│ │local- │ │Compos-  │ │base-64 │  │
 │ │ToString│ │valid. │ │Descr. │ │amp    │ │Storage│ │ableReg- │ │obfusc. │  │
 │ │assert │ │proxy  │ │       │ │       │ │Adapter│ │istry    │ │        │  │
-│ │       │ │serial │ │       │ │       │ │       │ │ModuleSrc│ │        │  │
+│ │       │ │serial │ │       │ │       │ │       │ │ModuleBdl│ │        │  │
 │ └───────┘ └───────┘ └───────┘ └───────┘ └───────┘ └─────────┘ └────────┘  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -87,10 +87,10 @@ TypeScript types and is a dependency of both the runtime and other packages.
 │  ├── RegistryItem (interface)                                          │
 │  ├── Registry<V> (interface)                                           │
 │  ├── ComposableRegistry<V> (interface)                                 │
-│  ├── RegistrySource<V> (interface)                                     │
+│  ├── RegistryBundle<V> (interface)                                     │
 │  ├── RegistryEntry<V> (type)                                           │
 │  ├── BaseComposableRegistry<V> (class)                                 │
-│  ├── ModuleSource<V> (class)                                           │
+│  ├── ModuleBundle<V> (class)                                           │
 │  ├── RegistryConflictError (class)                                     │
 │  ├── RegistryNotLoadedError (class)                                    │
 │  └── ModuleLoadError (class)                                           │
@@ -121,16 +121,16 @@ TypeScript types and is a dependency of both the runtime and other packages.
 │  ┌───────────────────────────────────────────────────────────────────┐ │
 │  │              BaseComposableRegistry<V>                            │ │
 │  ├───────────────────────────────────────────────────────────────────┤ │
-│  │  addSource(source)   // Add JS module source                      │ │
+│  │  addBundle(bundle)   // Add JS module bundle                      │ │
 │  │  reload()            // Load all, detect conflicts, init items    │ │
-│  │  get(key)            // Returns { value, sourceId }               │ │
+│  │  get(key)            // Returns { value, bundleId }               │ │
 │  └───────────────────────────────────────────────────────────────────┘ │
 │                              │                                          │
 │           ┌──────────────────┼──────────────────┐                      │
 │           │                  │                  │                      │
 │           ▼                  ▼                  ▼                      │
 │    ┌────────────┐    ┌────────────┐    ┌────────────┐                 │
-│    │ModuleSource│    │ModuleSource│    │RemoteSource│                 │
+│    │ModuleBundle│    │ModuleBundle│    │RemoteBundle│                 │
 │    │  (core)    │    │ (@acme/*)  │    │  (future)  │                 │
 │    └────────────┘    └────────────┘    └────────────┘                 │
 │                                                                         │

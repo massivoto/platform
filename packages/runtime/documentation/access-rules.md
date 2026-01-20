@@ -21,36 +21,41 @@ export interface ExecutionContext {
   store: SerializableStorePointer
   prompts: string[]
   cost: {
-    current: number   // current cost in cents
+    current: number // current cost in cents
     estimated: number // estimated cost in cents
-    maximum: number   // max cost allowed for this run
-    credits: number   // credits available for the user
+    maximum: number // max cost allowed for this run
+    credits: number // credits available for the user
   }
 }
 ```
 
 ### Resolution rules
 
-* By default, a **bare identifier** (e.g. `monitors`, `users`, `i`) is resolved as:
+- By default, a **bare identifier** (e.g. `monitors`, `users`, `i`) is resolved
+  as:
 
   ```txt
-  <id>  ≡  data.<id>  ≡  context.data[<id>]
+  <id>  ≡  context.data[<id>]  # by default a variable is looked up in data
+  data.<id>  ≡  context.data.data[<id>] # therefore data.x has no special meaning
+  scope.<id>  ≡  context.scope[<id>]  # However scope is treated specially in lookups
+  store.<id>  ≡  context.store->load('id')  # as well as store, which looksup in an async way
   ```
 
-* Explicit access:
+Fetching in store is async, so probably the Evaluator needs to be async too.
 
-    * `data.users`   → `context.data.users`
-    * `env.API_KEY`  → `context.env.API_KEY`
-    * `store.foo.bar` → path in the `SerializableStorePointer`
-    * `user.id`, `meta.history`, `cost.current`, etc.
+- Explicit access:
+  - `users` → `context.data.users`
+  - `data.users` → `context.data.data.users`
+  - `scope.users` → `context.scopeChain` lookup (walks chain)
+  - `env.API_KEY` → `context.env.API_KEY` (READ-ONLY)
+  - `store.foo.bar` → path in the `SerializableStorePointer`
+  - `user.id`, `meta.history`, `cost.current`, etc. (READ-ONLY)
 
-* `output` **must** start with `data.`, `store.` or `prompt.`
-  (no implicit target for writes).
+- Each instruction is **async**. The engine awaits it before moving to the next
+  one.
 
-* Each instruction is **async**. The engine awaits it before moving to the next one.
-
-* Every instruction has a **base cost**; blocks (`forEach`, `while`) may multiply that cost by the number of iterations.
-
+- Every instruction has a **base cost**; blocks (`forEach`, `while`) may
+  multiply that cost by the number of iterations.
 
 ---
 
@@ -64,17 +69,18 @@ export interface ExecutionContext {
 @end/block
 ```
 
-* `if`: expression evaluated in the current context.
-  It must evaluate to a boolean (or something the runtime can coerce to boolean).
+- `if`: expression evaluated in the current context. It must evaluate to a
+  boolean (or something the runtime can coerce to boolean).
 
 ### Execution semantics
 
 1. Evaluate `conditionExpr`.
 2. If the result is:
+   - `true` → execute the body sequentially (awaiting each instruction).
+   - `false` → skip the body entirely.
 
-    * `true`  → execute the body sequentially (awaiting each instruction).
-    * `false` → skip the body entirely.
-3. The block does **not** introduce a new scope: any mutation of `context.data` inside the body is visible after the block.
+3. The block does **not** introduce a new scope: any mutation of `context.data`
+   inside the body is visible after the block.
 
 ### Examples
 
@@ -107,18 +113,20 @@ Using a bare identifier:
 @end/block
 ```
 
-* On a given `@start/block`, **only one** of `if` or `while` may be defined.
+- On a given `@start/block`, **only one** of `if` or `while` may be defined.
 
 ### Execution semantics
 
 1. Evaluate the `while` expression in the current `ExecutionContext`.
 2. While the result is `true`:
+   - execute the body sequentially (awaiting each instruction),
+   - re-evaluate the condition.
 
-    * execute the body sequentially (awaiting each instruction),
-    * re-evaluate the condition.
-3. Exit when the condition becomes `false`, or when the runtime stops the loop (e.g. cost limit).
+3. Exit when the condition becomes `false`, or when the runtime stops the loop
+   (e.g. cost limit).
 
-**Note:** termination is the responsibility of the script author. The engine may enforce safety guards (max iterations, max cost, timeout, etc.).
+**Note:** termination is the responsibility of the script author. The engine may
+enforce safety guards (max iterations, max cost, timeout, etc.).
 
 ### Example
 
@@ -135,26 +143,23 @@ Using a bare identifier:
 
 Within blocks, expressions and arguments follow the global rules:
 
-* **String literal**: quoted
+- **String literal**: quoted
+  - `item="monitor"` → literal `"monitor"`, interpreted by the engine as a
+    _variable name_.
 
-    * `item="monitor"` → literal `"monitor"`, interpreted by the engine as a *variable name*.
+- **Data reference**:
+  - `users=monitors` → `context.data.monitors`
+  - `if=foundUser` → `context.data.foundUser`
+  - `while=data.i < 10` → `context.data.i`
 
-* **Data reference**:
+- **Pipe expression**:
+  - `users={users:tail:10}`
+  - `of={monitors:keys}`
 
-    * `users=monitors`   → `context.data.monitors`
-    * `if=foundUser`     → `context.data.foundUser`
-    * `while=data.i < 10` → `context.data.i`
-
-* **Pipe expression**:
-
-    * `users={users:tail:10}`
-    * `of={monitors:keys}`
-
-* **Other namespaces** (env, store, user, cost, meta) must be explicit:
-
-    * `if=env.FEATURE_FLAG_X`
-    * `of=store.monitoring.activeList`
-    * `if=cost.current < cost.maximum`
+- **Other namespaces** (env, store, user, cost, meta) must be explicit:
+  - `if=env.FEATURE_FLAG_X`
+  - `of=store.monitoring.activeList`
+  - `if=cost.current < cost.maximum`
 
 ---
 
@@ -180,4 +185,6 @@ Within blocks, expressions and arguments follow the global rules:
 @end/forEach
 ```
 
-This gives you a precise, unambiguous spec for `@start/forEach` and `@start/block` (`if` / `while`), fully aligned with your `ExecutionContext`, data resolution rules, and cost model.
+This gives you a precise, unambiguous spec for `@start/forEach` and
+`@start/block` (`if` / `while`), fully aligned with your `ExecutionContext`,
+data resolution rules, and cost model.
