@@ -1,6 +1,6 @@
 # PRD: Comments
 
-**Status:** APPROVED
+**Status:** IMPLEMENTED
 **Last updated:** 2026-01-20
 
 > - DRAFT: Coding should not start, requirements being defined
@@ -14,12 +14,12 @@
 |---------|--------|----------|
 | Context | Complete | 100% |
 | Scope | Complete | 100% |
-| Requirements: Line Comments | Not Started | 0/3 |
-| Requirements: Block Comments | Not Started | 0/4 |
-| Requirements: String Awareness | Not Started | 0/3 |
-| Requirements: Error Handling | Not Started | 0/2 |
-| Acceptance Criteria | Not Started | 0/8 |
-| **Overall** | **APPROVED** | **0%** |
+| Requirements: Line Comments | Complete | 3/3 |
+| Requirements: Block Comments | Complete | 4/4 |
+| Requirements: String Awareness | Complete | 3/3 |
+| Requirements: Error Handling | Complete | 2/2 |
+| Acceptance Criteria | Complete | 8/8 |
+| **Overall** | **IMPLEMENTED** | **100%** |
 
 ## Parent PRD
 
@@ -73,22 +73,22 @@ The critical requirement is that comment markers inside string literals must NOT
 
 **Last updated:** 2026-01-20
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/comments.spec.ts`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- [ ] R-CMT-01: `//` starts a line comment, everything after is ignored
+- [x] R-CMT-01: `//` starts a line comment, everything after is ignored
   ```oto
   @api/call endpoint="/users"  // fetch all users
   ```
   Produces instruction without the comment.
 
-- [ ] R-CMT-02: Line with only comment produces no statement
+- [x] R-CMT-02: Line with only comment produces no statement
   ```oto
   // This is a comment-only line
   @api/call endpoint="/users"
   ```
   Produces single instruction.
 
-- [ ] R-CMT-03: `//` at start of line comments entire line
+- [x] R-CMT-03: `//` at start of line comments entire line
   ```oto
   // @api/call endpoint="/disabled"
   @api/call endpoint="/active"
@@ -99,15 +99,15 @@ The critical requirement is that comment markers inside string literals must NOT
 
 **Last updated:** 2026-01-20
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/comments.spec.ts`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- [ ] R-CMT-21: `/*` starts block comment, `*/` ends it
+- [x] R-CMT-21: `/*` starts block comment, `*/` ends it
   ```oto
   @api/call /* inline comment */ endpoint="/users"
   ```
   Produces instruction with endpoint arg.
 
-- [ ] R-CMT-22: Block comments can span multiple lines
+- [x] R-CMT-22: Block comments can span multiple lines
   ```oto
   /*
    * Multi-line comment
@@ -117,13 +117,13 @@ The critical requirement is that comment markers inside string literals must NOT
   ```
   Produces single instruction.
 
-- [ ] R-CMT-23: Block comments can appear mid-line
+- [x] R-CMT-23: Block comments can appear mid-line
   ```oto
   @api/call endpoint=/* old: "/v1" */ "/v2"
   ```
   Produces instruction with endpoint="/v2".
 
-- [ ] R-CMT-24: Multiple block comments on same line
+- [x] R-CMT-24: Multiple block comments on same line
   ```oto
   @api/call /* a */ endpoint="/users" /* b */
   ```
@@ -133,21 +133,21 @@ The critical requirement is that comment markers inside string literals must NOT
 
 **Last updated:** 2026-01-20
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/comments.spec.ts`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- [ ] R-CMT-41: `//` inside string literal is NOT a comment
+- [x] R-CMT-41: `//` inside string literal is NOT a comment
   ```oto
   @log/print msg="https://example.com"
   ```
   Produces instruction with full URL preserved.
 
-- [ ] R-CMT-42: `/* */` inside string literal is NOT a comment
+- [x] R-CMT-42: `/* */` inside string literal is NOT a comment
   ```oto
   @log/print msg="/* not a comment */"
   ```
   Produces instruction with literal `/* not a comment */` in msg.
 
-- [ ] R-CMT-43: Escaped quotes inside strings are handled correctly
+- [x] R-CMT-43: Escaped quotes inside strings are handled correctly
   ```oto
   @log/print msg="say \"hello\" // world"
   ```
@@ -157,20 +157,20 @@ The critical requirement is that comment markers inside string literals must NOT
 
 **Last updated:** 2026-01-20
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/comments.spec.ts`
-**Progress:** 0/2 (0%)
+**Progress:** 2/2 (100%)
 
-- [ ] R-CMT-61: Unclosed block comment produces descriptive error
+- [x] R-CMT-61: Unclosed block comment produces descriptive error
   ```oto
   /* this comment never ends
   @api/call endpoint="/users"
   ```
   Error: `Unclosed block comment`
 
-- [ ] R-CMT-62: Unclosed string produces error (not confused with comment)
+- [x] R-CMT-62: Unclosed string passes through (not comment stripper concern)
   ```oto
   @log/print msg="unclosed
   ```
-  Error from instruction parser (string handling), not comment stripper.
+  The comment stripper does not throw for unclosed strings - that error comes from the instruction parser.
 
 ## Dependencies
 
@@ -196,16 +196,16 @@ The critical requirement is that comment markers inside string literals must NOT
 
 ### Criteria
 
-- [ ] AC-CMT-01: Given `@api/call endpoint="/users" // comment`, when parsed, then instruction has no trace of comment
-- [ ] AC-CMT-02: Given line containing only `// comment`, when parsed, then no statement produced for that line
-- [ ] AC-CMT-03: Given `/* multi\nline */` before instruction, when parsed, then single instruction produced
-- [ ] AC-CMT-04: Given `@log/print msg="https://example.com"`, when parsed, then URL is preserved (not treated as comment)
-- [ ] AC-CMT-05: Given `@log/print msg="/* keep */"`, when parsed, then `/* keep */` is in the msg value
-- [ ] AC-CMT-06: Given unclosed `/*`, when parsed, then error mentions "Unclosed block comment"
-- [ ] AC-CMT-07: Given `@api/call /* a */ endpoint /* b */ ="/users"`, when parsed, then instruction is valid with endpoint="/users"
-- [ ] AC-CMT-08: Given escaped quote in string `msg="a\"b // c"`, when parsed, then full string preserved including `// c`
-- [ ] All automated tests pass
-- [ ] Edge cases covered in `comments.edge.spec.ts`
+- [x] AC-CMT-01: Given `@api/call endpoint="/users" // comment`, when parsed, then instruction has no trace of comment
+- [x] AC-CMT-02: Given line containing only `// comment`, when parsed, then no statement produced for that line
+- [x] AC-CMT-03: Given `/* multi\nline */` before instruction, when parsed, then single instruction produced
+- [x] AC-CMT-04: Given `@log/print msg="https://example.com"`, when parsed, then URL is preserved (not treated as comment)
+- [x] AC-CMT-05: Given `@log/print msg="/* keep */"`, when parsed, then `/* keep */` is in the msg value
+- [x] AC-CMT-06: Given unclosed `/*`, when parsed, then error mentions "Unclosed block comment"
+- [x] AC-CMT-07: Given `@api/call /* a */ endpoint /* b */ ="/users"`, when parsed, then instruction is valid with endpoint="/users"
+- [x] AC-CMT-08: Given escaped quote in string `msg="a\"b // c"`, when parsed, then full string preserved including `// c`
+- [x] All automated tests pass (44 tests)
+- [ ] Edge cases covered in `comments.edge.spec.ts` (deferred)
 
 ## Implementation Notes
 

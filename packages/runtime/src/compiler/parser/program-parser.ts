@@ -6,6 +6,7 @@ import {
   ProgramNode,
   StatementNode,
 } from './ast.js'
+import { stripComments } from './comments.js'
 import { buildInstructionParser } from './instruction-parser.js'
 
 /**
@@ -185,7 +186,9 @@ export function buildProgramParser(): ProgramParser {
 
   return {
     val(source: string): ProgramNode {
-      const lines = source.split(/\r?\n/)
+      // Strip comments before parsing
+      const cleanSource = stripComments(source)
+      const lines = cleanSource.split(/\r?\n/)
       const statements = parseStatements(lines)
 
       return {
