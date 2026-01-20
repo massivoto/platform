@@ -1,5 +1,5 @@
 import { CommandHandler } from './command-registry.js'
-import { ExecutionContext, InstructionLog } from '../../domain/index.js'
+import { ExecutionContext } from '../../domain/index.js'
 import { ActionResult } from './action-result.js'
 
 export abstract class BaseCommandHandler<T> implements CommandHandler<T> {
@@ -9,28 +9,25 @@ export abstract class BaseCommandHandler<T> implements CommandHandler<T> {
     output?: string,
   ): Promise<ActionResult<T>>
 
-  protected handleSuccess(message: string, value: T): ActionResult<T> {
-    const log: InstructionLog = {
-      success: true,
-      command: this.toString(),
-      start: new Date().toISOString(),
-      end: new Date().toISOString(),
-      messages: [message],
-      duration: 0, // Duration will be calculated later
-    }
+  protected handleSuccess(message: string, value?: T): ActionResult<T> {
     const result: ActionResult<T> = {
       success: true,
       value,
-      log,
       message,
       messages: [message],
-    }
-    if (result.success) {
-      console.log(`✅ ${result.message} \n`)
-    } else {
-      console.error(`❌ ${result.message}\n`)
+      cost: 0,
     }
     return result
+  }
+
+  protected handleFailure(message: string, fatalError?: string): ActionResult<T> {
+    return {
+      success: false,
+      fatalError,
+      message,
+      messages: [message],
+      cost: 0,
+    }
   }
 
   protected handleError(message: string): string {
