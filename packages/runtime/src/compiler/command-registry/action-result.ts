@@ -1,7 +1,9 @@
 /**
  * ActionResult - the return type for command handler execution.
+ *
+ * Note: The interpreter handles InstructionLog creation.
+ * Handlers just report success/failure, value, and cost.
  */
-import type { InstructionLog } from '../../domain/execution-context.js'
 
 /**
  * Result of a command handler execution.
@@ -15,18 +17,15 @@ export interface ActionResult<T> {
   /** If success and pertinent, the value returned by the action */
   value?: T
 
-  /** Path of the state variable affected by the action */
-  output?: string
-
   /** Error message if the command failed fatally */
   fatalError?: string
-
-  /** Execution log for history tracking */
-  log: InstructionLog
 
   /** All messages generated during execution */
   messages: string[]
 
   /** Primary message for the action result */
   message?: string
+
+  /** Cost in credits (handler reports its cost, 0 for free commands) */
+  cost: number
 }
