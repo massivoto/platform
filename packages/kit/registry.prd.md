@@ -34,9 +34,9 @@
 Three registries in the Massivoto platform share the same extension pattern:
 `CommandRegistry`, `ProviderRegistry`, and `AppletRegistry`. Each needs to:
 
-1. Compose entries from multiple sources (core built-ins, npm modules, remote
+1. Compose entries from multiple bundles (core built-ins, npm modules, remote
    APIs)
-2. Detect conflicts when the same key appears in multiple sources
+2. Detect conflicts when the same key appears in multiple bundles
 3. Support async loading for remote resources
 4. Be fully testable with fixture modules
 
@@ -53,9 +53,9 @@ implementation that runtime can extend for each specific registry type.
 | 2026-01-19 | Get semantics: sync vs async                   | **Async**                      | Resources may be remote, need Promise                                       |
 | 2026-01-19 | Reload: explicit vs lazy                       | **Explicit with error**        | Must call `reload()` before `get()`, easier to test                         |
 | 2026-01-19 | Watch/hot reload                               | **Deferred**                   | Not needed for v0.5, add later                                              |
-| 2026-01-19 | Test utilities: InMemorySource vs ModuleSource | **ModuleSource with fixtures** | Tests should mirror production; use real JS fixture files                   |
-| 2026-01-19 | Reload behavior: idempotent vs one-shot        | **Idempotent**                 | Can call `reload()` multiple times; re-fetches all sources each time        |
-| 2026-01-19 | Source provenance: track or not                | **Track provenance**           | `get()` returns `{ value, sourceId }` for debugging                         |
+| 2026-01-19 | Test utilities: InMemorySource vs ModuleBundle | **ModuleBundle with fixtures** | Tests should mirror production; use real JS fixture files                   |
+| 2026-01-19 | Reload behavior: idempotent vs one-shot        | **Idempotent**                 | Can call `reload()` multiple times; re-fetches all bundles each time        |
+| 2026-01-19 | Source provenance: track or not                | **Track provenance**           | `get()` returns `{ value, bundleId }` for debugging                         |
 | 2026-01-19 | Common item interface                          | **RegistryItem base**          | All items implement `id`, `type`, `init()`, `dispose()` for testability     |
 | 2026-01-19 | Item type field                                | **String**                     | Future-proof for client extensions, kit doesn't control enum                |
 | 2026-01-19 | Lifecycle methods                              | **Required**                   | `init()` and `dispose()` are mandatory, not optional                        |
@@ -66,17 +66,17 @@ implementation that runtime can extend for each specific registry type.
 **In scope:**
 
 - `Registry<V>` readonly interface
-- `ComposableRegistry<V>` mutable interface with source composition
-- `RegistrySource<V>` interface for loadable sources
+- `ComposableRegistry<V>` mutable interface with bundle composition
+- `RegistryBundle<V>` interface for loadable bundles
 - `BaseComposableRegistry<V>` class with conflict detection
-- `ModuleSource<V>` for loading entries from JS modules
+- `ModuleBundle<V>` for loading entries from JS modules
 - `RegistryConflictError` and `RegistryNotLoadedError`
 - Test fixtures as real JS modules
 
 **Out of scope:**
 
 - Hot reload / watch functionality (deferred)
-- `RemoteSource` / `HttpRegistrySource` implementation (consumers provide)
+- `RemoteSource` / `HttpRegistryBundle` implementation (consumers provide)
 - Specific registry implementations (CommandRegistry stays in runtime)
 
 ## Requirements
@@ -91,12 +91,12 @@ implementation that runtime can extend for each specific registry type.
       `has(key: string): Promise<boolean>`, `keys(): Promise<string[]>`,
       `entries(): Promise<Map<string, RegistryEntry<V>>>`
 - [x] R-REG-02: Define `ComposableRegistry<V>` interface extending `Registry<V>`
-      with: `addSource(source: RegistrySource<V>): void`,
-      `reload(): Promise<void>`, `getSources(): RegistrySource<V>[]`
-- [x] R-REG-03: Define `RegistrySource<V>` interface with: `id: string`,
+      with: `addBundle(source: RegistryBundle<V>): void`,
+      `reload(): Promise<void>`, `getBundles(): RegistryBundle<V>[]`
+- [x] R-REG-03: Define `RegistryBundle<V>` interface with: `id: string`,
       `load(): Promise<Map<string, V>>`
 - [x] R-REG-04: Define `RegistryEntry<V>` type with: `key: string`, `value: V`,
-      `sourceId: string`
+      `bundleId: string`
 - [x] R-REG-05: Define `RegistryItem` base interface with: `id: string`
       (readonly), `type: string` (readonly), `init(): Promise<void>`,
       `dispose(): Promise<void>`
@@ -113,15 +113,15 @@ implementation that runtime can extend for each specific registry type.
 
 - [x] R-REG-21: Implement `BaseComposableRegistry<V>` class that implements
       `ComposableRegistry<V>`
-- [x] R-REG-22: `reload()` must load all sources and detect conflicts: if same
-      key exists in multiple sources, throw `RegistryConflictError`
+- [x] R-REG-22: `reload()` must load all bundles and detect conflicts: if same
+      key exists in multiple bundles, throw `RegistryConflictError`
 - [x] R-REG-23: `get()`, `has()`, `keys()`, `entries()` must throw
       `RegistryNotLoadedError` if `reload()` was never called
 - [x] R-REG-24: After successful `reload()`, `get(key)` returns
-      `RegistryEntry<V>` with `value` and `sourceId` indicating which source
+      `RegistryEntry<V>` with `value` and `bundleId` indicating which source
       provided it
 - [x] R-REG-25: `reload()` is idempotent: calling it multiple times re-fetches
-      all sources and rebuilds the cache
+      all bundles and rebuilds the cache
 - [x] R-REG-26: On `reload()`, call `dispose()` on all existing items before
       loading new ones
 - [x] R-REG-27: On `reload()`, call `init()` on all newly loaded items after
@@ -130,12 +130,12 @@ implementation that runtime can extend for each specific registry type.
 ### Module Source
 
 **Last updated:** 2026-01-20 **Test:**
-`npx vitest run packages/kit/src/registry/module-source.spec.ts` **Progress:**
+`npx vitest run packages/kit/src/registry/module-bundle.spec.ts` **Progress:**
 4/4 (100%)
 
-- [x] R-REG-41: Implement `ModuleSource<V>` class implementing
-      `RegistrySource<V>`
-- [x] R-REG-42: `ModuleSource` constructor accepts `id: string`,
+- [x] R-REG-41: Implement `ModuleBundle<V>` class implementing
+      `RegistryBundle<V>`
+- [x] R-REG-42: `ModuleBundle` constructor accepts `id: string`,
       `modulePath: string`, and `adapter: (exports: unknown) => Map<string, V>`
 - [x] R-REG-43: `load()` performs dynamic `import(modulePath)` and passes
       exports to the adapter function
@@ -149,7 +149,7 @@ implementation that runtime can extend for each specific registry type.
 (100%)
 
 - [x] R-REG-61: Implement `RegistryConflictError` with properties:
-      `conflicts: Array<{ key: string, sourceIds: string[] }>`, human-readable
+      `conflicts: Array<{ key: string, bundleIds: string[] }>`, human-readable
       `message`
 - [x] R-REG-62: Implement `RegistryNotLoadedError` with `message` explaining
       that `reload()` must be called first
@@ -223,7 +223,7 @@ Sources load JavaScript modules and convert exports to registry entries using an
 │                         MODULE SOURCE FLOW                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ModuleSource<V>                                                            │
+│  ModuleBundle<V>                                                            │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │  id: "vinyl-classics"                                               │   │
 │  │  modulePath: "./fixtures/vinyl-classics.js"                         │   │
@@ -296,7 +296,7 @@ const adapter = (exports: { albums: Array<{ key: string; value: Album }> }) =>
   new Map(exports.albums.map(({ key, value }) => [key, value]))
 ```
 
-This keeps `ModuleSource` generic while allowing each registry to define its own
+This keeps `ModuleBundle` generic while allowing each registry to define its own
 module format.
 
 **Lifecycle behavior:**
@@ -320,11 +320,11 @@ module format.
 - [x] Key type? → Strings
 - [x] Sync vs async get? → Async
 - [x] Explicit vs lazy reload? → Explicit with error
-- [x] Test utilities? → ModuleSource with fixture files
+- [x] Test utilities? → ModuleBundle with fixture files
 - [x] Should `reload()` be idempotent (can call multiple times) or one-shot? →
       Idempotent
-- [x] Should we track which source provided each entry for debugging? → Yes,
-      `get()` returns `RegistryEntry<V>` with `sourceId`
+- [x] Should we track which bundle provided each entry for debugging? → Yes,
+      `get()` returns `RegistryEntry<V>` with `bundleId`
 
 ## Acceptance Criteria
 
@@ -378,12 +378,12 @@ module format.
 ```
 packages/kit/src/registry/
 ├── index.ts                           # Public exports
-├── types.ts                           # Registry<V>, ComposableRegistry<V>, RegistrySource<V>
+├── types.ts                           # Registry<V>, ComposableRegistry<V>, RegistryBundle<V>
 ├── base-composable-registry.ts        # BaseComposableRegistry<V> implementation
 ├── base-composable-registry.spec.ts   # Main test scenarios (uses fixtures)
 ├── base-composable-registry.edge.spec.ts  # Edge cases
-├── module-source.ts                   # ModuleSource<V> implementation
-├── module-source.spec.ts              # ModuleSource tests
+├── module-bundle.ts                   # ModuleBundle<V> implementation
+├── module-bundle.spec.ts              # ModuleBundle tests
 ├── errors.ts                          # RegistryConflictError, RegistryNotLoadedError
 ├── errors.spec.ts                     # Error tests
 └── fixtures/                          # Test fixture modules

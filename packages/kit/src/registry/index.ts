@@ -1,14 +1,14 @@
 /**
  * Common Registry Interface
  *
- * Provides a composable registry pattern for loading items from multiple sources.
+ * Provides a composable registry pattern for loading items from multiple bundles.
  * Used by CommandRegistry, ProviderRegistry, and AppletRegistry in runtime.
  *
  * @example
  * ```typescript
  * import {
  *   BaseComposableRegistry,
- *   ModuleSource,
+ *   ModuleBundle,
  *   RegistryItem,
  * } from '@massivoto/kit'
  *
@@ -18,7 +18,7 @@
  * }
  *
  * const registry = new BaseComposableRegistry<MyHandler>()
- * registry.addSource(new ModuleSource({
+ * registry.addBundle(new ModuleBundle({
  *   id: 'core',
  *   modulePath: './handlers.js',
  *   adapter: (exports) => new Map(exports.handlers)
@@ -33,7 +33,7 @@
 export type {
   Registry,
   ComposableRegistry,
-  RegistrySource,
+  RegistryBundle,
   RegistryEntry,
   RegistryItem,
 } from './types.js'
@@ -48,5 +48,5 @@ export type { RegistryConflict } from './errors.js'
 
 // Implementations
 export { BaseComposableRegistry } from './base-composable-registry.js'
-export { ModuleSource } from './module-source.js'
-export type { ModuleAdapter, ModuleSourceConfig } from './module-source.js'
+export { ModuleBundle } from './module-bundle.js'
+export type { ModuleAdapter, ModuleBundleConfig } from './module-bundle.js'

@@ -8,7 +8,7 @@
 
 import { describe, it, expect, vi } from 'vitest'
 import { BaseComposableRegistry } from './base-composable-registry.js'
-import { ModuleSource } from './module-source.js'
+import { ModuleBundle } from './module-bundle.js'
 import {
   FixtureCommandHandler,
   commandHandlerAdapter,
@@ -19,8 +19,8 @@ const COMMAND_HANDLERS = new URL(
   import.meta.url,
 ).href
 
-function createCommandSource() {
-  return new ModuleSource<FixtureCommandHandler>({
+function createCommandBundle() {
+  return new ModuleBundle<FixtureCommandHandler>({
     id: 'core-commands',
     modulePath: COMMAND_HANDLERS,
     adapter: commandHandlerAdapter,
@@ -31,7 +31,7 @@ describe('Command Handler Execution', () => {
   describe('when store clerk Emma runs the echo command', () => {
     it('executes and returns the echoed message', async () => {
       const registry = new BaseComposableRegistry<FixtureCommandHandler>()
-      registry.addSource(createCommandSource())
+      registry.addBundle(createCommandBundle())
       await registry.reload()
 
       const entry = await registry.get('@utils/echo')
@@ -50,7 +50,7 @@ describe('Command Handler Execution', () => {
   describe('when store clerk Emma runs the add command', () => {
     it('executes and returns the sum of two numbers', async () => {
       const registry = new BaseComposableRegistry<FixtureCommandHandler>()
-      registry.addSource(createCommandSource())
+      registry.addBundle(createCommandBundle())
       await registry.reload()
 
       const entry = await registry.get('@utils/add')
@@ -64,7 +64,7 @@ describe('Command Handler Execution', () => {
   describe('when a command fails', () => {
     it('returns a failure result with error message', async () => {
       const registry = new BaseComposableRegistry<FixtureCommandHandler>()
-      registry.addSource(createCommandSource())
+      registry.addBundle(createCommandBundle())
       await registry.reload()
 
       const entry = await registry.get('@utils/fail')
@@ -78,7 +78,7 @@ describe('Command Handler Execution', () => {
   describe('when executing a slow command with options', () => {
     it('respects the timeout option', async () => {
       const registry = new BaseComposableRegistry<FixtureCommandHandler>()
-      registry.addSource(createCommandSource())
+      registry.addBundle(createCommandBundle())
       await registry.reload()
 
       const entry = await registry.get('@utils/slow')
@@ -108,7 +108,7 @@ describe('Command Handler Execution', () => {
         .fn()
         .mockResolvedValue({ success: true, value: 'done' })
 
-      const mockSource = {
+      const mockBundle = {
         id: 'mock',
         load: async () =>
           new Map<string, FixtureCommandHandler>([
@@ -126,7 +126,7 @@ describe('Command Handler Execution', () => {
       }
 
       const registry = new BaseComposableRegistry<FixtureCommandHandler>()
-      registry.addSource(mockSource)
+      registry.addBundle(mockBundle)
       await registry.reload()
 
       // init should have been called during reload
@@ -148,7 +148,7 @@ describe('Command Handler Execution', () => {
         .mockResolvedValue({ success: true, value: 'v2' })
 
       let loadCount = 0
-      const mockSource = {
+      const mockBundle = {
         id: 'mock',
         load: async () => {
           loadCount++
@@ -185,7 +185,7 @@ describe('Command Handler Execution', () => {
       }
 
       const registry = new BaseComposableRegistry<FixtureCommandHandler>()
-      registry.addSource(mockSource)
+      registry.addBundle(mockBundle)
 
       // First load
       await registry.reload()
@@ -205,15 +205,15 @@ describe('Command Handler Execution', () => {
     })
   })
 
-  describe('source provenance with commands', () => {
-    it('tracks which source provided each command', async () => {
+  describe('bundle provenance with commands', () => {
+    it('tracks which bundle provided each command', async () => {
       const registry = new BaseComposableRegistry<FixtureCommandHandler>()
-      registry.addSource(createCommandSource())
+      registry.addBundle(createCommandBundle())
       await registry.reload()
 
       const entry = await registry.get('@utils/echo')
 
-      expect(entry?.sourceId).toBe('core-commands')
+      expect(entry?.bundleId).toBe('core-commands')
       expect(entry?.key).toBe('@utils/echo')
     })
   })
@@ -221,7 +221,7 @@ describe('Command Handler Execution', () => {
   describe('listing available commands', () => {
     it('returns all registered command keys', async () => {
       const registry = new BaseComposableRegistry<FixtureCommandHandler>()
-      registry.addSource(createCommandSource())
+      registry.addBundle(createCommandBundle())
       await registry.reload()
 
       const keys = await registry.keys()

@@ -1,7 +1,7 @@
 /**
  * Common Registry Interface
  *
- * Provides a composable registry pattern for loading items from multiple sources.
+ * Provides a composable registry pattern for loading items from multiple bundles.
  * Used by CommandRegistry, ProviderRegistry, and AppletRegistry in runtime.
  */
 
@@ -34,19 +34,19 @@ export interface RegistryEntry<V extends RegistryItem> {
   /** The item value */
   value: V
 
-  /** ID of the source that provided this entry */
-  sourceId: string
+  /** ID of the bundle that provided this entry */
+  bundleId: string
 }
 
 /**
- * Loadable source of registry items.
- * Implementations: ModuleSource, or custom sources for remote APIs.
+ * Loadable bundle of registry items.
+ * Implementations: ModuleBundle, or custom bundles for remote APIs.
  */
-export interface RegistrySource<V extends RegistryItem> {
-  /** Unique identifier for this source: "core", "@acme/custom-cmds" */
+export interface RegistryBundle<V extends RegistryItem> {
+  /** Unique identifier for this bundle: "core", "@acme/custom-cmds" */
   readonly id: string
 
-  /** Load all entries from this source */
+  /** Load all entries from this bundle */
   load(): Promise<Map<string, V>>
 }
 
@@ -81,31 +81,31 @@ export interface Registry<V extends RegistryItem> {
 }
 
 /**
- * Mutable registry that composes multiple sources.
- * Extends Registry with source management and reload capability.
+ * Mutable registry that composes multiple bundles.
+ * Extends Registry with bundle management and reload capability.
  */
 export interface ComposableRegistry<
   V extends RegistryItem,
 > extends Registry<V> {
   /**
-   * Add a source to the registry.
-   * Sources are loaded in order when reload() is called.
+   * Add a bundle to the registry.
+   * Bundles are loaded in order when reload() is called.
    */
-  addSource(source: RegistrySource<V>): void
+  addBundle(bundle: RegistryBundle<V>): void
 
   /**
-   * Reload all sources.
+   * Reload all bundles.
    * - Calls dispose() on existing items
-   * - Loads all sources
+   * - Loads all bundles
    * - Detects conflicts (throws RegistryConflictError)
    * - Calls init() on new items
    *
    * Idempotent: can be called multiple times.
    *
-   * @throws RegistryConflictError if same key exists in multiple sources
+   * @throws RegistryConflictError if same key exists in multiple bundles
    */
   reload(): Promise<void>
 
-  /** Get all registered sources */
-  getSources(): RegistrySource<V>[]
+  /** Get all registered bundles */
+  getBundles(): RegistryBundle<V>[]
 }

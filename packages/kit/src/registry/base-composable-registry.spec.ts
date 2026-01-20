@@ -2,13 +2,13 @@
  * BaseComposableRegistry tests.
  *
  * Theme: Record Store
- * A vinyl record store with multiple distributors (sources).
+ * A vinyl record store with multiple distributors (bundles).
  * Each distributor provides albums (registry items).
  */
 
 import { describe, it, expect, vi } from 'vitest'
 import { BaseComposableRegistry } from './base-composable-registry.js'
-import { ModuleSource } from './module-source.js'
+import { ModuleBundle } from './module-bundle.js'
 import { RegistryConflictError, RegistryNotLoadedError } from './errors.js'
 import { Album, fixtureAdapter } from './fixtures/types.js'
 
@@ -22,32 +22,32 @@ const EMPTY_DISTRIBUTOR = new URL(
   import.meta.url,
 ).href
 
-function createVinylClassicsSource() {
-  return new ModuleSource<Album>({
+function createVinylClassicsBundle() {
+  return new ModuleBundle<Album>({
     id: 'vinyl-classics',
     modulePath: VINYL_CLASSICS,
     adapter: fixtureAdapter,
   })
 }
 
-function createRetroBeatsSource() {
-  return new ModuleSource<Album>({
+function createRetroBeatsBundle() {
+  return new ModuleBundle<Album>({
     id: 'retro-beats',
     modulePath: RETRO_BEATS,
     adapter: fixtureAdapter,
   })
 }
 
-function createLocalIndieSource() {
-  return new ModuleSource<Album>({
+function createLocalIndieBundle() {
+  return new ModuleBundle<Album>({
     id: 'local-indie',
     modulePath: LOCAL_INDIE,
     adapter: fixtureAdapter,
   })
 }
 
-function createEmptySource() {
-  return new ModuleSource<Album>({
+function createEmptyBundle() {
+  return new ModuleBundle<Album>({
     id: 'empty-distributor',
     modulePath: EMPTY_DISTRIBUTOR,
     adapter: fixtureAdapter,
@@ -58,7 +58,7 @@ describe('BaseComposableRegistry', () => {
   describe('when clerk Emma searches the store inventory', () => {
     it('finds Abbey Road after Vinyl Classics delivers their catalog', async () => {
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createVinylClassicsSource())
+      store.addBundle(createVinylClassicsBundle())
 
       await store.reload()
 
@@ -66,12 +66,12 @@ describe('BaseComposableRegistry', () => {
       expect(entry).toBeDefined()
       expect(entry!.value.title).toBe('Abbey Road')
       expect(entry!.value.artist).toBe('The Beatles')
-      expect(entry!.sourceId).toBe('vinyl-classics')
+      expect(entry!.bundleId).toBe('vinyl-classics')
     })
 
     it('finds both jazz albums from Local Indie', async () => {
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createLocalIndieSource())
+      store.addBundle(createLocalIndieBundle())
 
       await store.reload()
 
@@ -84,7 +84,7 @@ describe('BaseComposableRegistry', () => {
 
     it('returns undefined for albums not in stock', async () => {
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createVinylClassicsSource())
+      store.addBundle(createVinylClassicsBundle())
 
       await store.reload()
 
@@ -96,7 +96,7 @@ describe('BaseComposableRegistry', () => {
   describe('when the store has not received any deliveries yet', () => {
     it('Emma receives an error explaining inventory must be loaded first', async () => {
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createVinylClassicsSource())
+      store.addBundle(createVinylClassicsBundle())
       // Note: reload() not called
 
       await expect(store.get('@classics/abbey-road')).rejects.toThrow(
@@ -128,8 +128,8 @@ describe('BaseComposableRegistry', () => {
   describe('when Vinyl Classics and Retro Beats both ship Abbey Road', () => {
     it('the store manager receives a conflict error listing both distributors', async () => {
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createVinylClassicsSource())
-      store.addSource(createRetroBeatsSource())
+      store.addBundle(createVinylClassicsBundle())
+      store.addBundle(createRetroBeatsBundle())
 
       await expect(store.reload()).rejects.toThrow(RegistryConflictError)
 
@@ -158,9 +158,9 @@ describe('BaseComposableRegistry', () => {
   })
 
   describe('when a distributor has no albums', () => {
-    it('the store loads successfully with empty inventory from that source', async () => {
+    it('the store loads successfully with empty inventory from that bundle', async () => {
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createEmptySource())
+      store.addBundle(createEmptyBundle())
 
       await store.reload()
 
@@ -172,8 +172,8 @@ describe('BaseComposableRegistry', () => {
   describe('when combining multiple distributors without conflicts', () => {
     it('the store stocks albums from all distributors', async () => {
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createVinylClassicsSource())
-      store.addSource(createLocalIndieSource())
+      store.addBundle(createVinylClassicsBundle())
+      store.addBundle(createLocalIndieBundle())
 
       await store.reload()
 
@@ -188,16 +188,16 @@ describe('BaseComposableRegistry', () => {
 
     it('tracks which distributor provided each album', async () => {
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createVinylClassicsSource())
-      store.addSource(createLocalIndieSource())
+      store.addBundle(createVinylClassicsBundle())
+      store.addBundle(createLocalIndieBundle())
 
       await store.reload()
 
       const abbeyRoad = await store.get('@classics/abbey-road')
       const blueTrain = await store.get('@indie/blue-train')
 
-      expect(abbeyRoad?.sourceId).toBe('vinyl-classics')
-      expect(blueTrain?.sourceId).toBe('local-indie')
+      expect(abbeyRoad?.bundleId).toBe('vinyl-classics')
+      expect(blueTrain?.bundleId).toBe('local-indie')
     })
   })
 
@@ -206,7 +206,7 @@ describe('BaseComposableRegistry', () => {
       const initSpy = vi.fn().mockResolvedValue(undefined)
       const disposeSpy = vi.fn().mockResolvedValue(undefined)
 
-      const mockSource = {
+      const mockBundle = {
         id: 'mock',
         load: async () =>
           new Map([
@@ -230,7 +230,7 @@ describe('BaseComposableRegistry', () => {
       }
 
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(mockSource)
+      store.addBundle(mockBundle)
 
       await store.reload()
 
@@ -243,7 +243,7 @@ describe('BaseComposableRegistry', () => {
       const secondInitSpy = vi.fn().mockResolvedValue(undefined)
 
       let loadCount = 0
-      const mockSource = {
+      const mockBundle = {
         id: 'mock',
         load: async () => {
           loadCount++
@@ -290,7 +290,7 @@ describe('BaseComposableRegistry', () => {
       }
 
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(mockSource)
+      store.addBundle(mockBundle)
 
       // First load
       await store.reload()
@@ -307,7 +307,7 @@ describe('BaseComposableRegistry', () => {
   describe('idempotent reload', () => {
     it('can be called multiple times successfully', async () => {
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createVinylClassicsSource())
+      store.addBundle(createVinylClassicsBundle())
 
       await store.reload()
       await store.reload()
@@ -318,26 +318,26 @@ describe('BaseComposableRegistry', () => {
     })
   })
 
-  describe('getSources', () => {
-    it('returns all registered sources', () => {
+  describe('getBundles', () => {
+    it('returns all registered bundles', () => {
       const store = new BaseComposableRegistry<Album>()
-      const source1 = createVinylClassicsSource()
-      const source2 = createLocalIndieSource()
+      const bundle1 = createVinylClassicsBundle()
+      const bundle2 = createLocalIndieBundle()
 
-      store.addSource(source1)
-      store.addSource(source2)
+      store.addBundle(bundle1)
+      store.addBundle(bundle2)
 
-      const sources = store.getSources()
-      expect(sources).toHaveLength(2)
-      expect(sources[0].id).toBe('vinyl-classics')
-      expect(sources[1].id).toBe('local-indie')
+      const bundles = store.getBundles()
+      expect(bundles).toHaveLength(2)
+      expect(bundles[0].id).toBe('vinyl-classics')
+      expect(bundles[1].id).toBe('local-indie')
     })
   })
 
   describe('entries', () => {
     it('returns all entries as a Map', async () => {
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createVinylClassicsSource())
+      store.addBundle(createVinylClassicsBundle())
 
       await store.reload()
 
@@ -354,7 +354,7 @@ describe('BaseComposableRegistry', () => {
       // AC-REG-06: init() sets up playback
       // AC-REG-07: play() returns { status: 'playing', track: 'Come Together' }
       const store = new BaseComposableRegistry<Album>()
-      store.addSource(createVinylClassicsSource())
+      store.addBundle(createVinylClassicsBundle())
 
       await store.reload()
 
@@ -376,7 +376,7 @@ describe('BaseComposableRegistry', () => {
       )
 
       // Create a fresh album instance (not initialized)
-      const freshSource = {
+      const freshBundle = {
         id: 'fresh',
         load: async () => {
           // Re-import to get a fresh instance with initialized=false
