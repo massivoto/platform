@@ -1,0 +1,112 @@
+/**
+ * CoreHandlersBundle - RegistryBundle for built-in command handlers.
+ *
+ * Requirements:
+ * - R-CMD-41: Implements RegistryBundle<CommandHandler>
+ * - R-CMD-42: id is 'core'
+ * - R-CMD-43: load() returns Map of built-in handlers
+ * - R-CMD-44: Migrated handlers: @utils/log, @utils/set
+ */
+import type { RegistryBundle } from '@massivoto/kit'
+import type { CommandHandler } from './types.js'
+import { BaseCommandHandler } from './base-command-handler.js'
+import type { ActionResult } from './action-result.js'
+import type { ExecutionContext } from '../../domain/index.js'
+
+// =============================================================================
+// Core Handlers with RegistryItem interface
+// =============================================================================
+
+/**
+ * LogHandler - @utils/log
+ *
+ * Logs a message to the console.
+ *
+ * @example
+ * ```dsl
+ * @utils/log message="Hello, Social Media!"
+ * ```
+ */
+class LogHandler extends BaseCommandHandler<void> {
+  readonly id = '@utils/log'
+  readonly type = 'command' as const
+
+  async run(
+    args: Record<string, any>,
+    context: ExecutionContext,
+  ): Promise<ActionResult<void>> {
+    const message = args.message as string
+    if (!message) {
+      throw new Error('Message is required')
+    }
+    console.log(`Log: ${message}`)
+    return this.handleSuccess('Logged successfully', undefined)
+  }
+}
+
+/**
+ * SetHandler - @utils/set
+ *
+ * Sets a value in the execution context.
+ *
+ * @example
+ * ```dsl
+ * @utils/set input="value" => $result
+ * ```
+ */
+class SetHandler extends BaseCommandHandler<any> {
+  readonly id = '@utils/set'
+  readonly type = 'command' as const
+
+  async run(
+    args: Record<string, any>,
+    context: ExecutionContext,
+  ): Promise<ActionResult<any>> {
+    const input = args.input as any
+
+    if (input === undefined) {
+      throw new Error('Input is required')
+    }
+    return this.handleSuccess('Set successfully', input)
+  }
+}
+
+// =============================================================================
+// CoreHandlersBundle
+// =============================================================================
+
+/**
+ * CoreHandlersBundle - provides built-in command handlers.
+ *
+ * This bundle is always available and provides the core handlers
+ * that are part of the runtime.
+ *
+ * @example
+ * ```typescript
+ * const registry = new CommandRegistry()
+ * registry.addBundle(new CoreHandlersBundle())
+ * await registry.reload()
+ *
+ * const logHandler = registry.resolve('@utils/log')
+ * ```
+ */
+export class CoreHandlersBundle implements RegistryBundle<CommandHandler<any>> {
+  readonly id = 'core'
+
+  async load(): Promise<Map<string, CommandHandler<any>>> {
+    const handlers = new Map<string, CommandHandler<any>>()
+
+    // Create instances of all core handlers
+    const coreHandlers: CommandHandler<any>[] = [
+      new LogHandler(),
+      new SetHandler(),
+    ]
+
+    // Register each handler by its id
+    for (const handler of coreHandlers) {
+      handlers.set(handler.id, handler)
+    }
+
+    return handlers
+  }
+}

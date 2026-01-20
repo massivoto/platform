@@ -1,8 +1,8 @@
 /**
- * ModuleSource - loads registry items from JavaScript modules.
+ * ModuleBundle - loads registry items from JavaScript modules.
  */
 
-import { RegistryItem, RegistrySource } from './types.js'
+import { RegistryItem, RegistryBundle } from './types.js'
 import { ModuleLoadError } from './errors.js'
 
 /**
@@ -14,10 +14,10 @@ export type ModuleAdapter<V extends RegistryItem> = (
 ) => Map<string, V>
 
 /**
- * Configuration for ModuleSource.
+ * Configuration for ModuleBundle.
  */
-export interface ModuleSourceConfig<V extends RegistryItem> {
-  /** Unique identifier for this source */
+export interface ModuleBundleConfig<V extends RegistryItem> {
+  /** Unique identifier for this bundle */
   id: string
 
   /** Path to the module (for dynamic import) */
@@ -28,28 +28,28 @@ export interface ModuleSourceConfig<V extends RegistryItem> {
 }
 
 /**
- * Registry source that loads items from a JavaScript module.
+ * Registry bundle that loads items from a JavaScript module.
  *
  * Uses dynamic import() to load the module, then passes exports
  * through an adapter function to extract registry entries.
  *
  * @example
  * ```typescript
- * const source = new ModuleSource({
+ * const bundle = new ModuleBundle({
  *   id: 'vinyl-classics',
  *   modulePath: './fixtures/vinyl-classics.js',
  *   adapter: (exports) => new Map(exports.albums.map(({ key, value }) => [key, value]))
  * })
  *
- * const entries = await source.load()
+ * const entries = await bundle.load()
  * ```
  */
-export class ModuleSource<V extends RegistryItem> implements RegistrySource<V> {
+export class ModuleBundle<V extends RegistryItem> implements RegistryBundle<V> {
   readonly id: string
   private readonly modulePath: string
   private readonly adapter: ModuleAdapter<V>
 
-  constructor(config: ModuleSourceConfig<V>) {
+  constructor(config: ModuleBundleConfig<V>) {
     this.id = config.id
     this.modulePath = config.modulePath
     this.adapter = config.adapter

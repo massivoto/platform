@@ -1,12 +1,12 @@
 /**
- * BaseComposableRegistry - composes multiple sources into a single registry.
+ * BaseComposableRegistry - composes multiple bundles into a single registry.
  */
 
 import {
   ComposableRegistry,
   RegistryEntry,
   RegistryItem,
-  RegistrySource,
+  RegistryBundle,
 } from './types.js'
 import {
   RegistryConflictError,
@@ -18,35 +18,35 @@ import {
  * Base implementation of a composable registry.
  *
  * Features:
- * - Composes multiple sources
- * - Detects conflicts (same key in multiple sources)
+ * - Composes multiple bundles
+ * - Detects conflicts (same key in multiple bundles)
  * - Manages item lifecycle (init/dispose)
- * - Tracks source provenance
+ * - Tracks bundle provenance
  *
  * @example
  * ```typescript
  * const registry = new BaseComposableRegistry<CommandHandler>()
- * registry.addSource(coreSource)
- * registry.addSource(customSource)
+ * registry.addBundle(coreBundle)
+ * registry.addBundle(customBundle)
  * await registry.reload()
  *
  * const entry = await registry.get('@utils/log')
- * console.log(entry?.value, entry?.sourceId)
+ * console.log(entry?.value, entry?.bundleId)
  * ```
  */
 export class BaseComposableRegistry<
   V extends RegistryItem,
 > implements ComposableRegistry<V> {
-  private sources: RegistrySource<V>[] = []
+  private bundles: RegistryBundle<V>[] = []
   private cache: Map<string, RegistryEntry<V>> | null = null
   private loaded = false
 
-  addSource(source: RegistrySource<V>): void {
-    this.sources.push(source)
+  addBundle(bundle: RegistryBundle<V>): void {
+    this.bundles.push(bundle)
   }
 
-  getSources(): RegistrySource<V>[] {
-    return [...this.sources]
+  getBundles(): RegistryBundle<V>[] {
+    return [...this.bundles]
   }
 
   async reload(): Promise<void> {
@@ -55,17 +55,17 @@ export class BaseComposableRegistry<
       await this.disposeAll()
     }
 
-    // Step 2: Load all sources
-    const sourceEntries = await this.loadAllSources()
+    // Step 2: Load all bundles
+    const bundleEntries = await this.loadAllBundles()
 
     // Step 3: Detect conflicts
-    const conflicts = this.detectConflicts(sourceEntries)
+    const conflicts = this.detectConflicts(bundleEntries)
     if (conflicts.length > 0) {
       throw new RegistryConflictError(conflicts)
     }
 
     // Step 4: Build cache
-    this.cache = this.buildCache(sourceEntries)
+    this.cache = this.buildCache(bundleEntries)
 
     // Step 5: Initialize all items
     await this.initAll()
@@ -99,38 +99,38 @@ export class BaseComposableRegistry<
     }
   }
 
-  private async loadAllSources(): Promise<
-    Array<{ sourceId: string; entries: Map<string, V> }>
+  private async loadAllBundles(): Promise<
+    Array<{ bundleId: string; entries: Map<string, V> }>
   > {
-    const results: Array<{ sourceId: string; entries: Map<string, V> }> = []
+    const results: Array<{ bundleId: string; entries: Map<string, V> }> = []
 
-    for (const source of this.sources) {
-      const entries = await source.load()
-      results.push({ sourceId: source.id, entries })
+    for (const bundle of this.bundles) {
+      const entries = await bundle.load()
+      results.push({ bundleId: bundle.id, entries })
     }
 
     return results
   }
 
   private detectConflicts(
-    sourceEntries: Array<{ sourceId: string; entries: Map<string, V> }>,
+    bundleEntries: Array<{ bundleId: string; entries: Map<string, V> }>,
   ): RegistryConflict[] {
-    // Map key -> list of source IDs that provide it
-    const keyToSources = new Map<string, string[]>()
+    // Map key -> list of bundle IDs that provide it
+    const keyToBundles = new Map<string, string[]>()
 
-    for (const { sourceId, entries } of sourceEntries) {
+    for (const { bundleId, entries } of bundleEntries) {
       for (const key of entries.keys()) {
-        const sources = keyToSources.get(key) || []
-        sources.push(sourceId)
-        keyToSources.set(key, sources)
+        const bundles = keyToBundles.get(key) || []
+        bundles.push(bundleId)
+        keyToBundles.set(key, bundles)
       }
     }
 
-    // Find keys with more than one source
+    // Find keys with more than one bundle
     const conflicts: RegistryConflict[] = []
-    for (const [key, sourceIds] of keyToSources) {
-      if (sourceIds.length > 1) {
-        conflicts.push({ key, sourceIds })
+    for (const [key, bundleIds] of keyToBundles) {
+      if (bundleIds.length > 1) {
+        conflicts.push({ key, sourceIds: bundleIds })
       }
     }
 
@@ -138,13 +138,13 @@ export class BaseComposableRegistry<
   }
 
   private buildCache(
-    sourceEntries: Array<{ sourceId: string; entries: Map<string, V> }>,
+    bundleEntries: Array<{ bundleId: string; entries: Map<string, V> }>,
   ): Map<string, RegistryEntry<V>> {
     const cache = new Map<string, RegistryEntry<V>>()
 
-    for (const { sourceId, entries } of sourceEntries) {
+    for (const { bundleId, entries } of bundleEntries) {
       for (const [key, value] of entries) {
-        cache.set(key, { key, value, sourceId })
+        cache.set(key, { key, value, bundleId })
       }
     }
 
