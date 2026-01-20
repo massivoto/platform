@@ -45,8 +45,12 @@ export class RegistryConflictError extends Error {
 
     lines.push('')
     lines.push('To fix this error:')
-    lines.push('  1. Use namespaced keys to avoid collisions (e.g., "@acme/myCommand" instead of "@utils/myCommand")')
-    lines.push('  2. Or remove the duplicate registration from one of the sources')
+    lines.push(
+      '  1. Use namespaced keys to avoid collisions (e.g., "@acme/myCommand" instead of "@utils/myCommand")',
+    )
+    lines.push(
+      '  2. Or remove the duplicate registration from one of the sources',
+    )
 
     return lines.join('\n')
   }

@@ -13,7 +13,7 @@
  * } from '@massivoto/kit'
  *
  * interface MyHandler extends RegistryItem {
- *   kind: 'handler'
+ *   type: 'handler'
  *   execute(): Promise<void>
  * }
  *

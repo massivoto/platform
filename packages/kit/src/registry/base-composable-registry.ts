@@ -34,9 +34,9 @@ import {
  * console.log(entry?.value, entry?.sourceId)
  * ```
  */
-export class BaseComposableRegistry<V extends RegistryItem>
-  implements ComposableRegistry<V>
-{
+export class BaseComposableRegistry<
+  V extends RegistryItem,
+> implements ComposableRegistry<V> {
   private sources: RegistrySource<V>[] = []
   private cache: Map<string, RegistryEntry<V>> | null = null
   private loaded = false
