@@ -1,5 +1,20 @@
 import { PipeExpressionNode } from './args-details/pipe-parser/pipe-parser.js'
 
+/**
+ * MapperExpressionNode represents the `->` operator for property extraction and iterator binding.
+ *
+ * Examples:
+ * - Property extraction: `users -> name` extracts `name` from each element
+ * - Iterator binding: `forEach=users -> user` binds `user` as loop variable
+ *
+ * The mapper has the LOWEST precedence in the expression hierarchy (below pipe).
+ */
+export interface MapperExpressionNode {
+  type: 'mapper'
+  source: ExpressionNode // left side of ->
+  target: SingleStringNode // right side of ->
+}
+
 export type LiteralNode =
   | LiteralStringNode
   | LiteralNumberNode
@@ -103,6 +118,7 @@ export type ExpressionNode =
   | LogicalExpressionNode
   //| ConditionalExpressionNode // a ? b : c (optional)
   | PipeExpressionNode
+  | MapperExpressionNode
 
 export interface ArgumentNode {
   type: 'argument'

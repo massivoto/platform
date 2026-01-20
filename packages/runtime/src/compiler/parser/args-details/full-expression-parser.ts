@@ -1,6 +1,7 @@
 import { F, SingleParser } from '@masala/parser'
 import { ExpressionNode, SimpleExpressionNode } from '../ast.js'
 import { createArrayParser } from './array-parser.js'
+import { createMapperParser } from './mapper-parser.js'
 import {
   createPipeParser,
   PipeExpressionNode,
@@ -42,9 +43,14 @@ export function createExpressionWithPipe(
 
   // Order matters: try pipe expression first (requires |> segments),
   // then braced expression (simple expr in braces), then bare simple expression
-  const fullExpression: SingleParser<ExpressionNode> = F.try(pipeExpression)
+  // Note: baseExpression is the expression WITHOUT mapper - used internally
+  const baseExpression: SingleParser<ExpressionNode> = F.try(pipeExpression)
     .or(F.try(bracedExpression))
     .or(simpleExpression)
+
+  // Wrap with mapper parser (lowest precedence)
+  // mapperExpression = baseExpression (-> singleString)?
+  const fullExpression = createMapperParser(tokens, baseExpression)
 
   return fullExpression
 }
