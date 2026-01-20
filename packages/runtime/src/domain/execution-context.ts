@@ -33,6 +33,9 @@ export interface InstructionLog {
   end: ReadableDate
   duration: number // in milliseconds
   messages: string[] // error stack, warnings, info messages
+  cost: number // cost in credits (0 = free)
+  output?: string // variable name if output= was used
+  value?: any // the value stored (for debugging)
 }
 
 export function createEmptyExecutionContext(

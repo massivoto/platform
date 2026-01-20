@@ -8,7 +8,7 @@
  * - R-CMD-02: Default no-op init() and dispose()
  */
 import type { CommandHandler } from './types.js'
-import type { ExecutionContext, InstructionLog } from '../../domain/index.js'
+import type { ExecutionContext } from '../../domain/index.js'
 import type { ActionResult } from './action-result.js'
 
 /**
@@ -76,50 +76,31 @@ export abstract class BaseCommandHandler<T> implements CommandHandler<T> {
    *
    * @param message - Success message
    * @param value - Result value (optional)
+   * @param cost - Cost in credits (default 0)
    */
-  protected handleSuccess(message: string, value?: T): ActionResult<T> {
-    const log: InstructionLog = {
-      success: true,
-      command: this.toString(),
-      start: new Date().toISOString(),
-      end: new Date().toISOString(),
-      messages: [message],
-      duration: 0, // Duration will be calculated by interpreter
-    }
-
-    const result: ActionResult<T> = {
+  protected handleSuccess(message: string, value?: T, cost: number = 0): ActionResult<T> {
+    return {
       success: true,
       value,
-      log,
       message,
       messages: [message],
+      cost,
     }
-
-    return result
   }
 
   /**
    * Create a failed ActionResult.
    *
    * @param message - Error message
+   * @param cost - Cost in credits (default 0)
    */
-  protected handleFailure(message: string): ActionResult<T> {
-    const log: InstructionLog = {
-      success: false,
-      command: this.toString(),
-      start: new Date().toISOString(),
-      end: new Date().toISOString(),
-      messages: [message],
-      duration: 0,
-      fatalError: message,
-    }
-
+  protected handleFailure(message: string, cost: number = 0): ActionResult<T> {
     return {
       success: false,
-      log,
       message,
       messages: [message],
       fatalError: message,
+      cost,
     }
   }
 

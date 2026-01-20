@@ -1,20 +1,33 @@
 import { ActionResult } from '../../handlers/action-result.js'
-import { BaseCommandHandler } from '../../handlers/base-command-handler.js'
+import { CommandHandler } from '../../handlers/command-registry.js'
+import { ExecutionContext } from '../../../domain/index.js'
 
-export class LogHandler extends BaseCommandHandler<void> {
+export class LogHandler implements CommandHandler<void> {
+  readonly id = '@utils/log'
+  readonly type = 'command' as const
+
+  async init(): Promise<void> {}
+  async dispose(): Promise<void> {}
+
   async run(
     args: Record<string, any>,
-    context: any,
+    _context: ExecutionContext,
   ): Promise<ActionResult<void>> {
-    const message = args.message as string
-    if (!message) {
-      throw new Error('Message is required')
+    const message = args.message
+    if (message === undefined || message === null) {
+      return {
+        success: false,
+        fatalError: 'Message is required',
+        messages: ['Missing required argument: message'],
+        cost: 0,
+      }
     }
-    return this.log(message)
-  }
-
-  async log(message: string): Promise<ActionResult<void>> {
-    console.log(`Log: ${message}`)
-    return this.handleSuccess('logged successfully')
+    const messageStr = String(message)
+    console.log(`[LOG] ${messageStr}`)
+    return {
+      success: true,
+      messages: [`Logged: ${messageStr}`],
+      cost: 0,
+    }
   }
 }

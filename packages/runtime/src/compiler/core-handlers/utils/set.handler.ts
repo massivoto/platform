@@ -1,17 +1,33 @@
 import { ActionResult } from '../../handlers/action-result.js'
-import { BaseCommandHandler } from '../../handlers/base-command-handler.js'
+import { CommandHandler } from '../../handlers/command-registry.js'
+import { ExecutionContext } from '../../../domain/index.js'
 
-export class SetHandler extends BaseCommandHandler<any> {
-  async run(args: Record<string, any>): Promise<ActionResult<any>> {
-    const input = args.input as any
+export class SetHandler implements CommandHandler<any> {
+  readonly id = '@utils/set'
+  readonly type = 'command' as const
+
+  async init(): Promise<void> {}
+  async dispose(): Promise<void> {}
+
+  async run(
+    args: Record<string, any>,
+    _context: ExecutionContext,
+  ): Promise<ActionResult<any>> {
+    const input = args.input
 
     if (input === undefined) {
-      throw new Error('Input is required')
+      return {
+        success: false,
+        fatalError: 'Input is required',
+        messages: ['Missing required argument: input'],
+        cost: 0,
+      }
     }
-    return this.set(input)
-  }
-
-  async set(input: any): Promise<ActionResult<any>> {
-    return this.handleSuccess(`Set successfully`, input)
+    return {
+      success: true,
+      value: input,
+      messages: ['Set successfully'],
+      cost: 0,
+    }
   }
 }
