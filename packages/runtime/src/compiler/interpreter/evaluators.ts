@@ -6,8 +6,10 @@ import {
   BinaryExpressionNode,
   LogicalExpressionNode,
   ArrayLiteralNode,
+  IdentifierNode,
 } from '../parser/ast.js'
 import { ExecutionContext } from '../../domain/execution-context.js'
+import { lookup } from './scope-chain.js'
 
 /**
  * Custom error class for evaluation failures.
@@ -29,7 +31,7 @@ export class ExpressionEvaluator {
   evaluate(expr: ExpressionNode, context: ExecutionContext): any {
     switch (expr.type) {
       case 'identifier':
-        return context.data[expr.value]
+        return this.resolveIdentifier(expr, context)
 
       case 'literal-string':
       case 'literal-number':
@@ -71,14 +73,62 @@ export class ExpressionEvaluator {
   }
 
   /**
+   * Resolves an identifier using scope-first resolution.
+   * Walks scope chain first, then falls back to context.data.
+   *
+   * Resolution rule: scope wins on collision with data.
+   */
+  private resolveIdentifier(
+    expr: IdentifierNode,
+    context: ExecutionContext,
+  ): any {
+    const name = expr.value
+
+    // Check scope chain first (walks from current to root)
+    const scopeValue = lookup(name, context.scopeChain)
+    if (scopeValue !== undefined) {
+      return scopeValue
+    }
+
+    // Fall back to data namespace
+    return context.data[name]
+  }
+
+  /**
    * Evaluates member access expressions like user.name or user.profile.settings.theme.
    * Returns undefined for missing properties (lenient behavior per PRD).
+   *
+   * Special handling for 'scope' namespace:
+   * - scope.x resolves via scope chain only (not data)
+   *
+   * All other roots use standard resolution (scope chain first, then data).
    */
   private evaluateMember(
     expr: MemberExpressionNode,
     context: ExecutionContext,
   ): any {
-    // First evaluate the object part (usually an identifier)
+    // Check for special 'scope' namespace prefix
+    if (
+      expr.object.type === 'identifier' &&
+      expr.object.value === 'scope' &&
+      expr.path.length > 0
+    ) {
+      // scope.x.y.z - first path element is the scope variable name
+      const [scopeVarName, ...restPath] = expr.path
+      let current = lookup(scopeVarName, context.scopeChain)
+
+      // Walk remaining path
+      for (const prop of restPath) {
+        if (current === null || current === undefined) {
+          return undefined
+        }
+        current = current[prop]
+      }
+
+      return current
+    }
+
+    // Standard resolution: evaluate object (uses scope-first for identifiers)
     let current = this.evaluate(expr.object, context)
 
     // Walk the path, returning undefined if any step is missing

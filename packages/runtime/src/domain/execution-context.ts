@@ -1,10 +1,16 @@
 import { SerializableObject, ReadableDate } from '@massivoto/kit'
 
 import { fakeStorePointer, SerializableStorePointer } from './store.js'
+import {
+  ScopeChain,
+  createEmptyScopeChain,
+  cloneScopeChain,
+} from '../compiler/interpreter/scope-chain.js'
 
 export interface ExecutionContext {
   env: Record<string, string> // will not be saved nor shared
   data: SerializableObject
+  scopeChain: ScopeChain // block-local variables (forEach iterator, etc.)
   extra: any
   meta: {
     tool?: string
@@ -45,6 +51,7 @@ export function createEmptyExecutionContext(
   return {
     env: {},
     data: {},
+    scopeChain: createEmptyScopeChain(),
     extra,
     meta: {
       tool: undefined,
@@ -73,6 +80,7 @@ export function cloneExecutionContext(
   return {
     env: { ...context.env },
     data: { ...context.data },
+    scopeChain: cloneScopeChain(context.scopeChain),
     extra: structuredClone(context.extra),
     meta: {
       tool: context.meta.tool,
@@ -104,6 +112,9 @@ export function fromPartialContext(
   return {
     env: { ...partialContext.env },
     data: { ...partialContext.data },
+    scopeChain: partialContext.scopeChain
+      ? cloneScopeChain(partialContext.scopeChain)
+      : emptyContext.scopeChain,
     extra: structuredClone(partialContext.extra),
     meta: {
       tool: partialContext.meta?.tool || emptyContext.meta.tool,

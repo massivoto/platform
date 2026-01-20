@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { Stream } from '@masala/parser'
-import { Interpreter } from './interpreter.js'
+import { Interpreter, parseOutputTarget } from './interpreter.js'
 import { CommandRegistry } from '../handlers/command-registry.js'
 import { CommandHandler } from '../handlers/command-registry.js'
 import { ActionResult } from '../handlers/action-result.js'
@@ -11,6 +11,7 @@ import {
 import { buildInstructionParser } from '../parser/instruction-parser.js'
 import { buildProgramParser } from '../parser/program-parser.js'
 import { InstructionNode, ProgramNode } from '../parser/ast.js'
+import { createEmptyScopeChain, write, lookup } from './scope-chain.js'
 
 /**
  * Test file: interpreter.spec.ts
@@ -445,6 +446,181 @@ describe('Acceptance Criteria', () => {
 
       expect(newContext.meta.history[0].success).toBe(false)
       expect(newContext.meta.history[0].fatalError).toBe('Message is required')
+    })
+  })
+})
+
+// ============================================================================
+// OUTPUT TARGETING (R-SCOPE-41 to R-SCOPE-44)
+// ============================================================================
+
+describe('Output Targeting', () => {
+  let registry: CommandRegistry
+  let interpreter: Interpreter
+  let context: ExecutionContext
+  const instructionParser = buildInstructionParser()
+  const programParser = buildProgramParser()
+
+  beforeEach(() => {
+    registry = new CommandRegistry()
+    registry.register('@utils/log', new TestLogHandler())
+    registry.register('@utils/set', new TestSetHandler())
+    interpreter = new Interpreter(registry)
+    context = createEmptyExecutionContext('emma-123')
+  })
+
+  describe('R-SCOPE-41: output=user writes to context.data.user', () => {
+    // AC-SCOPE-05: Given instruction @api/call output=user,
+    // when executed with result { name: "Emma" },
+    // then context.data.user equals { name: "Emma" }
+    it('should write to context.data when output has no scope prefix', async () => {
+      const dsl = '@utils/set input="Emma" output=user'
+      const result = instructionParser.parse(Stream.ofChars(dsl))
+      const ast = result.value as InstructionNode
+
+      const newContext = await interpreter.execute(ast, context)
+
+      expect(newContext.data.user).toBe('Emma')
+      // Verify it's NOT in scope
+      expect(lookup('user', newContext.scopeChain)).toBeUndefined()
+    })
+
+    it('should write object to context.data', async () => {
+      // Using set handler to simulate an API that returns an object
+      const source = `@utils/set input="Emma" output=userName`
+
+      const program = programParser.val(source) as ProgramNode
+      const newContext = await interpreter.executeProgram(program, context)
+
+      expect(newContext.data.userName).toBe('Emma')
+    })
+  })
+
+  describe('R-SCOPE-42: output=scope.user writes to context.scopeChain.current.user', () => {
+    // AC-SCOPE-06: Given instruction @api/call output=scope.user,
+    // when executed with result { name: "Carlos" },
+    // then context.scope.user equals { name: "Carlos" }
+    it('should write to scope chain when output has scope. prefix', async () => {
+      const dsl = '@utils/set input="Carlos" output=scope.user'
+      const result = instructionParser.parse(Stream.ofChars(dsl))
+      const ast = result.value as InstructionNode
+
+      const newContext = await interpreter.execute(ast, context)
+
+      // Should be in scope chain
+      expect(lookup('user', newContext.scopeChain)).toBe('Carlos')
+      // Should NOT be in data
+      expect(newContext.data.user).toBeUndefined()
+    })
+
+    it('should write to current scope only', async () => {
+      // Setup: create a child scope
+      const parent = createEmptyScopeChain()
+      write('existingVar', 'parent-value', parent)
+
+      const child = { current: {}, parent }
+      context.scopeChain = child
+
+      const dsl = '@utils/set input="child-value" output=scope.newVar'
+      const result = instructionParser.parse(Stream.ofChars(dsl))
+      const ast = result.value as InstructionNode
+
+      const newContext = await interpreter.execute(ast, context)
+
+      // Should be in current scope
+      expect(newContext.scopeChain.current.newVar).toBe('child-value')
+      // Parent should be unchanged
+      expect(newContext.scopeChain.parent?.current.newVar).toBeUndefined()
+    })
+  })
+
+  describe('R-SCOPE-43: output=data.user writes to context.data.data.user', () => {
+    // AC-SCOPE-07: Given instruction @api/call output=data.user,
+    // when executed, then context.data.data.user is set (no special casing)
+    it('should write to context.data.data.user with no special handling', async () => {
+      const dsl = '@utils/set input="Emma" output=data.user'
+      const result = instructionParser.parse(Stream.ofChars(dsl))
+      const ast = result.value as InstructionNode
+
+      const newContext = await interpreter.execute(ast, context)
+
+      // data.user is a nested path: context.data['data']['user']
+      expect(newContext.data.data).toEqual({ user: 'Emma' })
+    })
+  })
+
+  describe('R-SCOPE-44: parseOutputTarget detects scope. prefix', () => {
+    it('should parse output=user as data namespace', () => {
+      const target = parseOutputTarget('user')
+
+      expect(target.namespace).toBe('data')
+      expect(target.key).toBe('user')
+    })
+
+    it('should parse output=scope.user as scope namespace', () => {
+      const target = parseOutputTarget('scope.user')
+
+      expect(target.namespace).toBe('scope')
+      expect(target.key).toBe('user')
+    })
+
+    it('should parse output=data.user as data namespace with data.user key', () => {
+      const target = parseOutputTarget('data.user')
+
+      expect(target.namespace).toBe('data')
+      expect(target.key).toBe('data.user')
+    })
+
+    it('should handle nested paths', () => {
+      const target = parseOutputTarget('scope.user.profile')
+
+      expect(target.namespace).toBe('scope')
+      expect(target.key).toBe('user.profile')
+    })
+
+    it('should handle simple names', () => {
+      const target = parseOutputTarget('followers')
+
+      expect(target.namespace).toBe('data')
+      expect(target.key).toBe('followers')
+    })
+  })
+})
+
+describe('Output Targeting Integration', () => {
+  describe('history logging with scope output', () => {
+    let registry: CommandRegistry
+    let interpreter: Interpreter
+    let context: ExecutionContext
+    const instructionParser = buildInstructionParser()
+
+    beforeEach(() => {
+      registry = new CommandRegistry()
+      registry.register('@utils/set', new TestSetHandler())
+      interpreter = new Interpreter(registry)
+      context = createEmptyExecutionContext('emma-123')
+    })
+
+    it('should log output target including scope prefix', async () => {
+      const dsl = '@utils/set input="Carlos" output=scope.user'
+      const result = instructionParser.parse(Stream.ofChars(dsl))
+      const ast = result.value as InstructionNode
+
+      const newContext = await interpreter.execute(ast, context)
+
+      expect(newContext.meta.history[0].output).toBe('scope.user')
+      expect(newContext.meta.history[0].value).toBe('Carlos')
+    })
+
+    it('should log output target for data writes', async () => {
+      const dsl = '@utils/set input=1500 output=followers'
+      const result = instructionParser.parse(Stream.ofChars(dsl))
+      const ast = result.value as InstructionNode
+
+      const newContext = await interpreter.execute(ast, context)
+
+      expect(newContext.meta.history[0].output).toBe('followers')
+      expect(newContext.meta.history[0].value).toBe(1500)
     })
   })
 })

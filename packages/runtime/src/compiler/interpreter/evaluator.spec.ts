@@ -17,6 +17,11 @@ import {
   ExecutionContext,
   fromPartialContext,
 } from '../../domain/execution-context.js'
+import {
+  createEmptyScopeChain,
+  pushScope,
+  write,
+} from './scope-chain.js'
 
 const evaluator = new ExpressionEvaluator()
 
@@ -913,6 +918,372 @@ describe('ExpressionEvaluator - Error Handling', () => {
       expect(() => evaluator.evaluate(pipeExpr, socialMediaContext)).toThrow(
         /pipe/i,
       )
+    })
+  })
+})
+
+// ============================================================================
+// VARIABLE RESOLUTION WITH SCOPE CHAIN (R-SCOPE-21 to R-SCOPE-25, R-SCOPE-81 to R-SCOPE-83)
+// ============================================================================
+
+describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
+  describe('R-SCOPE-21: Bare identifier resolves via scope chain first, then data', () => {
+    // AC-SCOPE-01: Given context.data.user = "Emma" and empty scope,
+    // when evaluating `user`, then result is "Emma"
+    it('should resolve bare identifier from data when scope is empty', () => {
+      const context = fromPartialContext({
+        data: { user: 'Emma' },
+      })
+      // Empty scope chain by default
+      expect(context.scopeChain.current).toEqual({})
+
+      const expr: IdentifierNode = { type: 'identifier', value: 'user' }
+      expect(evaluator.evaluate(expr, context)).toBe('Emma')
+    })
+
+    // AC-SCOPE-02: Given context.data.user = "Emma" and context.scope.user = "Carlos",
+    // when evaluating `user`, then result is "Carlos" (scope wins)
+    it('should resolve bare identifier from scope when both scope and data have value', () => {
+      const scopeChain = createEmptyScopeChain()
+      write('user', 'Carlos', scopeChain)
+
+      const context = fromPartialContext({
+        data: { user: 'Emma' },
+        scopeChain,
+      })
+
+      const expr: IdentifierNode = { type: 'identifier', value: 'user' }
+      expect(evaluator.evaluate(expr, context)).toBe('Carlos')
+    })
+
+    it('should resolve bare identifier from parent scope', () => {
+      const parent = createEmptyScopeChain()
+      write('user', 'Emma', parent)
+
+      const child = pushScope(parent)
+      write('tweet', 'Hello!', child)
+
+      const context = fromPartialContext({
+        data: {},
+        scopeChain: child,
+      })
+
+      const expr: IdentifierNode = { type: 'identifier', value: 'user' }
+      expect(evaluator.evaluate(expr, context)).toBe('Emma')
+    })
+
+    it('should fall back to data when not found in any scope', () => {
+      const scopeChain = createEmptyScopeChain()
+      write('tweet', 'Hello!', scopeChain)
+
+      const context = fromPartialContext({
+        data: { user: 'Emma', followers: 1500 },
+        scopeChain,
+      })
+
+      const expr: IdentifierNode = { type: 'identifier', value: 'followers' }
+      expect(evaluator.evaluate(expr, context)).toBe(1500)
+    })
+  })
+
+  describe('R-SCOPE-22: Scope chain lookup walks from current to root', () => {
+    it('should find value in grandparent scope', () => {
+      const grandparent = createEmptyScopeChain()
+      write('globalUser', 'Admin', grandparent)
+
+      const parent = pushScope(grandparent)
+      write('user', 'Emma', parent)
+
+      const child = pushScope(parent)
+      write('tweet', 'Hello!', child)
+
+      const context = fromPartialContext({
+        data: {},
+        scopeChain: child,
+      })
+
+      // From deepest scope, can find grandparent value
+      const expr: IdentifierNode = { type: 'identifier', value: 'globalUser' }
+      expect(evaluator.evaluate(expr, context)).toBe('Admin')
+    })
+
+    it('should return first match when shadowing', () => {
+      const parent = createEmptyScopeChain()
+      write('item', 'outer', parent)
+
+      const child = pushScope(parent)
+      write('item', 'inner', child) // Shadow
+
+      const context = fromPartialContext({
+        data: { item: 'data-level' },
+        scopeChain: child,
+      })
+
+      const expr: IdentifierNode = { type: 'identifier', value: 'item' }
+      expect(evaluator.evaluate(expr, context)).toBe('inner')
+    })
+  })
+
+  describe('R-SCOPE-23: Explicit scope.user resolves via scope chain only', () => {
+    // AC-SCOPE-03: Given context.scope.user = "Carlos",
+    // when evaluating scope.user, then result is "Carlos"
+    it('should resolve scope.user from scope chain', () => {
+      const scopeChain = createEmptyScopeChain()
+      write('user', 'Carlos', scopeChain)
+
+      const context = fromPartialContext({
+        data: { user: 'Emma' }, // Should NOT use this
+        scopeChain,
+      })
+
+      // scope.user as MemberExpression: object=scope, path=[user]
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'scope' },
+        path: ['user'],
+        computed: false,
+      }
+      expect(evaluator.evaluate(expr, context)).toBe('Carlos')
+    })
+
+    it('should return undefined when scope.user not in scope chain', () => {
+      const context = fromPartialContext({
+        data: { user: 'Emma' }, // Should NOT use this for scope.user
+        scopeChain: createEmptyScopeChain(),
+      })
+
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'scope' },
+        path: ['user'],
+        computed: false,
+      }
+      expect(evaluator.evaluate(expr, context)).toBeUndefined()
+    })
+
+    it('should walk parent chain for scope.user', () => {
+      const parent = createEmptyScopeChain()
+      write('user', 'Emma', parent)
+
+      const child = pushScope(parent)
+      write('tweet', 'Hello!', child)
+
+      const context = fromPartialContext({
+        data: {},
+        scopeChain: child,
+      })
+
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'scope' },
+        path: ['user'],
+        computed: false,
+      }
+      expect(evaluator.evaluate(expr, context)).toBe('Emma')
+    })
+  })
+
+  describe('R-SCOPE-24: Explicit data.user resolves to context.data.data.user', () => {
+    // AC-SCOPE-04: Given context.data.data = { user: "Emma" },
+    // when evaluating data.user, then result is "Emma" (no special meaning)
+    it('should resolve data.user from context.data.data.user', () => {
+      const context = fromPartialContext({
+        data: {
+          data: { user: 'Emma' }, // Nested data object
+          user: 'Carlos', // Top-level user (should NOT be accessed)
+        },
+      })
+
+      // data.user resolves to context.data.data.user
+      // Because 'data' is just an identifier, resolves to context.data.data
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'data' },
+        path: ['user'],
+        computed: false,
+      }
+      expect(evaluator.evaluate(expr, context)).toBe('Emma')
+    })
+
+    it('should return undefined when context.data.data.user does not exist', () => {
+      const context = fromPartialContext({
+        data: {
+          user: 'Carlos', // Top-level, not context.data.data.user
+        },
+      })
+
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'data' },
+        path: ['user'],
+        computed: false,
+      }
+      expect(evaluator.evaluate(expr, context)).toBeUndefined()
+    })
+  })
+
+  describe('R-SCOPE-25: Member expression uses same resolution for root object', () => {
+    // AC-SCOPE-11: Given context.scope.user = { name: "Carlos", followers: 5000 },
+    // when evaluating user.followers, then result is 5000 (scope resolution for root)
+    it('should resolve root object from scope for member expression', () => {
+      const scopeChain = createEmptyScopeChain()
+      write('user', { name: 'Carlos', followers: 5000 }, scopeChain)
+
+      const context = fromPartialContext({
+        data: { user: { name: 'Emma', followers: 1500 } },
+        scopeChain,
+      })
+
+      // user.followers: root 'user' resolves from scope first
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'user' },
+        path: ['followers'],
+        computed: false,
+      }
+      expect(evaluator.evaluate(expr, context)).toBe(5000)
+    })
+
+    it('should resolve root object from data when not in scope', () => {
+      const context = fromPartialContext({
+        data: { user: { name: 'Emma', followers: 1500 } },
+        scopeChain: createEmptyScopeChain(),
+      })
+
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'user' },
+        path: ['followers'],
+        computed: false,
+      }
+      expect(evaluator.evaluate(expr, context)).toBe(1500)
+    })
+
+    it('should handle nested member paths with scope resolution', () => {
+      const scopeChain = createEmptyScopeChain()
+      write('user', {
+        name: 'Carlos',
+        profile: {
+          settings: { theme: 'light' },
+        },
+      }, scopeChain)
+
+      const context = fromPartialContext({
+        data: {
+          user: {
+            name: 'Emma',
+            profile: {
+              settings: { theme: 'dark' },
+            },
+          },
+        },
+        scopeChain,
+      })
+
+      // user.profile.settings.theme: root 'user' from scope
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'user' },
+        path: ['profile', 'settings', 'theme'],
+        computed: false,
+      }
+      expect(evaluator.evaluate(expr, context)).toBe('light')
+    })
+  })
+})
+
+// ============================================================================
+// EVALUATOR CHANGES FOR SCOPE (R-SCOPE-81 to R-SCOPE-83)
+// ============================================================================
+
+describe('ExpressionEvaluator - Scope-Aware Evaluation', () => {
+  describe('R-SCOPE-81: evaluate() uses new resolution logic', () => {
+    it('should use scope-first resolution in evaluate()', () => {
+      const scopeChain = createEmptyScopeChain()
+      write('count', 999, scopeChain)
+
+      const context = fromPartialContext({
+        data: { count: 42 },
+        scopeChain,
+      })
+
+      const expr: IdentifierNode = { type: 'identifier', value: 'count' }
+      expect(evaluator.evaluate(expr, context)).toBe(999)
+    })
+  })
+
+  describe('R-SCOPE-82: IdentifierNode resolution walks scope chain then data', () => {
+    it('should walk scope chain for identifier', () => {
+      const grandparent = createEmptyScopeChain()
+      write('level0', 'grandparent', grandparent)
+
+      const parent = pushScope(grandparent)
+      write('level1', 'parent', parent)
+
+      const child = pushScope(parent)
+      write('level2', 'child', child)
+
+      const context = fromPartialContext({
+        data: { level0: 'data', level1: 'data', level2: 'data' },
+        scopeChain: child,
+      })
+
+      // All resolve from scope chain, not data
+      expect(evaluator.evaluate({ type: 'identifier', value: 'level0' }, context)).toBe('grandparent')
+      expect(evaluator.evaluate({ type: 'identifier', value: 'level1' }, context)).toBe('parent')
+      expect(evaluator.evaluate({ type: 'identifier', value: 'level2' }, context)).toBe('child')
+    })
+
+    it('should fall through to data when not in scope', () => {
+      const scopeChain = createEmptyScopeChain()
+      write('scopeOnly', 'from-scope', scopeChain)
+
+      const context = fromPartialContext({
+        data: { dataOnly: 'from-data' },
+        scopeChain,
+      })
+
+      expect(evaluator.evaluate({ type: 'identifier', value: 'scopeOnly' }, context)).toBe('from-scope')
+      expect(evaluator.evaluate({ type: 'identifier', value: 'dataOnly' }, context)).toBe('from-data')
+    })
+  })
+
+  describe('R-SCOPE-83: MemberExpressionNode applies scope chain logic to root', () => {
+    it('should apply scope resolution to root of member expression', () => {
+      const scopeChain = createEmptyScopeChain()
+      write('config', { debug: true, maxRetries: 5 }, scopeChain)
+
+      const context = fromPartialContext({
+        data: { config: { debug: false, maxRetries: 3 } },
+        scopeChain,
+      })
+
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'config' },
+        path: ['debug'],
+        computed: false,
+      }
+      expect(evaluator.evaluate(expr, context)).toBe(true)
+    })
+
+    it('should handle scope.x member expression specially', () => {
+      const scopeChain = createEmptyScopeChain()
+      write('x', 'scope-value', scopeChain)
+
+      const context = fromPartialContext({
+        data: { scope: { x: 'data-scope-x' } },
+        scopeChain,
+      })
+
+      // scope.x should resolve from scope chain, not from context.data.scope.x
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'scope' },
+        path: ['x'],
+        computed: false,
+      }
+      expect(evaluator.evaluate(expr, context)).toBe('scope-value')
     })
   })
 })
