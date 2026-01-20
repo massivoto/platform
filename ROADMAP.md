@@ -65,7 +65,9 @@ Program:
 
 ## Code Comments
 
-- [x] **Line comments**: `// this is a comment` - ignore rest of line
+- [ ] **Line comments**: `// this is a comment` - ignore rest of line
+- [ ] **Block comments**: `/* ... */` - ignore everything between delimiters
+- **PRD:** [comments.prd.md](packages/runtime/src/compiler/parser/comments.prd.md)
 
 ### Cleanup (end of v0.5)
 
@@ -87,7 +89,6 @@ Program:
   - [x] Optional `name="label"` argument
   - [x] Optional `if=condition` argument for conditional blocks
   - [x] Arbitrary nesting depth supported
-  - [ ] Block comments: ignore everything between `/*` and `*/`
 - [ ] **ForEach statement**: `@forEach item of items { ... }`
 - [ ] **Goto/Label**: control flow jumps for complex workflows
 - [ ] **Unary operators**: 2 skipped tests in `unary-parser.spec.ts` need
