@@ -81,11 +81,19 @@ The parser transforms DSL source text into an Abstract Syntax Tree (AST) that ca
 - Multiline commands
 - Empty argument shorthand (`flag` meaning `flag=true`)
 
-**Next Moves**
+**Completed (0.5)**
+- ~~array literals~~ `[a, b, c]` syntax
+- ~~reserved arguments~~ `output=`, `if=`
+- ~~expression boundaries~~ braces required for complex expressions
+- ~~block parsing~~ `@block/begin` / `@block/end`
+- ~~single string parser~~ unquoted literal strings
+- ~~mapper expression~~ `source -> target` syntax
+
+**Next Moves (0.6+)**
+- forEach reserved argument (depends on mapper)
 - output improvements
-- single string acceptation
 - define what is a typing (number, string, boolean, mapping, array)
-- define mapping parser as first class type
+- correct logging for v1
 
 
 ## Requirements

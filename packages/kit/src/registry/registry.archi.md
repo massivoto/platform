@@ -12,7 +12,7 @@
 
 ## Overview
 
-The Registry module provides a composable registry pattern for loading items from multiple sources. It is the foundation for `CommandRegistry`, `ProviderRegistry`, and `AppletRegistry` in the runtime package. The design emphasizes testability through explicit lifecycle management, conflict detection for duplicate keys, and source provenance tracking.
+The Registry module provides a composable registry pattern for loading items from multiple bundles. It is the foundation for `CommandRegistry`, `ProviderRegistry`, and `AppletRegistry` in the runtime package. The design emphasizes testability through explicit lifecycle management, conflict detection for duplicate keys, and bundle provenance tracking.
 
 ## Diagram
 
@@ -52,19 +52,19 @@ The Registry module provides a composable registry pattern for loading items fro
 │  ┌───────────────────────────────────────────────────────────────────────┐ │
 │  │                  ComposableRegistry<V> (Interface)                    │ │
 │  ├───────────────────────────────────────────────────────────────────────┤ │
-│  │  addSource(source: RegistrySource<V>): void                           │ │
+│  │  addBundle(source: RegistryBundle<V>): void                           │ │
 │  │  reload(): Promise<void>                                              │ │
-│  │  getSources(): RegistrySource<V>[]                                    │ │
+│  │  getBundles(): RegistryBundle<V>[]                                    │ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 │                              ▲                                              │
 │                              │ implements                                   │
 │  ┌───────────────────────────────────────────────────────────────────────┐ │
 │  │                  BaseComposableRegistry<V> (Class)                    │ │
 │  ├───────────────────────────────────────────────────────────────────────┤ │
-│  │  - Composes multiple RegistrySource<V>                                │ │
-│  │  - Detects conflicts (same key in multiple sources)                   │ │
+│  │  - Composes multiple RegistryBundle<V>                                │ │
+│  │  - Detects conflicts (same key in multiple bundles)                   │ │
 │  │  - Manages lifecycle (init/dispose)                                   │ │
-│  │  - Tracks source provenance                                           │ │
+│  │  - Tracks bundle provenance                                           │ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -76,15 +76,15 @@ The Registry module provides a composable registry pattern for loading items fro
 |-----------|----------|----------------|
 | `RegistryItem` | types.ts | Base interface for all registry items (id, type, init, dispose) |
 | `Registry<V>` | types.ts | Readonly async lookup interface |
-| `ComposableRegistry<V>` | types.ts | Mutable interface with source composition |
-| `RegistrySource<V>` | types.ts | Interface for loadable sources |
-| `RegistryEntry<V>` | types.ts | Lookup result with value and sourceId |
+| `ComposableRegistry<V>` | types.ts | Mutable interface with bundle composition |
+| `RegistryBundle<V>` | types.ts | Interface for loadable bundles |
+| `RegistryEntry<V>` | types.ts | Lookup result with value and bundleId |
 | `BaseComposableRegistry<V>` | base-composable-registry.ts | Implementation with conflict detection and lifecycle |
-| `ModuleSource<V>` | module-source.ts | Source that loads from JS modules via dynamic import |
-| `ModuleAdapter<V>` | module-source.ts | Function type: converts module exports to Map<string, V> |
-| `ModuleSourceConfig<V>` | module-source.ts | Config interface: id, modulePath, adapter |
-| `RegistryConflictError` | errors.ts | Thrown when same key exists in multiple sources |
-| `RegistryConflict` | errors.ts | Type describing a single key conflict (key + sourceIds) |
+| `ModuleBundle<V>` | module-bundle.ts | Bundle that loads from JS modules via dynamic import |
+| `ModuleAdapter<V>` | module-bundle.ts | Function type: converts module exports to Map<string, V> |
+| `ModuleBundleConfig<V>` | module-bundle.ts | Config interface: id, modulePath, adapter |
+| `RegistryConflictError` | errors.ts | Thrown when same key exists in multiple bundles |
+| `RegistryConflict` | errors.ts | Type describing a single key conflict (key + bundleIds) |
 | `RegistryNotLoadedError` | errors.ts | Thrown when accessing registry before reload() |
 | `ModuleLoadError` | errors.ts | Thrown when module import fails (includes cause) |
 
@@ -95,8 +95,8 @@ The Registry module provides a composable registry pattern for loading items fro
 │                         REGISTRY RELOAD FLOW                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  addSource(source1)                                                         │
-│  addSource(source2)                                                         │
+│  addBundle(source1)                                                         │
+│  addBundle(source2)                                                         │
 │        │                                                                    │
 │        ▼                                                                    │
 │  ┌─────────────┐                                                           │
@@ -119,7 +119,7 @@ The Registry module provides a composable registry pattern for loading items fro
 │         │                                                                   │
 │         ▼                                                                   │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  3. Detect conflicts (same key in multiple sources)                 │   │
+│  │  3. Detect conflicts (same key in multiple bundles)                 │   │
 │  │     → throws RegistryConflictError if found                         │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │         │                                                                   │
@@ -143,7 +143,7 @@ The Registry module provides a composable registry pattern for loading items fro
 │                         MODULE SOURCE FLOW                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ModuleSource<V>                                                            │
+│  ModuleBundle<V>                                                            │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │  id: "core"                                                         │   │
 │  │  modulePath: "./handlers.js"                                        │   │
@@ -184,15 +184,15 @@ The Registry module provides a composable registry pattern for loading items fro
 ├─────────────────────────────────────────────────────────────────────────┤
 │  key: string                                                             │
 │  value: V                                                                │
-│  sourceId: string                                                        │
+│  bundleId: string                                                        │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### RegistrySource<V>
+### RegistryBundle<V>
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         RegistrySource<V>                                │
+│                         RegistryBundle<V>                                │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  readonly id: string                                                     │
 │  load(): Promise<Map<string, V>>                                         │
@@ -204,7 +204,7 @@ The Registry module provides a composable registry pattern for loading items fro
 | Error | When Thrown | Resolution |
 |-------|-------------|------------|
 | `RegistryNotLoadedError` | Accessing registry before `reload()` | Call `await registry.reload()` first |
-| `RegistryConflictError` | Same key in multiple sources | Use namespaced keys or remove duplicate |
+| `RegistryConflictError` | Same key in multiple bundles | Use namespaced keys or remove duplicate |
 | `ModuleLoadError` | Module import fails | Check module path and exports |
 
 ## Dependencies
