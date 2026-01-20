@@ -83,10 +83,11 @@ Program:
 
 ### Parser Enhancements
 
-- [ ] **Block parsing**: `{ ... }` statement groups
-  - [ ] **Begin/End block**: `@begin/block ... @end/block`
-  - Block comments : ignore everything between `/*` and `*/`
-- [ ] **If statement**: `@if condition { ... }`
+- [x] **Block parsing**: `@block/begin ... @block/end` statement groups
+  - [x] Optional `name="label"` argument
+  - [x] Optional `if=condition` argument for conditional blocks
+  - [x] Arbitrary nesting depth supported
+  - [ ] Block comments: ignore everything between `/*` and `*/`
 - [ ] **ForEach statement**: `@forEach item of items { ... }`
 - [ ] **Goto/Label**: control flow jumps for complex workflows
 - [ ] **Unary operators**: 2 skipped tests in `unary-parser.spec.ts` need
