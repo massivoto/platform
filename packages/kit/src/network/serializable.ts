@@ -7,7 +7,7 @@ export type Serializable = Record<
   Primitive | BaseSerializableArray | SerializableObject
 >
 
-type Primitive = string | number | boolean| undefined // undefined is needed for optional field
+type Primitive = string | number | boolean | undefined // undefined is needed for optional field
 type BaseSerializableArray = Primitive[]
 
 export interface SerializableObject {

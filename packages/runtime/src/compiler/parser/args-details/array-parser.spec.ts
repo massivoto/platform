@@ -103,8 +103,14 @@ describe('Array literal parser', () => {
 
       expect(parsing.isAccepted()).toBe(true)
       const result = parsing.value as ArrayLiteralNode
-      expect(result.elements[0]).toEqual({ type: 'literal-boolean', value: true })
-      expect(result.elements[1]).toEqual({ type: 'literal-boolean', value: false })
+      expect(result.elements[0]).toEqual({
+        type: 'literal-boolean',
+        value: true,
+      })
+      expect(result.elements[1]).toEqual({
+        type: 'literal-boolean',
+        value: false,
+      })
     })
 
     it('should parse array with identifiers', () => {
@@ -124,8 +130,14 @@ describe('Array literal parser', () => {
 
       expect(parsing.isAccepted()).toBe(true)
       const result = parsing.value as ArrayLiteralNode
-      expect(result.elements[0]).toMatchObject({ type: 'member', path: ['name'] })
-      expect(result.elements[1]).toMatchObject({ type: 'member', path: ['email'] })
+      expect(result.elements[0]).toMatchObject({
+        type: 'member',
+        path: ['name'],
+      })
+      expect(result.elements[1]).toMatchObject({
+        type: 'member',
+        path: ['email'],
+      })
     })
 
     it('should parse array with binary expressions', () => {
@@ -134,8 +146,14 @@ describe('Array literal parser', () => {
 
       expect(parsing.isAccepted()).toBe(true)
       const result = parsing.value as ArrayLiteralNode
-      expect(result.elements[0]).toMatchObject({ type: 'binary', operator: '+' })
-      expect(result.elements[1]).toMatchObject({ type: 'binary', operator: '*' })
+      expect(result.elements[0]).toMatchObject({
+        type: 'binary',
+        operator: '+',
+      })
+      expect(result.elements[1]).toMatchObject({
+        type: 'binary',
+        operator: '*',
+      })
     })
 
     it('should parse array with logical expressions', () => {
@@ -144,8 +162,14 @@ describe('Array literal parser', () => {
 
       expect(parsing.isAccepted()).toBe(true)
       const result = parsing.value as ArrayLiteralNode
-      expect(result.elements[0]).toMatchObject({ type: 'logical', operator: '&&' })
-      expect(result.elements[1]).toMatchObject({ type: 'logical', operator: '||' })
+      expect(result.elements[0]).toMatchObject({
+        type: 'logical',
+        operator: '&&',
+      })
+      expect(result.elements[1]).toMatchObject({
+        type: 'logical',
+        operator: '||',
+      })
     })
 
     it('should parse array with unary expressions', () => {
@@ -169,9 +193,18 @@ describe('Array literal parser', () => {
       const result = parsing.value as ArrayLiteralNode
       expect(result.elements).toHaveLength(4)
       expect(result.elements[0]).toEqual({ type: 'literal-number', value: 1 })
-      expect(result.elements[1]).toEqual({ type: 'literal-string', value: 'two' })
-      expect(result.elements[2]).toEqual({ type: 'literal-boolean', value: true })
-      expect(result.elements[3]).toMatchObject({ type: 'member', path: ['name'] })
+      expect(result.elements[1]).toEqual({
+        type: 'literal-string',
+        value: 'two',
+      })
+      expect(result.elements[2]).toEqual({
+        type: 'literal-boolean',
+        value: true,
+      })
+      expect(result.elements[3]).toMatchObject({
+        type: 'member',
+        path: ['name'],
+      })
     })
   })
 
@@ -251,8 +284,14 @@ describe('Array literal parser', () => {
       const result = parsing.value as ArrayLiteralNode
       expect(result.type).toBe('array-literal')
       expect(result.elements).toHaveLength(2)
-      expect(result.elements[0]).toEqual({ type: 'literal-string', value: 'tech' })
-      expect(result.elements[1]).toEqual({ type: 'literal-string', value: 'ai' })
+      expect(result.elements[0]).toEqual({
+        type: 'literal-string',
+        value: 'tech',
+      })
+      expect(result.elements[1]).toEqual({
+        type: 'literal-string',
+        value: 'ai',
+      })
     })
 
     it('AC-ARR-02: ids=[1, 2, 3] has 3 number elements', () => {
@@ -275,8 +314,14 @@ describe('Array literal parser', () => {
       expect(parsing.isAccepted()).toBe(true)
       const result = parsing.value as ArrayLiteralNode
       expect(result.elements).toHaveLength(2)
-      expect(result.elements[0]).toMatchObject({ type: 'binary', operator: '+' })
-      expect(result.elements[1]).toMatchObject({ type: 'binary', operator: '*' })
+      expect(result.elements[0]).toMatchObject({
+        type: 'binary',
+        operator: '+',
+      })
+      expect(result.elements[1]).toMatchObject({
+        type: 'binary',
+        operator: '*',
+      })
     })
 
     it('AC-ARR-04: data=[[1, 2], [3, 4]] has nested ArrayLiteralNode structure', () => {

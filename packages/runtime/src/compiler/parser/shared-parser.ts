@@ -70,10 +70,7 @@ export const stringLiteral = quote
   )
   .then(quote)
   .map((tuple) => {
-    const raw = tuple
-      .array()
-      .flat()
-      .join('')
+    const raw = tuple.array().flat().join('')
     // raw includes quotes, remove them and process escapes
     return processEscapes(raw.slice(1, -1))
   })

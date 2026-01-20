@@ -220,12 +220,10 @@ describe('BaseComposableRegistry', () => {
                 year: 2024,
                 init: initSpy,
                 dispose: disposeSpy,
-                play: vi
-                  .fn()
-                  .mockResolvedValue({
-                    status: 'playing',
-                    track: 'Mock Track',
-                  }),
+                play: vi.fn().mockResolvedValue({
+                  status: 'playing',
+                  track: 'Mock Track',
+                }),
               },
             ],
           ]),
@@ -261,12 +259,10 @@ describe('BaseComposableRegistry', () => {
                   year: 2024,
                   init: firstInitSpy,
                   dispose: firstDisposeSpy,
-                  play: vi
-                    .fn()
-                    .mockResolvedValue({
-                      status: 'playing',
-                      track: 'First Track',
-                    }),
+                  play: vi.fn().mockResolvedValue({
+                    status: 'playing',
+                    track: 'First Track',
+                  }),
                 },
               ],
             ])
@@ -282,12 +278,10 @@ describe('BaseComposableRegistry', () => {
                   year: 2024,
                   init: secondInitSpy,
                   dispose: vi.fn(),
-                  play: vi
-                    .fn()
-                    .mockResolvedValue({
-                      status: 'playing',
-                      track: 'Second Track',
-                    }),
+                  play: vi.fn().mockResolvedValue({
+                    status: 'playing',
+                    track: 'Second Track',
+                  }),
                 },
               ],
             ])

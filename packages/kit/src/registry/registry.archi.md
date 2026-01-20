@@ -1,6 +1,6 @@
 # Architecture: Registry (Common Registry Interface)
 
-**Last updated:** 2026-01-19
+**Last updated:** 2026-01-20
 
 ## Parent
 
@@ -74,16 +74,19 @@ The Registry module provides a composable registry pattern for loading items fro
 
 | Component | Location | Responsibility |
 |-----------|----------|----------------|
-| `RegistryItem` | types.ts | Base interface for all registry items (id, kind, init, dispose) |
+| `RegistryItem` | types.ts | Base interface for all registry items (id, type, init, dispose) |
 | `Registry<V>` | types.ts | Readonly async lookup interface |
 | `ComposableRegistry<V>` | types.ts | Mutable interface with source composition |
 | `RegistrySource<V>` | types.ts | Interface for loadable sources |
 | `RegistryEntry<V>` | types.ts | Lookup result with value and sourceId |
 | `BaseComposableRegistry<V>` | base-composable-registry.ts | Implementation with conflict detection and lifecycle |
 | `ModuleSource<V>` | module-source.ts | Source that loads from JS modules via dynamic import |
+| `ModuleAdapter<V>` | module-source.ts | Function type: converts module exports to Map<string, V> |
+| `ModuleSourceConfig<V>` | module-source.ts | Config interface: id, modulePath, adapter |
 | `RegistryConflictError` | errors.ts | Thrown when same key exists in multiple sources |
+| `RegistryConflict` | errors.ts | Type describing a single key conflict (key + sourceIds) |
 | `RegistryNotLoadedError` | errors.ts | Thrown when accessing registry before reload() |
-| `ModuleLoadError` | errors.ts | Thrown when module import fails |
+| `ModuleLoadError` | errors.ts | Thrown when module import fails (includes cause) |
 
 ## Data Flow
 
