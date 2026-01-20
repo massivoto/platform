@@ -1,6 +1,6 @@
 # Architecture: Kit (Shared Utilities)
 
-**Last updated:** 2026-01-14
+**Last updated:** 2026-01-19
 
 ## Parent
 
@@ -8,11 +8,15 @@
 
 ## Children
 
-- None
+- [Registry](./src/registry/registry.archi.md)
 
 ## Overview
 
-The Kit package (`@massivoto/kit`) is a collection of shared utilities used across the Massivoto monorepo. It provides common functionality including error handling, network utilities, testing helpers, and time/timestamp operations. The package is published as an ESM module with TypeScript types and is a dependency of both the runtime and other packages.
+The Kit package (`@massivoto/kit`) is a collection of shared utilities used
+across the Massivoto monorepo. It provides common functionality including error
+handling, network utilities, testing helpers, time/timestamp operations, and a
+composable registry pattern. The package is published as an ESM module with
+TypeScript types and is a dependency of both the runtime and other packages.
 
 ## Diagram
 
@@ -26,35 +30,35 @@ The Kit package (`@massivoto/kit`) is a collection of shared utilities used acro
 │  │                     (Single entry point)                              │ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                        │
-│       ┌────────────────┬───────────┼───────────┬────────────────┐          │
-│       │                │           │           │                │          │
-│       ▼                ▼           ▼           ▼                ▼          │
-│  ┌─────────┐    ┌─────────┐  ┌─────────┐  ┌─────────┐    ┌───────────┐    │
-│  │ errors/ │    │network/ │  │testing/ │  │  time/  │    │  caching/ │    │
-│  └────┬────┘    └────┬────┘  └────┬────┘  └────┬────┘    └─────┬─────┘    │
-│       │              │            │            │                │          │
-│       ▼              ▼            ▼            ▼                ▼          │
-│  ┌─────────┐    ┌─────────┐  ┌─────────┐  ┌─────────┐    ┌───────────┐    │
-│  │error-to-│    │cuid-    │  │skip-    │  │timestamp│    │localStorage│   │
-│  │string   │    │validator│  │describe │  │  utils  │    │  adapters  │   │
-│  │         │    │         │  │         │  │         │    │            │   │
-│  │assertions│   │get-proxy│  │         │  │         │    │            │   │
-│  │         │    │         │  │         │  │         │    │            │   │
-│  │         │    │serialize│  │         │  │         │    │            │   │
-│  └─────────┘    └─────────┘  └─────────┘  └─────────┘    └───────────┘    │
+│    ┌──────────┬──────────┬─────────┼─────────┬──────────┬──────────┐       │
+│    │          │          │         │         │          │          │       │
+│    ▼          ▼          ▼         ▼         ▼          ▼          ▼       │
+│ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌─────────┐ ┌────────┐  │
+│ │errors/│ │network│ │testing│ │ time/ │ │caching│ │registry/│ │strings/│  │
+│ └───┬───┘ └───┬───┘ └───┬───┘ └───┬───┘ └───┬───┘ └────┬────┘ └───┬────┘  │
+│     │         │         │         │         │          │          │        │
+│     ▼         ▼         ▼         ▼         ▼          ▼          ▼        │
+│ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌─────────┐ ┌────────┐  │
+│ │error- │ │cuid-  │ │skip-  │ │timest-│ │local- │ │Compos-  │ │base-64 │  │
+│ │ToString│ │valid. │ │Descr. │ │amp    │ │Storage│ │ableReg- │ │obfusc. │  │
+│ │assert │ │proxy  │ │       │ │       │ │Adapter│ │istry    │ │        │  │
+│ │       │ │serial │ │       │ │       │ │       │ │ModuleSrc│ │        │  │
+│ └───────┘ └───────┘ └───────┘ └───────┘ └───────┘ └─────────┘ └────────┘  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Key Components
 
-| Component | Location | Responsibility |
-|-----------|----------|----------------|
-| `errors/` | src/errors/ | Error conversion, assertions |
-| `network/` | src/network/ | CUID validation, proxy utilities, serialization |
-| `testing/` | src/testing/ | Test utilities like `skipDescribe` |
-| `time/` | src/time/ | Timestamp utilities: `nowTs()`, `toReadableDate()` |
-| `caching/` | src/caching/ | localStorage adapters for Node and browser |
+| Component   | Location      | Responsibility                                      |
+| ----------- | ------------- | --------------------------------------------------- |
+| `errors/`   | src/errors/   | Error conversion, assertions                        |
+| `network/`  | src/network/  | CUID validation, proxy utilities, serialization     |
+| `testing/`  | src/testing/  | Test utilities like `skipDescribe`                  |
+| `time/`     | src/time/     | Timestamp utilities: `nowTs()`, `toReadableDate()`  |
+| `caching/`  | src/caching/  | localStorage adapters for Node and browser          |
+| `registry/` | src/registry/ | Composable registry pattern with conflict detection |
+| `strings/`  | src/strings/  | Base64, obfuscation utilities                       |
 
 ## Module Exports
 
@@ -78,6 +82,57 @@ The Kit package (`@massivoto/kit`) is a collection of shared utilities used acro
 │  time/                                                                  │
 │  ├── nowTs(): number                                                   │
 │  └── toReadableDate(ts: number): string                                │
+│                                                                         │
+│  registry/                                                              │
+│  ├── RegistryItem (interface)                                          │
+│  ├── Registry<V> (interface)                                           │
+│  ├── ComposableRegistry<V> (interface)                                 │
+│  ├── RegistrySource<V> (interface)                                     │
+│  ├── RegistryEntry<V> (type)                                           │
+│  ├── BaseComposableRegistry<V> (class)                                 │
+│  ├── ModuleSource<V> (class)                                           │
+│  ├── RegistryConflictError (class)                                     │
+│  ├── RegistryNotLoadedError (class)                                    │
+│  └── ModuleLoadError (class)                                           │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+## Registry Pattern
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    COMPOSABLE REGISTRY PATTERN                          │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌───────────────────────────────────────────────────────────────────┐ │
+│  │                      RegistryItem (Base)                          │ │
+│  ├───────────────────────────────────────────────────────────────────┤ │
+│  │  id: string, type: string, init(), dispose()                      │ │
+│  └───────────────────────────────────────────────────────────────────┘ │
+│                              ▲                                          │
+│       ┌──────────────────────┼──────────────────────┐                  │
+│       │                      │                      │                  │
+│  ┌─────────┐           ┌─────────┐           ┌─────────┐              │
+│  │Command  │           │Provider │           │Applet   │              │
+│  │Handler  │           │Driver   │           │Defn     │              │
+│  └─────────┘           └─────────┘           └─────────┘              │
+│                                                                         │
+│  ┌───────────────────────────────────────────────────────────────────┐ │
+│  │              BaseComposableRegistry<V>                            │ │
+│  ├───────────────────────────────────────────────────────────────────┤ │
+│  │  addSource(source)   // Add JS module source                      │ │
+│  │  reload()            // Load all, detect conflicts, init items    │ │
+│  │  get(key)            // Returns { value, sourceId }               │ │
+│  └───────────────────────────────────────────────────────────────────┘ │
+│                              │                                          │
+│           ┌──────────────────┼──────────────────┐                      │
+│           │                  │                  │                      │
+│           ▼                  ▼                  ▼                      │
+│    ┌────────────┐    ┌────────────┐    ┌────────────┐                 │
+│    │ModuleSource│    │ModuleSource│    │RemoteSource│                 │
+│    │  (core)    │    │ (@acme/*)  │    │  (future)  │                 │
+│    └────────────┘    └────────────┘    └────────────┘                 │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -117,6 +172,6 @@ The Kit package (`@massivoto/kit`) is a collection of shared utilities used acro
 
 - **Depends on:** None (zero external dependencies)
 - **Used by:**
-  - @massivoto/runtime (timestamp utilities)
+  - @massivoto/runtime (timestamp utilities, registry pattern)
   - apps/auth (localStorage adapters)
   - services/auth-backend (indirectly via auth-domain)

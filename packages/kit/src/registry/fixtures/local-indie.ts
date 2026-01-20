@@ -13,6 +13,7 @@ export const albums = [
       'Blue Train',
       'John Coltrane',
       1958,
+      'Blue Train',
     ),
   },
   {
@@ -22,6 +23,7 @@ export const albums = [
       'Kind of Blue',
       'Miles Davis',
       1959,
+      'So What',
     ),
   },
 ]

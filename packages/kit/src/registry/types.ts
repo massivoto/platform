@@ -14,7 +14,7 @@ export interface RegistryItem {
   readonly id: string
 
   /** Item type: "command", "provider", "applet", or custom string */
-  readonly kind: string
+  readonly type: string
 
   /** Called once after loading. Use for setup, resource allocation. */
   init(): Promise<void>
@@ -84,7 +84,9 @@ export interface Registry<V extends RegistryItem> {
  * Mutable registry that composes multiple sources.
  * Extends Registry with source management and reload capability.
  */
-export interface ComposableRegistry<V extends RegistryItem> extends Registry<V> {
+export interface ComposableRegistry<
+  V extends RegistryItem,
+> extends Registry<V> {
   /**
    * Add a source to the registry.
    * Sources are loaded in order when reload() is called.
