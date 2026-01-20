@@ -1,6 +1,6 @@
 # Architecture: Runtime (Automation Programming Language)
 
-**Last updated:** 2026-01-14
+**Last updated:** 2026-01-20
 
 ## Parent
 
@@ -12,7 +12,7 @@
 
 ## Overview
 
-The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation Programming Language (APL). It provides a complete pipeline for parsing DSL source code, normalizing control flow, evaluating expressions, and executing commands via a pluggable handler registry. The runtime also includes MCP (Model Context Protocol) client integration for external tool access.
+The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation Programming Language (APL). It provides a complete pipeline for parsing DSL source code, evaluating expressions with scope-aware variable resolution, and executing commands via a pluggable handler registry with full execution logging and cost tracking.
 
 ## Diagram
 
@@ -23,7 +23,8 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │                                                                             │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                         DSL Source Code                              │   │
-│  │              @log message="Hello" | @set result=$output              │   │
+│  │           @utils/set input="Emma" output=user                        │   │
+│  │           @utils/log message=user                                    │   │
 │  └────────────────────────────────┬────────────────────────────────────┘   │
 │                                   │                                         │
 │                                   ▼                                         │
@@ -31,12 +32,12 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  │                        COMPILER PIPELINE                             │   │
 │  ├─────────────────────────────────────────────────────────────────────┤   │
 │  │                                                                       │  │
-│  │  ┌─────────┐    ┌────────────┐    ┌─────────┐    ┌──────────────┐   │  │
-│  │  │ Parser  │───►│ Normalizer │───►│Evaluator│───►│ Interpreter  │   │  │
-│  │  │         │    │            │    │         │    │              │   │  │
-│  │  │Source→  │    │Expand      │    │Resolve  │    │Execute       │   │  │
-│  │  │   AST   │    │foreach/if  │    │$vars    │    │handlers      │   │  │
-│  │  └─────────┘    └────────────┘    └─────────┘    └──────────────┘   │  │
+│  │  ┌─────────┐    ┌───────────┐    ┌─────────────┐    ┌────────────┐  │  │
+│  │  │ Parser  │───►│ Evaluator │───►│ Interpreter │───►│  Program   │  │  │
+│  │  │         │    │           │    │             │    │  Runner    │  │  │
+│  │  │Source→  │    │Scope-aware│    │Execute +    │    │            │  │  │
+│  │  │  AST    │    │resolution │    │log + cost   │    │runProgram()│  │  │
+│  │  └─────────┘    └───────────┘    └─────────────┘    └────────────┘  │  │
 │  │                                                                       │  │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                   │                                         │
@@ -44,14 +45,14 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                       DOMAIN (State)                                 │   │
 │  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │  ExecutionContext  │  Flow  │  Instruction  │  Store                │   │
+│  │  ExecutionContext { data, scopeChain, meta.history, cost }          │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                   │                                         │
 │                                   ▼                                         │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                    COMMAND HANDLERS                                  │   │
+│  │                    COMMAND REGISTRY                                  │   │
 │  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │  CommandRegistry  │  Built-in handlers  │  MCP clients              │   │
+│  │  BaseComposableRegistry<CommandHandler> + CoreHandlersBundle        │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -66,43 +67,65 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │                                                                             │
 │  1. PARSER (src/compiler/parser/)                                          │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Source Text ─────► Tokenizer ─────► AST (InstructionNode[])        │   │
+│  │  Source Text ─────► Tokenizer ─────► AST (ProgramNode)              │   │
 │  │                                                                      │   │
 │  │  Components:                                                         │   │
-│  │  - command-parser.ts  : Parse @package/command syntax               │   │
-│  │  - arg-parser.ts      : Parse key=value arguments                   │   │
-│  │  - full-expression-parser.ts : Parse expressions ($var, pipes, ops) │   │
-│  │  - ast.ts             : AST node type definitions                   │   │
+│  │  - action-parser.ts         : Parse @package/command syntax         │   │
+│  │  - arg-parser.ts            : Parse key=value arguments             │   │
+│  │  - full-expression-parser.ts: Parse expressions (vars, pipes, ops)  │   │
+│  │  - instruction-parser.ts    : Parse complete instruction + output   │   │
+│  │  - program-parser.ts        : Parse multi-line program with blocks  │   │
+│  │  - ast.ts                   : AST node type definitions             │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                    │                                        │
 │                                    ▼                                        │
-│  2. NORMALIZER (src/compiler/normalizer/)                                  │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  AST ─────► Expand control flow ─────► Flat instruction list        │   │
-│  │                                                                      │   │
-│  │  - normalize-foreach.ts : Unroll @foreach loops                     │   │
-│  │  - normalize-if.ts      : Expand @if conditionals                   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    │                                        │
-│                                    ▼                                        │
-│  3. EVALUATOR (src/compiler/interpreter/evaluators.ts)                     │
+│  2. EVALUATOR (src/compiler/interpreter/evaluators.ts)                     │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │  Expression + Context ─────► Resolved value                         │   │
 │  │                                                                      │   │
-│  │  - Variable resolution: $data.foo → context.data.foo                │   │
-│  │  - Binary ops: 1 + 2, "a" == "b"                                    │   │
-│  │  - Pipe chains: $input | filter | map                               │   │
+│  │  Variable Resolution (scope chain first, then data):                │   │
+│  │  - user         → scopeChain lookup, fallback to data.user          │   │
+│  │  - scope.user   → scopeChain only (explicit)                        │   │
+│  │  - data.user    → data.data.user (no special meaning)               │   │
+│  │                                                                      │   │
+│  │  Supported expressions:                                             │   │
+│  │  - Literals: string, number, boolean, null, array                   │   │
+│  │  - Identifiers: user, count                                         │   │
+│  │  - Member access: user.profile.name                                 │   │
+│  │  - Unary: !flag, -count, +value                                     │   │
+│  │  - Binary: a + b, x == y, count > 0                                 │   │
+│  │  - Logical: a && b, x || y                                          │   │
+│  │  - Pipes: {data|filter:key|map:fn}                                  │   │
+│  │  - Mapper: users -> name                                            │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                    │                                        │
 │                                    ▼                                        │
-│  4. INTERPRETER (src/compiler/interpreter/interpreter.ts)                  │
+│  3. INTERPRETER (src/compiler/interpreter/interpreter.ts)                  │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │  Instruction + Context ─────► Handler.run() ─────► New Context      │   │
 │  │                                                                      │   │
+│  │  execute(instruction, context):                                     │   │
 │  │  - Resolve command from registry                                    │   │
 │  │  - Evaluate all arguments                                           │   │
-│  │  - Execute handler, update context                                  │   │
-│  │  - Record execution in history                                      │   │
+│  │  - Execute handler, get result + cost                               │   │
+│  │  - Write output to data or scope (parseOutputTarget)                │   │
+│  │  - Update cost.current                                              │   │
+│  │  - Record InstructionLog in history                                 │   │
+│  │                                                                      │   │
+│  │  executeProgram(program, context):                                  │   │
+│  │  - Execute statements sequentially                                  │   │
+│  │  - Handle BlockNode (execute body)                                  │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│                                    ▼                                        │
+│  4. PROGRAM RUNNER (src/compiler/interpreter/program-runner.ts)            │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  runProgram(source, context?) ─────► ExecutionContext               │   │
+│  │                                                                      │   │
+│  │  - Parse source to ProgramNode                                      │   │
+│  │  - Create registry with CoreHandlersBundle                          │   │
+│  │  - Execute via Interpreter.executeProgram()                         │   │
+│  │  - Return final context with complete history                       │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -113,11 +136,12 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 | Component | Location | Responsibility |
 |-----------|----------|----------------|
 | `Parser` | src/compiler/parser/ | Tokenize and parse DSL source to AST |
-| `Normalizer` | src/compiler/normalizer/ | Expand control flow (foreach, if) |
-| `ExpressionEvaluator` | src/compiler/interpreter/evaluators.ts | Resolve variables and evaluate expressions |
-| `Interpreter` | src/compiler/interpreter/interpreter.ts | Execute instructions via command handlers |
-| `CommandRegistry` | src/compiler/handlers/command-registry.ts | Register and resolve command handlers |
-| `ExecutionContext` | src/domain/execution-context.ts | Immutable state: data, meta, history |
+| `ExpressionEvaluator` | src/compiler/interpreter/evaluators.ts | Scope-aware variable resolution, expression evaluation |
+| `ScopeChain` | src/compiler/interpreter/scope-chain.ts | Nested scope management (push, pop, lookup) |
+| `Interpreter` | src/compiler/interpreter/interpreter.ts | Execute instructions, log history, track cost |
+| `runProgram` | src/compiler/interpreter/program-runner.ts | End-to-end program execution helper |
+| `CommandRegistry` | src/compiler/command-registry/ | Register and resolve command handlers |
+| `ExecutionContext` | src/domain/execution-context.ts | State: data, scopeChain, meta.history, cost |
 
 ## Domain Model
 
@@ -129,22 +153,81 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                      ExecutionContext                                │   │
 │  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │  data: Record<string, any>     // User data (variables)             │   │
+│  │  data: Record<string, any>      // Program-wide variables           │   │
+│  │  scopeChain: ScopeChain         // Block-local variables (nested)   │   │
+│  │  env: Record<string, string>    // Environment (READ-ONLY)          │   │
 │  │  meta: {                                                            │   │
-│  │    history: InstructionLog[]   // Execution trace                   │   │
+│  │    history: InstructionLog[]    // Execution trace                  │   │
+│  │    updatedAt: string                                                │   │
 │  │  }                                                                  │   │
+│  │  cost: {                                                            │   │
+│  │    current: number              // Accumulated cost in credits      │   │
+│  │    estimated: number                                                │   │
+│  │    maximum: number                                                  │   │
+│  │    credits: number                                                  │   │
+│  │  }                                                                  │   │
+│  │  user: { id, extra }            // User info (READ-ONLY)            │   │
+│  │  store: StorePointer            // Persistent storage (future)      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                         ScopeChain                                   │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │  current: Record<string, any>   // Variables in current scope       │   │
+│  │  parent?: ScopeChain            // Link to outer scope              │   │
+│  │                                                                      │   │
+│  │  Operations:                                                        │   │
+│  │  - pushScope()  → create child scope with parent link               │   │
+│  │  - popScope()   → return to parent (discard current)                │   │
+│  │  - lookup(name) → walk chain from current to root                   │   │
+│  │  - write(name, value) → always write to current scope               │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                       InstructionLog                                 │   │
 │  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │  command: string       // "@pkg/cmd"                                │   │
+│  │  command: string       // "@utils/set"                              │   │
 │  │  success: boolean                                                   │   │
 │  │  start: string         // ISO timestamp                             │   │
 │  │  end: string                                                        │   │
 │  │  duration: number      // milliseconds                              │   │
+│  │  cost: number          // cost in credits (0 = free)                │   │
+│  │  output?: string       // variable name if output= used             │   │
+│  │  value?: any           // stored value (for debugging)              │   │
 │  │  messages: string[]                                                 │   │
 │  │  fatalError?: string                                                │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Variable Resolution
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       VARIABLE RESOLUTION RULES                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Resolution Order (for bare identifiers):                                  │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  1. Walk scopeChain from current to root                            │   │
+│  │  2. If not found, check context.data                                │   │
+│  │  3. Return undefined if not found anywhere                          │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Namespace Prefixes:                                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  scope.user   → scopeChain only (explicit, no data fallback)        │   │
+│  │  data.user    → context.data.data.user (no special meaning)         │   │
+│  │  env.API_KEY  → context.env.API_KEY (READ-ONLY)                     │   │
+│  │  user.id      → context.user.id (READ-ONLY)                         │   │
+│  │  cost.current → context.cost.current (READ-ONLY)                    │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  Output Targeting:                                                         │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  output=user       → writes to context.data.user (default)          │   │
+│  │  output=scope.user → writes to scopeChain.current.user              │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -158,9 +241,23 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  ┌───────────────────────────────────────────────────────────────────────┐ │
-│  │                   CommandHandler<T> (Interface)                       │ │
+│  │              CommandHandler<T> extends RegistryItem                   │ │
 │  ├───────────────────────────────────────────────────────────────────────┤ │
+│  │  id: string              // "@utils/log"                              │ │
+│  │  type: 'command'                                                      │ │
+│  │  init(): Promise<void>   // lifecycle hook                            │ │
+│  │  dispose(): Promise<void>                                             │ │
 │  │  run(args, context) → Promise<ActionResult<T>>                        │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                    │                                        │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                         ActionResult<T>                               │ │
+│  ├───────────────────────────────────────────────────────────────────────┤ │
+│  │  success: boolean                                                     │ │
+│  │  value?: T              // result value                               │ │
+│  │  cost: number           // cost in credits                            │ │
+│  │  messages: string[]                                                   │ │
+│  │  fatalError?: string                                                  │ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                        │
 │          ┌─────────────────────────┼─────────────────────────┐             │
@@ -168,15 +265,15 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │          ▼                         ▼                         ▼             │
 │  ┌───────────────┐       ┌───────────────┐       ┌───────────────┐        │
 │  │ @utils/log    │       │ @utils/set    │       │  MCP Clients  │        │
-│  │               │       │               │       │               │        │
-│  │ Log messages  │       │ Set variables │       │ fetch, fs,    │        │
+│  │ id, type      │       │ id, type      │       │               │        │
+│  │ cost: 0       │       │ cost: 0       │       │ fetch, fs,    │        │
 │  │               │       │               │       │ postgres, ... │        │
 │  └───────────────┘       └───────────────┘       └───────────────┘        │
 │                                                                             │
-│  MCP Clients (src/compiler/core-handlers/mcp/client/):                     │
-│  - fetch.client.ts      : HTTP requests                                    │
-│  - filesystem.client.ts : File operations                                  │
-│  - postgres.client.ts   : Database queries                                 │
+│  CommandRegistry wraps BaseComposableRegistry<CommandHandler>              │
+│  - CoreHandlersBundle provides built-in handlers                           │
+│  - Conflict detection on duplicate registration                            │
+│  - Lifecycle: init() called on load, dispose() on unload                   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -185,33 +282,39 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                       EXPRESSION GRAMMAR                                    │
+│                       EXPRESSION GRAMMAR (DSL 0.5)                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
+│  Precedence (lowest to highest):                                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  mapper      →  source -> target                                    │   │
+│  │  pipe        →  {input|filter:arg|map:fn}                           │   │
+│  │  logical OR  →  a || b                                              │   │
+│  │  logical AND →  a && b                                              │   │
+│  │  equality    →  a == b, a != b                                      │   │
+│  │  comparison  →  a < b, a <= b, a > b, a >= b                        │   │
+│  │  additive    →  a + b, a - b                                        │   │
+│  │  multiply    →  a * b, a / b, a % b                                 │   │
+│  │  unary       →  !x, -x, +x                                          │   │
+│  │  member      →  obj.prop.nested                                     │   │
+│  │  primary     →  literal, identifier, (expr), [array]                │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
 │  Literals:                                                                  │
-│  - Numbers:  42, 3.14                                                      │
-│  - Strings:  "hello", 'world'                                              │
+│  - Numbers:  42, 3.14, -5                                                  │
+│  - Strings:  "hello world" (double quotes only)                            │
 │  - Booleans: true, false                                                   │
-│  - Null:     null                                                          │
+│  - Arrays:   [1, 2, 3], ["a", "b"]                                         │
+│  - No null literal (handled at runtime)                                    │
 │                                                                             │
 │  Variables:                                                                 │
-│  - Simple:   $name                                                         │
-│  - Nested:   $data.user.name                                               │
-│  - Index:    $items[0]                                                     │
+│  - Simple:   user, count                                                   │
+│  - Member:   user.profile.name                                             │
+│  - Explicit: scope.item, env.API_KEY                                       │
 │                                                                             │
-│  Binary Operations (precedence low→high):                                  │
-│  - Logical:  &&, ||                                                        │
-│  - Equality: ==, !=                                                        │
-│  - Compare:  <, >, <=, >=                                                  │
-│  - Additive: +, -                                                          │
-│  - Multiply: *, /, %                                                       │
-│                                                                             │
-│  Unary:                                                                     │
-│  - Not:      !$flag                                                        │
-│  - Negative: -$number                                                      │
-│                                                                             │
-│  Pipes:                                                                     │
-│  - Chain:    $data | filter key="value" | map transform="..."              │
+│  Complex expressions require braces:                                       │
+│  - arg={x + y}                                                             │
+│  - if={count > 0 && isActive}                                              │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -219,8 +322,8 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 ## Dependencies
 
 - **Depends on:**
-  - @massivoto/kit (timestamp utilities)
+  - @massivoto/kit (timestamp utilities, registry pattern)
   - @masala/parser (parser combinators)
   - @modelcontextprotocol/sdk (MCP client)
   - lodash.get, lodash.set (deep property access)
-- **Used by:** Future automation execution service
+- **Used by:** Future automation execution service, local runner
