@@ -17,8 +17,6 @@ The goal is to have a working local runner to validate the product concept.
 
 ### Cleanup (end of v0.5)
 
-- [ ] **Remove normalizers**: `normalizeIf`, `normalizeForEach` - interpreter
-      should handle `condition` directly on `InstructionNode`
 - [ ] **Document braced expressions**: `{expr}` was added to
       `full-expression-parser.ts` for `if={condition}` but is not documented in
       `expression-grammar.md`. Braced expressions should be first-class citizens

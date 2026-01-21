@@ -20,7 +20,8 @@
     "prebuild": "npm run clean",
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
-    "prettier": "prettier --write \"src/**/*.ts\""
+    "prettier": "prettier --write \"src/**/*.ts\"",
+    "test": "npm run build && vitest run"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

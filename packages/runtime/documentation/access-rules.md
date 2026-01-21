@@ -51,7 +51,7 @@ Fetching in store is async, so probably the Evaluator needs to be async too.
   - `store.foo.bar` → path in the `SerializableStorePointer`
   - `user.id`, `meta.history`, `cost.current`, etc. (READ-ONLY)
 
-- Each instruction is **async**. The engine awaits it before moving to the next
+- Each instruction is **async**. The runtime awaits it before moving to the next
   one.
 
 - Every instruction has a **base cost**; blocks (`forEach`, `while`) may
@@ -125,7 +125,7 @@ Using a bare identifier:
 3. Exit when the condition becomes `false`, or when the runtime stops the loop
    (e.g. cost limit).
 
-**Note:** termination is the responsibility of the script author. The engine may
+**Note:** termination is the responsibility of the script author. The runtime may
 enforce safety guards (max iterations, max cost, timeout, etc.).
 
 ### Example
@@ -144,7 +144,7 @@ enforce safety guards (max iterations, max cost, timeout, etc.).
 Within blocks, expressions and arguments follow the global rules:
 
 - **String literal**: quoted
-  - `item="monitor"` → literal `"monitor"`, interpreted by the engine as a
+  - `item="monitor"` → literal `"monitor"`, interpreted by the runtime as a
     _variable name_.
 
 - **Data reference**:
