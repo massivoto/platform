@@ -16,7 +16,73 @@
 
 ## Overview
 
+Massivoto is an Automation Programming Language (APL) platform designed for building and executing
+workflow automations. Think of it as a DSL (Domain-Specific Language) that lets you chain together
+commands to automate tasks, with a focus on being AI-friendly (easy for LLMs to generate) and
+developer-readable.
+
+Target Use Cases
+
+1. Content automation: Generate, validate, publish content at scale
+2. Data pipelines: Extract, transform, load with human checkpoints
+3. API orchestration: Chain multiple services with credential management
+4. AI workflows: LLM-generated programs that execute reliably
+
+The name "Massivoto" suggests massive automation at scale, with a voting/validation component (the
+Applets for human approval).
+
+
+### The Core Idea
+
+The user writes .oto files with commands like:
+
+```oto
+@store/load name="customers" output=customers
+@ai/generate model="gemini" prompt="Summarize {customers}" output=summary
+@human/validation items=summary display=confirm   // Pause for human approval
+@email/send to="team@company.com" body=summary
+```
+
+Each @package/command is executed in sequence, with:
+- Variables flowing between steps (output=X → use X later)
+- Expressions for transformation ({data|filter:active|map:name})
+- Human checkpoints (Applets) for validation mid-workflow
+
+The rationale of building the oto language is to be CI/CD compliant, shareable, generable by AI, readable by humans.
+We must then build some tooling around to make it user-friendly.
+
+### Technical solution
+
 Massivoto Platform is a monorepo for the Massivoto Automation Programming Language (APL). It provides an execution runtime for DSL-based automation workflows, along with authentication infrastructure (OAuth/PKCE) shared between a React frontend and Express backend. The platform uses Yarn workspaces, strict TypeScript, and ESM modules throughout.
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        OTO Program (.oto)                       │
+│   @utils/set input="Emma" output=user                           │
+│   @ai/generate prompt={user + " bio"} output=bio                │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │
+                               ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                         RUNTIME PIPELINE                         │
+│  ┌─────────┐    ┌───────────┐    ┌─────────────┐    ┌─────────┐  │
+│  │ Parser  │───►│ Evaluator │───►│ Interpreter │───►│ Runner  │  │
+│  │(AST)    │    │(Resolve)  │    │(Execute)    │    │(Deploy) │  │
+│  └─────────┘    └───────────┘    └─────────────┘    └─────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+                             │
+        ┌────────────────────┼────────────────────┐
+        ▼                    ▼                    ▼
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│ Command     │      │ Provider    │      │ Applet      │
+│ Registry    │      │ Registry    │      │ Registry    │
+│ @ai/gen     │      │ OAuth/Keys  │      │ confirm/grid│
+└─────────────┘      └─────────────┘      └─────────────┘
+
+```
+
 
 ## Diagram
 
