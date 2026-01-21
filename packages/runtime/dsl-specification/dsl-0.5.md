@@ -108,6 +108,8 @@ Operators: `&&`, `||`
 
 #### Pipe Expressions
 
+This is very a shortcut. See [pipe.md](pipe.md) for details
+
 ```
 {users:orderBy:followers}
 {data:tail:10}
@@ -171,15 +173,20 @@ type ExpressionNode =
 9. Logical OR (`||`)
 10. Pipe (`|`)
 
-## What is NOT in 0.5
+
+## What was added to 0.5
 
 - Comments (`//`, `/* */`)
 - Blocks (`@start/block`, `@end/block`)
 - `forEach` inline syntax
 - `while` loops
 - `if` conditionals (inline)
-- Templates (`#package/template`)
 - Mapping tokens (`monitors->name`)
+- 
+## What is NOT in 0.5
+
+
+- Templates (`#package/template`)
 - `options` keyword
 - String interpolation (`${}`)
 - Multiline commands

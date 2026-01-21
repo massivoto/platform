@@ -3,6 +3,69 @@ parameters follow with :. Docs also clarify operator precedence (pipe is lower
 than + - \* / && || and higher than ?:).
 
 
+
+## TL;DR
+
+
+### Pipe Expression Specification
+
+**Syntax:** `value | step : arg1 : arg2 ...`
+
+**Reading model:** "take X, then apply Y, then Z..." - data-first, no side-effects.
+
+**Precedence:** Pipe has the **lowest** precedence; everything else binds tighter.
+
+**Execution:** Resolve registered function by name, call as `fn(input, ...args)`, steps apply left-to-right.
+
+### Grammar (EBNF)
+
+```ebnf
+expression     ::= pipeExpression | simpleExpression
+pipeExpression ::= "{" simpleExpression pipeSegment+ "}"
+pipeSegment    ::= "|" pipeName pipeArgs?
+pipeArgs       ::= (":" simpleExpression)+
+pipeName       ::= identifier
+```
+
+### AST Shape
+
+```typescript
+interface PipeChainNode {
+  kind: 'pipe-chain'
+  input: ExpressionNode
+  steps: PipeStepNode[]  // non-empty, left-to-right
+}
+
+interface PipeStepNode {
+  kind: 'pipe-step'
+  name: PipeNameNode
+  args: ExpressionNode[]
+}
+```
+
+### Registry-Qualified Names
+
+`pipeName` accepts both:
+- Simple identifiers: `print`, `orderBy`
+- Registry names: `@ai/generate-image`, `@tweeter/users`
+
+### Disambiguation
+
+- `||` (logical OR) must tokenize **before** single `|`
+- Longest-match rule applies
+
+### Out of Scope for v1
+
+- Named arguments (`step: name=expr`)
+- Indexing `obj[expr]`
+- Function calls outside pipes
+- Implicit null propagation
+
+## Open Questions
+
+1. String interpolation escaping rules (`${}` vs `$${}`)
+
+
 ## Diff Angular 17+ and AngularJS
 
 Syntax is basically the same
