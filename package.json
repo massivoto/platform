@@ -16,6 +16,7 @@
   },
   "workspaces": [
     "apps/*",
+    "applets/*",
     "packages/*",
     "services/*"
   ],

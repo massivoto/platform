@@ -14,61 +14,6 @@
 
 The goal is to have a working local runner to validate the product concept.
 
-### Variable Resolution & Scope
-
-Variables can exist at three levels:
-
-| Level                | Source                                                  | Lifetime                 | Example                                                   |
-| -------------------- | ------------------------------------------------------- | ------------------------ | --------------------------------------------------------- |
-| **Scope**            | Program-local, created by `output=`, `forEach` iterator | Within program execution | `output=result` creates `result` in executionContext.data |
-| **ExecutionContext** | External, passed in from runner/caller                  | Across program           | API credentials, input data                               |
-
-But also context.store
-
-scope: very short lifetime, mostly for forEach, transient. Deleted out of a
-block data: longer lifetime, across program execution and serializable. deleted
-at the end of program store: persistent across executions and programs
-
-**Resolution rule:** data by default, scope wins on collision.
-
-suppose we write this:
-
-    @api/call output=user -> creates executionContext.data.user
-    @api/call output=scope.user -> creates executionContext.scope.user
-    @api/call output=store.user -> will send a write-query to executionContext.store->user
-
-Note that store will not be implemented in 0.5
-
-```
-ExecutionContext: { user: "external-user", token: "xxx" }
-Program:
-  @utils/set input="john" output=user    # creates executionContext.data.user
-  @utils/set input="john" output=scope.user    # creates executionContext.scope.user
-  @log/print msg=user      # uses scope.user (shadows context.data.user)
-```
-
-**Implementation needs:**
-
-- [ ] Separate `executionContext.scope` from `executionContext.data` in runtime
-- [ ] Variable lookup: check scope first, then data
-- [ ] Variable assignment: `output=x` writes to data, `output=scope.x` writes to
-      scope
-- [ ] Clear scope semantics for nested blocks (forEach body has its own scope?)
-
-**PRD:**
-[variable-scope.prd.md](packages/runtime/src/compiler/interpreter/variable-scope.prd.md)
-
-### Mapping & Transformation
-
-- [ ] **Mapper pipe**: `$data | map transform="..."`
-- [ ] **ForEach mapping**: iterate and transform collections
-
-## Code Comments
-
-- [x] **Line comments**: `// this is a comment` - ignore rest of line
-- [x] **Block comments**: `/* ... */` - ignore everything between delimiters
-- [x] **String awareness**: comments inside `"..."` are NOT stripped
-- **PRD:** [comments.prd.md](packages/runtime/src/compiler/parser/comments.prd.md)
 
 ### Cleanup (end of v0.5)
 
@@ -185,19 +130,44 @@ with proxy routing per user session.
       `form` (input fields)
 - [ ] **Applet selection**: action arg `applet="grid"` or default per command
 
+
+## Applet creation
+
+Applets are standard couple of two directories with package.json, of :
+- react vite-ts+react for the front
+- expressjs with access to the executionContext + store + auth tokens for the back
+
+They have dependencies on the kit to have helpers, getting 
+The applets live in either /applets of this repo for the default applets of Massivoto, either in a company directory 
+that will contain many 
+
+
 **Applet Lifecycle**:
+
+An applet is invoker on a Massivoto command:
+
+@human/validation items=items display=grid output=selectedItems
+
+The applet backend is generated, the UI is available through a given uri and port. With Local Runner, we simply have localhost:port
+with a random port generated between 10_000 and 20_000
+
 
 - [ ] **Applet spawner**: start applet server on available port
 - [ ] **URL generation**: create shareable link to validation page
-- [ ] **Session state**: track pending validation per execution
-- [ ] **Continuation**: resume execution after user confirms
-- [ ] **Timeout handling**: auto-reject or pause after configurable duration
+- [ ] **Timeout handling**: duration is typically 48 hours
+- [ ] **Cost management**: cost is calculated every hours. It's added to the executionContext (defer to 1.0)
+- [ ] **Close** : backend will terminate the app, either by itself or after user input
 
-**Applet UI**:
+**Three standard Applets**:
 
 - [ ] **Confirm applet**: text + approve/reject buttons
 - [ ] **Grid applet**: array selection with checkboxes
-- [ ] **Form applet**: dynamic input fields based on schema
+- [ ] **Generation applet**: generated and editable text associated with input items
+
+Also every applet have a non-ui input that is sufficient
+
+- [ ] **Rest api** : send to the api backend the POST query with user inputs
+- [ ] **Command cli** : a Commander cli is able to send inputs
 
 ## Common Registry Interface & Reload
 
