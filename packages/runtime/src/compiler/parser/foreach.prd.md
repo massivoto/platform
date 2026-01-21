@@ -99,7 +99,6 @@ ForEach **requires** the scope chain from [variable-scope.prd.md](../interpreter
 - Object iteration (`forEach=obj.entries() -> [key, value]`) , probably not, would collide to {expr|pipe}
 - Async iteration / streaming : yes, future PRD
 - Error handling inside block (future PRD)
-- Old normalizer cleanup (separate task at end of v0.5)
 
 ## Requirements
 
@@ -395,16 +394,6 @@ packages/runtime/src/compiler/
 │   └── variable-scope.prd.md     # DEPENDENCY: scope chain
 ├── documentation/
 │   └── dsl-0.5.md                # UPDATE: document system variables
-└── normalizer/
-    └── normalize-foreach.ts      # DEPRECATED: to be removed at end of v0.5
+
 ```
 
-### Migration from Old Normalizer
-
-The old `normalize-foreach.ts` used string parsing (`"item of items"`). This PRD replaces it with:
-1. Proper reserved argument parsing
-2. Mapper expression syntax
-3. Block-level integration
-4. System variables instead of explicit `index=`
-
-The old normalizer should be removed at the end of v0.5 (see ROADMAP.md "Cleanup").

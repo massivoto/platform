@@ -18,7 +18,6 @@
 | Requirements: Parser Tokens | ✅ Complete | 2/2 |
 | Requirements: Reserved Arg Parsers | ✅ Complete | 4/4 |
 | Requirements: Instruction Integration | ✅ Complete | 4/4 |
-| Requirements: Normalizer Cleanup | ✅ Complete | 2/2 |
 | Acceptance Criteria | ✅ Complete | 8/8 |
 | **Overall** | **IMPLEMENTED** | **100%** |
 
@@ -53,8 +52,6 @@ export const identifier = F.regex(/[a-zA-Z_][a-zA-Z0-9_-]*/)
 This means:
 - `@cmd/run if=isActive` → Parser error (can't parse `if` as identifier)
 
-The normalizer code (`normalize-if.ts`) exists but can never receive these arguments because parsing fails first.
-
 **The Solution:**
 
 Treat reserved arguments as **first-class parser constructs** with dedicated tokens and parsers. They are parsed with higher priority than regular arguments, have explicit type validation, and attach directly to `InstructionNode` in dedicated fields.
@@ -69,7 +66,6 @@ Treat reserved arguments as **first-class parser constructs** with dedicated tok
 | 2026-01-17 | Store in args array vs dedicated fields | **Dedicated fields** | Type safety, no post-processing needed |
 | 2026-01-17 | Allow spaces around `=` | **No spaces** | Strict syntax: `if=cond` only, reject `if = cond`. Simplifies parsing, no ambiguity. |
 | 2026-01-17 | forEach reserved arg | **Deferred** | Requires MapperParser and IterationNode work first |
-| 2026-01-17 | Normalizer future | **Keep for now, delete at end of v0.5** | Interpreter should handle `condition` directly; normalizers are transitional |
 | 2026-01-17 | Gaps discovered | **Document and iterate** | output validation and strict whitespace need GenLex changes |
 
 ## Scope
@@ -80,7 +76,6 @@ Treat reserved arguments as **first-class parser constructs** with dedicated tok
 - Dedicated parsers with type validation
 - InstructionNode fields for reserved args
 - Remove post-processing from instruction-parser.ts
-- Clean up normalizer (normalize-if.ts)
 
 **Out of scope:**
 - `forEach` reserved argument (requires MapperParser and IterationNode work)
@@ -161,14 +156,6 @@ Treat reserved arguments as **first-class parser constructs** with dedicated tok
 - ✅ R-RES-63: Reserved args extracted during parsing, not post-processing
 - ✅ R-RES-64: Remove `extractOutputFromArgs()` function from instruction-parser.ts
 
-### Normalizer Cleanup
-
-**Last updated:** 2026-01-17
-**Test:** `npx vitest run packages/runtime/src/compiler/normalizer`
-**Progress:** 2/2 (100%)
-
-- ✅ R-RES-81: Update `normalizeIf()` to read from `node.condition` instead of searching args
-- ✅ R-RES-82: Remove arg-searching logic from `normalizeIf()` (now just transforms node type)
 
 ## Dependencies
 
@@ -203,7 +190,6 @@ Treat reserved arguments as **first-class parser constructs** with dedicated tok
 - [x] AC-RES-06: Given `@twitter/post output =result` (space before `=`), when parsed, then parser rejects
   > Works: `output` is reserved word, can't be used as regular arg key
 - [x] All automated tests pass (17 passing in reserved-args.spec.ts)
-- [x] Normalizer tests still pass after cleanup
 
 ## Implementation Notes
 
