@@ -1,5 +1,5 @@
 {
-  "name": "@robusta/engine-integration",
+  "name": "@robusta/runtime-integration",
   "type": "module",
   "version": "1.0.0",
   "main": "dist/index.js",

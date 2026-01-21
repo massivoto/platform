@@ -191,7 +191,7 @@ function pipeName(): SingleParser<PipeNameNode> {
   }
   return acc;
   ```
-* **Purity**: functions must be referentially transparent (no I/O / global mutation). Engines may **enforce** this by sandboxing/allowlisting.
+* **Purity**: functions must be referentially transparent (no I/O / global mutation). Runtimes may **enforce** this by sandboxing/allowlisting.
 
 ### Error behavior at runtime
 

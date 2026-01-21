@@ -6,7 +6,7 @@ Build packages and applications in the monorepo.
 
 - `yarn build` - Build all packages (TypeScript)
 - `yarn build:kit` - Build @massivoto/kit
-- `yarn build:engine` - Build @massivoto/engine
+- `yarn build:runtime` - Build @massivoto/runtime
 - `yarn workspace @massivoto/auth-domain build` - Build auth-domain
 
 ## Process
