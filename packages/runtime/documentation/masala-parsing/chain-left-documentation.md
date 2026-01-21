@@ -27,7 +27,35 @@ E' → op T E' | ε
 but in a single, readable combinator that composes cleanly with other precedence
 levels.
 
----
+
+## chainLeft Pattern
+
+`chainLeft(term, op, makeNode)` parses left-associative operator chains:
+
+```
+term (op term)*  =>  (((a op b) op c) op d)
+```
+
+Equivalent to classic grammar:
+```
+E  -> T E'
+E' -> op T E' | ε
+```
+
+**Precedence ladder:**
+1. primary (literals, identifiers, parenthesized)
+2. postfix (calls, member access)
+3. unary (`!`, `+`, `-`)
+4. multiplicative (`*`, `/`, `%`)
+5. additive (`+`, `-`)
+6. comparison (`<`, `<=`, `>`, `>=`)
+7. equality (`==`, `!=`)
+8. logicalAnd (`&&`)
+9. logicalOr (`||`)
+10. conditional (`?:`) - if added
+
+
+
 
 ## The problem it solves
 
@@ -225,7 +253,7 @@ transformation** for left‑assoc binary operators. It keeps parser code small,
 local, and easy to extend, while remaining faithful to the same theory that
 underpins E/E' grammars and operator‑precedence parsing.
 
-## More informations on naming
+## More information on naming
 
 In classic arithmetic grammars, a term is the level just below “expression” and
 above “factor\*_/primary”—it’s the multiplicative layer (things combined with _,

@@ -5,13 +5,6 @@ These features are NOT yet implemented.
 
 ## New in 1.0 (vs 0.5)
 
-### Comments
-
-```oto
-// Line comment
-/* Multi-line
-   comment */
-```
 
 ### Empty Argument Shorthand (React convention)
 
@@ -20,12 +13,6 @@ These features are NOT yet implemented.
 @print/users users=users displayParent  // equivalent
 ```
 
-### Mapping Tokens
-
-```oto
-monitors->name    // maps monitors array to name property
-{tweets->id}      // shorthand for {tweets:mappedBy:'id'}
-```
 
 ### Templates
 
@@ -66,26 +53,6 @@ All instructions can have `if`, `forEach`, `while`, `pause`, `stream`:
 
 ### Control Flow: Blocks
 
-#### ForEach Block
-
-```oto
-@begin/forEach item="monitor" of=monitors index="i"
-  @alert/notify monitor={monitor} index={i}
-@end/forEach
-```
-
-- `item` (required): string literal naming the loop variable
-- `of` (required): expression evaluating to iterable
-- `index` (optional): string literal for zero-based index
-
-#### If Block
-
-```oto
-@begin/block if={foundUser}
-  @print/users users={users:tail:10}
-  @email/send template="welcome" users={users}
-@end/block
-```
 
 #### While Block
 
@@ -96,15 +63,6 @@ All instructions can have `if`, `forEach`, `while`, `pause`, `stream`:
 @end/block
 ```
 
-### Nested Blocks
-
-```oto
-@begin/forEach item="monitor" of=monitors index="i"
-  @begin/block if={monitor.status == "ERROR"}
-    @alert/notify monitor={monitor} index={i}
-  @end/block
-@end/forEach
-```
 
 ### String Interpolation
 
