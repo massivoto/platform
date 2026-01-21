@@ -145,9 +145,24 @@ export interface IfArgNode {
 }
 
 /**
+ * Reserved argument: forEach=iterable -> iterator
+ * Iterates over a collection, binding each element to the iterator variable.
+ *
+ * @example
+ * forEach=users -> user
+ * forEach={users|filter:active} -> user
+ * forEach=[1, 2, 3] -> num
+ */
+export interface ForEachArgNode {
+  type: 'forEach-arg'
+  iterable: ExpressionNode // left side of mapper (users, data.users, {users|filter})
+  iterator: SingleStringNode // right side of mapper (user) - variable name
+}
+
+/**
  * Union of all reserved argument types.
  */
-export type ReservedArgNode = OutputArgNode | IfArgNode
+export type ReservedArgNode = OutputArgNode | IfArgNode | ForEachArgNode
 
 /**
  * ActionNode represents the @package/name identifier in OTO source.
@@ -172,6 +187,7 @@ export interface InstructionNode {
   args: ArgumentNode[]
   output?: IdentifierNode // from output=identifier
   condition?: ExpressionNode // from if=expression
+  forEach?: ForEachArgNode // from forEach=iterable -> iterator (used by @block/begin)
 }
 
 export type DslAstNode =
@@ -188,6 +204,7 @@ export interface BlockNode {
   type: 'block'
   name?: string // from name="label" argument on @block/begin
   condition?: ExpressionNode // from if=expression argument on @block/begin
+  forEach?: ForEachArgNode // from forEach=iterable -> iterator argument on @block/begin
   body: StatementNode[]
 }
 

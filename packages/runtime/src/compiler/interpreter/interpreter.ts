@@ -6,11 +6,12 @@ import {
   ProgramNode,
   StatementNode,
   BlockNode,
+  ForEachArgNode,
 } from '../parser/ast.js'
 import { CommandRegistry } from '../handlers/command-registry.js'
 import { ExpressionEvaluator } from './evaluators.js'
 import { ExecutionContext } from '../../domain/index.js'
-import { write } from './scope-chain.js'
+import { write, pushScope, popScope } from './scope-chain.js'
 
 /**
  * Output target namespace and key parsed from output=... argument.
@@ -153,12 +154,17 @@ export class Interpreter {
 
   /**
    * Execute a block by executing all statements in its body.
-   * Conditional blocks are evaluated before execution.
+   * Handles both conditional blocks (if=) and iteration blocks (forEach=).
    */
   private async executeBlock(
     block: BlockNode,
     context: ExecutionContext,
   ): Promise<ExecutionContext> {
+    // Check for forEach - takes precedence over condition (mutually exclusive)
+    if (block.forEach) {
+      return this.executeForEach(block, block.forEach, context)
+    }
+
     // Check condition if present
     if (block.condition) {
       const conditionValue = this.evaluator.evaluate(block.condition, context)
@@ -172,6 +178,77 @@ export class Interpreter {
     let currentContext = context
     for (const statement of block.body) {
       currentContext = await this.executeStatement(statement, currentContext)
+    }
+
+    return currentContext
+  }
+
+  /**
+   * Execute a forEach block by iterating over the collection.
+   *
+   * System variables injected into each iteration's scope:
+   * - _index: 0-based index
+   * - _count: 1-based count (== _index + 1)
+   * - _length: total number of items
+   * - _first: true if first iteration
+   * - _last: true if last iteration
+   * - _odd: true if 1-based count is odd (1st, 3rd, 5th...)
+   * - _even: true if 1-based count is even (2nd, 4th, 6th...)
+   *
+   * The iterator variable (e.g., "user" in "users -> user") is also injected.
+   */
+  private async executeForEach(
+    block: BlockNode,
+    forEach: ForEachArgNode,
+    context: ExecutionContext,
+  ): Promise<ExecutionContext> {
+    // Evaluate the iterable expression
+    const iterable = this.evaluator.evaluate(forEach.iterable, context)
+
+    // Validate that the iterable is actually an array
+    if (!Array.isArray(iterable)) {
+      const type = iterable === null ? 'null' : typeof iterable
+      throw new Error(
+        `Cannot iterate over ${type}. forEach requires an array.`,
+      )
+    }
+
+    // R-FE-103: Empty collection should execute 0 times
+    if (iterable.length === 0) {
+      return context
+    }
+
+    const iteratorName = forEach.iterator.value
+    const length = iterable.length
+    let currentContext = context
+
+    for (let index = 0; index < length; index++) {
+      const item = iterable[index]
+
+      // Create a new scope for this iteration
+      currentContext = cloneExecutionContext(currentContext)
+      currentContext.scopeChain = pushScope(currentContext.scopeChain)
+
+      // Inject system variables
+      write('_index', index, currentContext.scopeChain)
+      write('_count', index + 1, currentContext.scopeChain)
+      write('_length', length, currentContext.scopeChain)
+      write('_first', index === 0, currentContext.scopeChain)
+      write('_last', index === length - 1, currentContext.scopeChain)
+      write('_odd', (index + 1) % 2 === 1, currentContext.scopeChain)
+      write('_even', (index + 1) % 2 === 0, currentContext.scopeChain)
+
+      // Inject the iterator variable
+      write(iteratorName, item, currentContext.scopeChain)
+
+      // Execute all statements in the block body
+      for (const statement of block.body) {
+        currentContext = await this.executeStatement(statement, currentContext)
+      }
+
+      // Pop the scope to discard iteration-specific variables
+      // But preserve changes to data namespace
+      currentContext.scopeChain = popScope(currentContext.scopeChain)
     }
 
     return currentContext

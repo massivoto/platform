@@ -255,6 +255,10 @@ an applet. This must be testable will dummy implementations.
 
 Paying customers require reliability, security, and easy deployment.
 
+### Error Handling
+
+This is a major topic that needs a dedicated PRD. For now, we list the main points when we will explore 0.5.
+
 ### Identifier Semantics
 
 There are two distinct uses of identifiers that share the same AST type but have
