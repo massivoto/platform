@@ -10,7 +10,7 @@
     "prebuild": "npm run clean",
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
-    "test": "npm run build && vitest run \"./src/compiler/parser\" ",
+    "test": "npm run build && vitest run",
     "prettier": "prettier --write \"src/**/*.ts\" \"./*.json\""
   },
   "dependencies": {

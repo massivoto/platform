@@ -40,7 +40,7 @@
 
 DSL 0.5 is the first complete version of the Massivoto Automation Programming Language parser. The core design principle is **NO AMBIGUITY** - every construct has exactly one interpretation. This makes the language suitable for AI-generated code where predictable parsing is essential.
 
-The parser transforms DSL source text into an Abstract Syntax Tree (AST) that can be normalized, evaluated, and executed by downstream compiler stages. It uses the `@masala/parser` library for parser combinators.
+The parser transforms DSL source text into an Abstract Syntax Tree (AST) that can be evaluated, and executed by downstream compiler stages. It uses the `@masala/parser` library for parser combinators.
 
 ## Decision Log
 
@@ -218,7 +218,7 @@ The parser transforms DSL source text into an Abstract Syntax Tree (AST) that ca
 ## Dependencies
 
 - **Depends on:** @masala/parser library
-- **Blocks:** Normalizer (forEach, if expansion), Evaluator, Interpreter
+- **Blocks:**  Evaluator, Interpreter
 
 ## Open Questions
 
