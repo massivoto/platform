@@ -2,7 +2,7 @@
 
 The desgin of 1.0 shows a major DSL update. However it's important to make the
 whole thing works, as there are still things to test and we need to make the
-integration engine work asap with v0.5
+integration runtime work asap with v0.5
 
 
 
