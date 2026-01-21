@@ -29,11 +29,6 @@ The goal is to have a working local runner to validate the product concept.
 
 ### Parser Enhancements
 
-- [x] **Block parsing**: `@block/begin ... @block/end` statement groups
-  - [x] Optional `name="label"` argument
-  - [x] Optional `if=condition` argument for conditional blocks
-  - [x] Arbitrary nesting depth supported
-- [ ] **ForEach statement**: `@forEach item of items { ... }`
 - [ ] **Goto/Label**: control flow jumps for complex workflows
 - [ ] **Unary operators**: 2 skipped tests in `unary-parser.spec.ts` need
       investigation
@@ -120,6 +115,8 @@ Between commands, deploy a mini web app for human input, called Applets.
 
 For v0.5: Applets run on localhost with dynamic ports. For v1.0: SaaS deployment
 with proxy routing per user session.
+
+Applets are testable ! deployment, api, UI interaction and termination must be tested headlessly (ex: supertest + playwright)
 
 **AppletRegistry** - Maps applet names to UI components:
 
