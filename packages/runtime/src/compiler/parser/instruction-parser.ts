@@ -1,4 +1,4 @@
-import { C, F, GenLex, IGenLex, leanToken, SingleParser } from '@masala/parser'
+import { C, F, GenLex, IGenLex, leanToken, SingleParser, TracingGenLex } from '@masala/parser'
 import { createArgGrammar } from './arg-parser.js'
 import {
   ArgTokens,
@@ -9,10 +9,13 @@ import {
   ArgumentNode,
   ActionNode,
   ExpressionNode,
+  ForEachArgNode,
   IdentifierNode,
   IfArgNode,
   InstructionNode,
+  MapperExpressionNode,
   OutputArgNode,
+  SingleStringNode,
 } from './ast.js'
 import { buildActionParser } from './action/action-parser.js'
 import { createExpressionWithPipe } from './args-details/full-expression-parser.js'
@@ -21,6 +24,7 @@ export interface InstructionTokens extends ArgTokens {
   ACTION: SingleParser<ActionNode>
   OUTPUT_KEY: SingleParser<'output='>
   IF_KEY: SingleParser<'if='>
+  FOREACH_KEY: SingleParser<'forEach='>
 }
 
 function getInstructionTokens(genlex: IGenLex): InstructionTokens {
@@ -39,6 +43,9 @@ function getInstructionTokens(genlex: IGenLex): InstructionTokens {
     IF_KEY: genlex
       .tokenize(C.string('if='), 'IF_KEY', 500)
       .map(leanToken) as SingleParser<'if='>,
+    FOREACH_KEY: genlex
+      .tokenize(C.string('forEach='), 'FOREACH_KEY', 500)
+      .map(leanToken) as SingleParser<'forEach='>,
   }
 }
 
@@ -46,9 +53,9 @@ export function createInstructionGrammar(
   tokens: InstructionTokens,
 ): SingleParser<InstructionNode> {
   const regularArg = createArgGrammar(tokens)
-  const { ACTION, OUTPUT_KEY, IF_KEY, IDENTIFIER, DOT } = tokens
+  const { ACTION, OUTPUT_KEY, IF_KEY, FOREACH_KEY, IDENTIFIER, DOT } = tokens
 
-  // Expression parser for if= value
+  // Expression parser for if= value (includes mapper expression support)
   const expression = createExpressionWithPipe(tokens)
 
   // Dotted path parser: identifier(.identifier)* -> joined as "scope.user.profile"
@@ -79,8 +86,26 @@ export function createInstructionGrammar(
       condition: tuple.single() as ExpressionNode,
     }))
 
+  // forEach=mapperExpression - FOREACH_KEY is dropped, must be a mapper expression
+  // e.g. forEach=users -> user, forEach={users|filter:active} -> user
+  // Use filter() to reject non-mapper expressions instead of throwing in map()
+  const forEachArg: SingleParser<ForEachArgNode> = FOREACH_KEY.drop()
+    .then(expression)
+    .filter((tuple) => {
+      const expr = tuple.single() as ExpressionNode
+      return expr.type === 'mapper'
+    })
+    .map((tuple) => {
+      const mapperExpr = tuple.single() as MapperExpressionNode
+      return {
+        type: 'forEach-arg' as const,
+        iterable: mapperExpr.source,
+        iterator: mapperExpr.target,
+      }
+    })
+
   // Combined reserved arg parser with backtracking
-  const reservedArg = F.try(outputArg).or(ifArg)
+  const reservedArg = F.try(outputArg).or(F.try(ifArg)).or(forEachArg)
 
   // Any arg: try reserved first, then regular
   const anyArg = F.try(reservedArg).or(regularArg)
@@ -91,18 +116,22 @@ export function createInstructionGrammar(
       | ArgumentNode
       | OutputArgNode
       | IfArgNode
+      | ForEachArgNode
     )[]
 
     // Separate reserved args from regular args
     const regularArgs: ArgumentNode[] = []
     let output: IdentifierNode | undefined
     let condition: ExpressionNode | undefined
+    let forEach: ForEachArgNode | undefined
 
     for (const arg of allArgs) {
       if (arg.type === 'output-arg') {
         output = arg.target
       } else if (arg.type === 'if-arg') {
         condition = arg.condition
+      } else if (arg.type === 'forEach-arg') {
+        forEach = arg
       } else {
         regularArgs.push(arg)
       }
@@ -114,6 +143,7 @@ export function createInstructionGrammar(
       args: regularArgs,
       output,
       condition,
+      forEach,
     }
     return instructionNode
   })
@@ -121,14 +151,14 @@ export function createInstructionGrammar(
 }
 
 export function buildInstructionParserForTest(): SingleParser<InstructionNode> {
-  const genlex = new GenLex()
+  const genlex = new TracingGenLex()
   const tokens = getInstructionTokens(genlex)
   const grammar = createInstructionGrammar(tokens)
   return genlex.use(grammar)
 }
 
 export function buildInstructionParser(): SingleParser<InstructionNode> {
-  const genlex = new GenLex()
+  const genlex = new TracingGenLex()
   const tokens = getInstructionTokens(genlex)
   return genlex.use(createInstructionGrammar(tokens))
 }
