@@ -1,6 +1,6 @@
 # Architecture: Kit (Shared Utilities)
 
-**Last updated:** 2026-01-20
+**Last updated:** 2026-01-21
 
 ## Parent
 
@@ -9,6 +9,7 @@
 ## Children
 
 - [Registry](./src/registry/registry.archi.md)
+- [Applets](./src/applets/applet.archi.md)
 
 ## Overview
 
