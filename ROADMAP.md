@@ -38,6 +38,8 @@ The goal is to have a working local runner to validate the product concept.
 
 - [x] **Complete node coverage**: handle all AST node types (binary, unary,
       logical, member, array, pipe)
+- [x] **Scope chain resolution**: scope-first lookup for identifiers, explicit
+      `scope.x` syntax, parent chain walking with shadowing support
 - [ ] **Async evaluator**: `evaluate()` must be async to support `store.x`
       lookups (store is async)
 - [ ] **Block evaluation**: evaluate `BlockNode` sequences
@@ -272,12 +274,30 @@ may not be needed. Will be evaluated from 0.5.
 - [ ] **Multi-tenant**: isolated execution contexts per customer
 - [ ] **Monitoring**: execution logs, metrics, alerting
 
+### Cloud Applet Launcher
+
+For v1.0, applets run in Docker containers on AWS instead of localhost.
+
+- [ ] **CloudAppletLauncher**: implements AppletLauncher interface for AWS ECS
+- [ ] **Docker packaging**: each applet builds to a Docker image
+- [ ] **ECS task spawning**: launch container per applet instance
+- [ ] **Proxy routing**: route user requests to correct container by session ID
+- [ ] **Auto-termination**: container cleanup after response or timeout
+- [ ] **Cost tracking**: hourly billing per running applet container
+
 ### Production Hardening
 
 - [ ] **Rate limiting**: protect against abuse
 - [ ] **Execution timeouts**: prevent runaway scripts
 - [ ] **Cost limits**: hard caps per user/execution
 - [ ] **Audit logging**: compliance-ready execution history
+- [ ] **CRITICAL - Applet crash recovery**: If the runner process crashes, applets
+      must be terminated and billing stopped. Cannot wait for timeout (48h) to stop
+      invoicing. Requires:
+  - Heartbeat mechanism between runner and applet containers
+  - External watchdog to detect runner death
+  - Automatic applet termination on runner crash
+  - Billing stops immediately on crash detection
 
 ---
 
