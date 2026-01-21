@@ -2,6 +2,7 @@ import { Stream } from '@masala/parser'
 import {
   BlockNode,
   ExpressionNode,
+  ForEachArgNode,
   InstructionNode,
   ProgramNode,
   StatementNode,
@@ -57,12 +58,17 @@ function isBlockEnd(instruction: InstructionNode): boolean {
 /**
  * Extract block metadata from @block/begin instruction
  */
-function extractBlockMeta(instruction: InstructionNode): {
+function extractBlockMeta(
+  instruction: InstructionNode,
+  lineNumber: number,
+): {
   name?: string
   condition?: ExpressionNode
+  forEach?: ForEachArgNode
 } {
   let name: string | undefined
   let condition: ExpressionNode | undefined
+  let forEach: ForEachArgNode | undefined
 
   for (const arg of instruction.args) {
     if (arg.name.value === 'name') {
@@ -77,7 +83,19 @@ function extractBlockMeta(instruction: InstructionNode): {
     condition = instruction.condition
   }
 
-  return { name, condition }
+  // forEach= is stored in instruction.forEach for reserved args
+  if (instruction.forEach) {
+    forEach = instruction.forEach
+  }
+
+  // R-FE-82: Validate forEach and if are mutually exclusive
+  if (condition && forEach) {
+    throw new Error(
+      `Block cannot have both forEach= and if= on the same @block/begin (line ${lineNumber})`,
+    )
+  }
+
+  return { name, condition, forEach }
 }
 
 /**
@@ -86,6 +104,7 @@ function extractBlockMeta(instruction: InstructionNode): {
 interface BlockContext {
   name?: string
   condition?: ExpressionNode
+  forEach?: ForEachArgNode
   body: StatementNode[]
   startLine: number
 }
@@ -134,10 +153,11 @@ export function buildProgramParser(): ProgramParser {
 
       if (isBlockBegin(instruction)) {
         // Start a new block
-        const meta = extractBlockMeta(instruction)
+        const meta = extractBlockMeta(instruction, i + 1)
         blockStack.push({
           name: meta.name,
           condition: meta.condition,
+          forEach: meta.forEach,
           body: [],
           startLine: i + 1,
         })
@@ -154,6 +174,7 @@ export function buildProgramParser(): ProgramParser {
           type: 'block',
           name: blockContext.name,
           condition: blockContext.condition,
+          forEach: blockContext.forEach,
           body: blockContext.body,
         }
 
