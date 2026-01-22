@@ -50,7 +50,10 @@ describe('AppletDefinition', () => {
    * R-APP-01: inputSchema and outputSchema are required
    */
   it('should have inputSchema and outputSchema', () => {
-    const inputSchema = z.object({ message: z.string(), title: z.string().optional() })
+    const inputSchema = z.object({
+      message: z.string(),
+      title: z.string().optional(),
+    })
     const outputSchema = z.object({ approved: z.boolean() })
 
     const definition: AppletDefinition = {
@@ -119,11 +122,15 @@ describe('AppletDefinition', () => {
     }
 
     // Valid input
-    const result = definition.inputSchema.safeParse({ message: 'Approve this post?' })
+    const result = definition.inputSchema.safeParse({
+      message: 'Approve this post?',
+    })
     expect(result.success).toBe(true)
 
     // Invalid input
-    const invalid = definition.inputSchema.safeParse({ title: 'Missing message' })
+    const invalid = definition.inputSchema.safeParse({
+      title: 'Missing message',
+    })
     expect(invalid.success).toBe(false)
   })
 
@@ -136,11 +143,13 @@ describe('AppletDefinition', () => {
       id: 'custom-form',
       type: 'applet',
       inputSchema: z.object({
-        fields: z.array(z.object({
-          name: z.string(),
-          label: z.string(),
-          type: z.enum(['text', 'number', 'email']),
-        })),
+        fields: z.array(
+          z.object({
+            name: z.string(),
+            label: z.string(),
+            type: z.enum(['text', 'number', 'email']),
+          }),
+        ),
       }),
       outputSchema: z.object({
         values: z.record(z.string(), z.unknown()),

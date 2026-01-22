@@ -37,10 +37,12 @@ function createAppletDefinition(
  * Input schema for confirm applet.
  * - message: Required message to display
  * - title: Optional dialog title
+ * - resourceUrl: Optional URL for media display (image, video, PDF, embed)
  */
 const confirmInputSchema = z.object({
   message: z.string(),
   title: z.string().optional(),
+  resourceUrl: z.string().url().optional(),
 })
 
 /**
@@ -120,7 +122,11 @@ export class CoreAppletsBundle implements RegistryBundle<AppletDefinition> {
     // R-APP-42: Confirm applet
     map.set(
       'confirm',
-      createAppletDefinition('confirm', confirmInputSchema, confirmOutputSchema),
+      createAppletDefinition(
+        'confirm',
+        confirmInputSchema,
+        confirmOutputSchema,
+      ),
     )
 
     // R-APP-43: Grid applet
@@ -132,7 +138,11 @@ export class CoreAppletsBundle implements RegistryBundle<AppletDefinition> {
     // R-APP-44: Generation applet
     map.set(
       'generation',
-      createAppletDefinition('generation', generationInputSchema, generationOutputSchema),
+      createAppletDefinition(
+        'generation',
+        generationInputSchema,
+        generationOutputSchema,
+      ),
     )
 
     return map

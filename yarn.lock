@@ -1117,6 +1117,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@massivoto/applet-confirm@workspace:applets/confirm":
+  version: 0.0.0-use.local
+  resolution: "@massivoto/applet-confirm@workspace:applets/confirm"
+  dependencies:
+    "@massivoto/kit": "npm:*"
+    "@types/express": "npm:^4.17.21"
+    "@types/node": "npm:^22.16.5"
+    "@types/react": "npm:^18.3.23"
+    "@types/react-dom": "npm:^18.3.7"
+    "@types/supertest": "npm:^6.0.3"
+    "@vitejs/plugin-react-swc": "npm:^3.11.0"
+    express: "npm:^5.2.1"
+    prettier: "npm:^3.6.2"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    rimraf: "npm:^6.1.2"
+    supertest: "npm:^7.2.2"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^5.4.19"
+    vite-node: "npm:^3.2.4"
+    vitest: "npm:^3.2.4"
+    zod: "npm:^3.25.76"
+  languageName: unknown
+  linkType: soft
+
 "@massivoto/auth-backend@workspace:services/auth-backend":
   version: 0.0.0-use.local
   resolution: "@massivoto/auth-backend@workspace:services/auth-backend"
