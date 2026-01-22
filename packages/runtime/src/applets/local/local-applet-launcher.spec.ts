@@ -50,15 +50,23 @@ describe('LocalAppletLauncher', () => {
   let instances: AppletInstance[] = []
 
   const confirmDefinition: AppletDefinition = {
+    id: 'confirm',
+    type: 'applet',
     inputSchema: z.object({ message: z.string() }),
     outputSchema: z.object({ approved: z.boolean() }),
     timeoutMs: 8000,
+    init: async () => {},
+    dispose: async () => {},
   }
 
   const gridDefinition: AppletDefinition = {
+    id: 'grid',
+    type: 'applet',
     inputSchema: z.object({ items: z.array(z.any()) }),
     outputSchema: z.object({ selected: z.array(z.string()) }),
     timeoutMs: 8000,
+    init: async () => {},
+    dispose: async () => {},
   }
 
   beforeEach(() => {
@@ -241,8 +249,13 @@ describe('LocalAppletLauncher', () => {
       // This test uses a short timeout to verify the timeout mechanism
       const shortTimeoutRegistry = createMockRegistry({
         confirm: {
-          ...confirmDefinition,
+          id: 'confirm',
+          type: 'applet',
+          inputSchema: confirmDefinition.inputSchema,
+          outputSchema: confirmDefinition.outputSchema,
           timeoutMs: 100, // Very short for testing
+          init: async () => {},
+          dispose: async () => {},
         },
       })
 
@@ -269,8 +282,13 @@ describe('LocalAppletLauncher', () => {
     it('should use per-applet timeout over default', async () => {
       const perAppletTimeoutRegistry = createMockRegistry({
         confirm: {
-          ...confirmDefinition,
+          id: 'confirm',
+          type: 'applet',
+          inputSchema: confirmDefinition.inputSchema,
+          outputSchema: confirmDefinition.outputSchema,
           timeoutMs: 50, // Very short
+          init: async () => {},
+          dispose: async () => {},
         },
       })
 
