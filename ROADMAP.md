@@ -14,7 +14,6 @@
 
 The goal is to have a working local runner to validate the product concept.
 
-
 ### Cleanup (end of v0.5)
 
 - [ ] **Document braced expressions**: `{expr}` was added to
@@ -40,9 +39,9 @@ The goal is to have a working local runner to validate the product concept.
       logical, member, array, pipe)
 - [x] **Scope chain resolution**: scope-first lookup for identifiers, explicit
       `scope.x` syntax, parent chain walking with shadowing support
-- [ ] **Async evaluator**: `evaluate()` must be async to support `store.x`
+- [x] **Async evaluator**: `evaluate()` must be async to support `store.x`
       lookups (store is async)
-- [ ] **Block evaluation**: evaluate `BlockNode` sequences
+- [x] **Block evaluation**: evaluate `BlockNode` sequences
 - [ ] **Pipe evaluation**: execute pipe chains with data transformation
 - [ ] **Error format**: Errors sent need to be absolutely readable by a LLM
 
@@ -118,7 +117,8 @@ Between commands, deploy a mini web app for human input, called Applets.
 For v0.5: Applets run on localhost with dynamic ports. For v1.0: SaaS deployment
 with proxy routing per user session.
 
-Applets are testable ! deployment, api, UI interaction and termination must be tested headlessly (ex: supertest + playwright)
+Applets are testable ! deployment, api, UI interaction and termination must be
+tested headlessly (ex: supertest + playwright)
 
 **AppletRegistry** - Maps applet names to UI components:
 
@@ -127,17 +127,17 @@ Applets are testable ! deployment, api, UI interaction and termination must be t
       `form` (input fields)
 - [ ] **Applet selection**: action arg `applet="grid"` or default per command
 
-
 ## Applet creation
 
 Applets are standard couple of two directories with package.json, of :
+
 - react vite-ts+react for the front
-- expressjs with access to the executionContext + store + auth tokens for the back
+- expressjs with access to the executionContext + store + auth tokens for the
+  back
 
-They have dependencies on the kit to have helpers, getting 
-The applets live in either /applets of this repo for the default applets of Massivoto, either in a company directory 
-that will contain many 
-
+They have dependencies on the kit to have helpers, getting The applets live in
+either /applets of this repo for the default applets of Massivoto, either in a
+company directory that will contain many
 
 **Applet Lifecycle**:
 
@@ -145,21 +145,24 @@ An applet is invoker on a Massivoto command:
 
 @human/validation items=items display=grid output=selectedItems
 
-The applet backend is generated, the UI is available through a given uri and port. With Local Runner, we simply have localhost:port
-with a random port generated between 10_000 and 20_000
-
+The applet backend is generated, the UI is available through a given uri and
+port. With Local Runner, we simply have localhost:port with a random port
+generated between 10_000 and 20_000
 
 - [ ] **Applet spawner**: start applet server on available port
 - [ ] **URL generation**: create shareable link to validation page
 - [ ] **Timeout handling**: duration is typically 48 hours
-- [ ] **Cost management**: cost is calculated every hours. It's added to the executionContext (defer to 1.0)
-- [ ] **Close** : backend will terminate the app, either by itself or after user input
+- [ ] **Cost management**: cost is calculated every hours. It's added to the
+      executionContext (defer to 1.0)
+- [ ] **Close** : backend will terminate the app, either by itself or after user
+      input
 
 **Three standard Applets**:
 
 - [ ] **Confirm applet**: text + approve/reject buttons
 - [ ] **Grid applet**: array selection with checkboxes
-- [ ] **Generation applet**: generated and editable text associated with input items
+- [ ] **Generation applet**: generated and editable text associated with input
+      items
 
 Also every applet have a non-ui input that is sufficient
 
@@ -224,7 +227,8 @@ Paying customers require reliability, security, and easy deployment.
 
 ### Error Handling
 
-This is a major topic that needs a dedicated PRD. For now, we list the main points when we will explore 0.5.
+This is a major topic that needs a dedicated PRD. For now, we list the main
+points when we will explore 0.5.
 
 ### Identifier Semantics
 
@@ -291,9 +295,9 @@ For v1.0, applets run in Docker containers on AWS instead of localhost.
 - [ ] **Execution timeouts**: prevent runaway scripts
 - [ ] **Cost limits**: hard caps per user/execution
 - [ ] **Audit logging**: compliance-ready execution history
-- [ ] **CRITICAL - Applet crash recovery**: If the runner process crashes, applets
-      must be terminated and billing stopped. Cannot wait for timeout (48h) to stop
-      invoicing. Requires:
+- [ ] **CRITICAL - Applet crash recovery**: If the runner process crashes,
+      applets must be terminated and billing stopped. Cannot wait for timeout
+      (48h) to stop invoicing. Requires:
   - Heartbeat mechanism between runner and applet containers
   - External watchdog to detect runner death
   - Automatic applet termination on runner crash
