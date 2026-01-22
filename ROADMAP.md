@@ -29,8 +29,6 @@ The goal is to have a working local runner to validate the product concept.
 ### Parser Enhancements
 
 - [ ] **Goto/Label**: control flow jumps for complex workflows
-- [ ] **Unary operators**: 2 skipped tests in `unary-parser.spec.ts` need
-      investigation
 - [ ] **Error format**: Errors sent need to be absolutely readable by a LLM
 
 ### Evaluator
@@ -308,6 +306,11 @@ For v1.0, applets run in Docker containers on AWS instead of localhost.
 ## v1.5 - Developer Experience
 
 Focus on adoption and usability, no new runtime features.
+
+### Parser Enhancements
+
+- [ ] **Chained unary operators**: support `!!flag`, `!-10` etc. (see
+      `unary-parser.spec.ts` skipped tests)
 
 ### IDE Integration
 
