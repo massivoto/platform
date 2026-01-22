@@ -1,6 +1,6 @@
 # PRD: Applet Registry and Definitions
 
-**Status:** DRAFT
+**Status:** COMPLETE
 **Last updated:** 2026-01-22
 **Target Version:** 0.5
 **Location:** `packages/kit/src/applets/`
@@ -9,12 +9,12 @@
 
 | Section | Status | Progress |
 |---------|--------|----------|
-| Types Migration | ❌ Not Started | 0/3 |
-| AppletRegistry | ❌ Not Started | 0/4 |
-| CoreAppletsBundle | ❌ Not Started | 0/4 |
-| Runtime Integration | ❌ Not Started | 0/2 |
-| Acceptance Criteria | ❌ Not Started | 0/6 |
-| **Overall** | **DRAFT** | **0%** |
+| Types Migration | ✅ Complete | 3/3 |
+| AppletRegistry | ✅ Complete | 4/4 |
+| CoreAppletsBundle | ✅ Complete | 4/4 |
+| Runtime Integration | ✅ Complete | 2/2 |
+| Acceptance Criteria | ✅ Complete | 6/6 |
+| **Overall** | **COMPLETE** | **100%** |
 
 ## Parent PRD
 
@@ -60,42 +60,42 @@ The applet system needs shared types that can be used by multiple runtimes (Loca
 
 **Last updated:** 2026-01-22
 **Test:** `npx vitest run packages/kit/src/applets/`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- ❌ R-APP-01: Define `AppletDefinition` interface extending `RegistryItem` with `inputSchema`, `outputSchema`, `packageName?`, `timeoutMs?`
-- ❌ R-APP-02: Export `AppletDefinition` from `@massivoto/kit`
-- ❌ R-APP-03: Update `@massivoto/runtime` to import `AppletDefinition` from kit (remove local definition)
+- ✅ R-APP-01: Define `AppletDefinition` interface extending `RegistryItem` with `inputSchema`, `outputSchema`, `packageName?`, `timeoutMs?`
+- ✅ R-APP-02: Export `AppletDefinition` from `@massivoto/kit`
+- ✅ R-APP-03: Update `@massivoto/runtime` to import `AppletDefinition` from kit (remove local definition)
 
 ### AppletRegistry
 
 **Last updated:** 2026-01-22
 **Test:** `npx vitest run packages/kit/src/applets/applet-registry.spec.ts`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- ❌ R-APP-21: Implement `AppletRegistry` class wrapping `BaseComposableRegistry<AppletDefinition>`
-- ❌ R-APP-22: Implement `addBundle(bundle)` to register applet bundles
-- ❌ R-APP-23: Implement `reload()` to load all bundles with conflict detection
-- ❌ R-APP-24: Implement `get(appletId)` returning `RegistryEntry<AppletDefinition> | undefined`
+- ✅ R-APP-21: Implement `AppletRegistry` class wrapping `BaseComposableRegistry<AppletDefinition>`
+- ✅ R-APP-22: Implement `addBundle(bundle)` to register applet bundles
+- ✅ R-APP-23: Implement `reload()` to load all bundles with conflict detection
+- ✅ R-APP-24: Implement `get(appletId)` returning `RegistryEntry<AppletDefinition> | undefined`
 
 ### CoreAppletsBundle
 
 **Last updated:** 2026-01-22
 **Test:** `npx vitest run packages/kit/src/applets/core-applets-bundle.spec.ts`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- ❌ R-APP-41: Implement `CoreAppletsBundle` as `RegistryBundle<AppletDefinition>`
-- ❌ R-APP-42: Define `confirm` applet: inputSchema `{ message: string, title?: string }`, outputSchema `{ approved: boolean }`
-- ❌ R-APP-43: Define `grid` applet: inputSchema `{ items: array, labelKey?: string }`, outputSchema `{ selected: string[] }`
-- ❌ R-APP-44: Define `generation` applet: inputSchema `{ items: array, prompt?: string, model?: string }`, outputSchema `{ results: { id: string, text: string }[] }`. Model defaults to runtime configuration if not provided.
+- ✅ R-APP-41: Implement `CoreAppletsBundle` as `RegistryBundle<AppletDefinition>`
+- ✅ R-APP-42: Define `confirm` applet: inputSchema `{ message: string, title?: string }`, outputSchema `{ approved: boolean }`
+- ✅ R-APP-43: Define `grid` applet: inputSchema `{ items: array, labelKey?: string }`, outputSchema `{ selected: string[] }`
+- ✅ R-APP-44: Define `generation` applet: inputSchema `{ items: array, prompt?: string, model?: string }`, outputSchema `{ results: { id: string, text: string }[] }`. Model defaults to runtime configuration if not provided.
 
 ### Runtime Integration
 
 **Last updated:** 2026-01-22
 **Test:** `npx vitest run packages/runtime/src/applets/`
-**Progress:** 0/2 (0%)
+**Progress:** 2/2 (100%)
 
-- ❌ R-APP-61: Update `LocalAppletLauncher` to import `AppletDefinition` from `@massivoto/kit`
-- ❌ R-APP-62: Remove duplicate `AppletDefinition` and `AppletRegistry` interface from runtime (keep only launcher interfaces)
+- ✅ R-APP-61: Update `LocalAppletLauncher` to import `AppletDefinition` from `@massivoto/kit`
+- ✅ R-APP-62: Remove duplicate `AppletDefinition` and `AppletRegistry` interface from runtime (keep only launcher interfaces)
 
 ## Implementation
 
@@ -209,7 +209,11 @@ export class CoreAppletsBundle implements RegistryBundle<AppletDefinition> {
     // Generation applet
     map.set('generation', createAppletDefinition(
       'generation',
-      z.object({ items: z.array(z.unknown()), prompt: z.string().optional() }),
+      z.object({
+        items: z.array(z.unknown()),
+        prompt: z.string().optional(),
+        model: z.string().optional(),  // Falls back to runtime default
+      }),
       z.object({ results: z.array(z.object({ id: z.string(), text: z.string() })) })
     ))
 
@@ -252,7 +256,9 @@ packages/runtime/src/applets/
 ## Open Questions
 
 - [x] ~~Should AppletDefinition extend RegistryItem?~~ **Yes**, for consistency with CommandHandler pattern.
+- [x] ~~Generation applet model selection?~~ **Optional with default** - `model?: string` falls back to runtime config.
 - [ ] Should CoreAppletsBundle define full Zod schemas or just placeholders? **Decision needed during implementation.**
+- [ ] What should the default model be for v0.5 local? Candidates: `gemini-flash` (free tier), `sonnet` (quality).
 
 ## Acceptance Criteria
 
@@ -267,17 +273,17 @@ packages/runtime/src/applets/
 
 ### Criteria
 
-- [ ] AC-APP-01: Given Emma imports AppletDefinition from @massivoto/kit,
+- [x] AC-APP-01: Given Emma imports AppletDefinition from @massivoto/kit,
       when she creates a custom applet definition, then it correctly extends RegistryItem with id, type, init(), dispose()
-- [ ] AC-APP-02: Given Carlos creates an AppletRegistry and adds CoreAppletsBundle,
+- [x] AC-APP-02: Given Carlos creates an AppletRegistry and adds CoreAppletsBundle,
       when he calls `registry.get("confirm")`, then it returns the confirm applet definition with correct schemas
-- [ ] AC-APP-03: Given the CoreAppletsBundle is loaded,
+- [x] AC-APP-03: Given the CoreAppletsBundle is loaded,
       when listing all applets with `registry.keys()`, then it returns `["confirm", "grid", "generation"]`
-- [ ] AC-APP-04: Given Emma validates input against the confirm applet schema,
+- [x] AC-APP-04: Given Emma validates input against the confirm applet schema,
       when she passes `{ message: "Approve this post?" }`, then validation succeeds
-- [ ] AC-APP-05: Given Carlos validates input against the grid applet schema,
+- [x] AC-APP-05: Given Carlos validates input against the grid applet schema,
       when he passes `{ items: [{ id: "1", text: "Post A" }, { id: "2", text: "Post B" }] }`, then validation succeeds
-- [ ] AC-APP-06: Given the runtime imports AppletDefinition from kit,
+- [x] AC-APP-06: Given the runtime imports AppletDefinition from kit,
       when LocalAppletLauncher uses it, then all existing tests continue to pass
-- [ ] All automated tests pass
-- [ ] Edge cases covered in `*.edge.spec.ts` files
+- [x] All automated tests pass
+- [x] Edge cases covered in `*.edge.spec.ts` files

@@ -47,12 +47,16 @@ describe('LocalAppletLauncher edge cases', () => {
   let instances: AppletInstance[] = []
 
   const strictConfirmDefinition: AppletDefinition = {
+    id: 'strict-confirm',
+    type: 'applet',
     inputSchema: z.object({ message: z.string() }),
     outputSchema: z.object({
       approved: z.boolean(),
       reason: z.string().min(5),
     }),
     timeoutMs: 500,
+    init: async () => {},
+    dispose: async () => {},
   }
 
   beforeEach(() => {
