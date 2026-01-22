@@ -8,7 +8,7 @@
 
 ## Children
 
-- None
+- [Pipe Registry](./src/compiler/pipe-registry/pipe-registry.archi.md)
 
 ## Overview
 
