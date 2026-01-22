@@ -10,7 +10,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { z } from 'zod'
 import type { RegistryBundle } from '../registry/types.js'
-import { RegistryConflictError, RegistryNotLoadedError } from '../registry/errors.js'
+import {
+  RegistryConflictError,
+  RegistryNotLoadedError,
+} from '../registry/errors.js'
 import { AppletRegistry } from './applet-registry.js'
 import type { AppletDefinition } from './types.js'
 
@@ -103,8 +106,12 @@ describe('AppletRegistry', () => {
     })
 
     it('should throw RegistryNotLoadedError if accessed before reload', async () => {
-      await expect(registry.get('confirm')).rejects.toThrow(RegistryNotLoadedError)
-      await expect(registry.has('confirm')).rejects.toThrow(RegistryNotLoadedError)
+      await expect(registry.get('confirm')).rejects.toThrow(
+        RegistryNotLoadedError,
+      )
+      await expect(registry.has('confirm')).rejects.toThrow(
+        RegistryNotLoadedError,
+      )
       await expect(registry.keys()).rejects.toThrow(RegistryNotLoadedError)
     })
 
@@ -197,7 +204,10 @@ describe('AppletRegistry', () => {
       const confirmApplet: AppletDefinition = {
         id: 'confirm',
         type: 'applet',
-        inputSchema: z.object({ message: z.string(), title: z.string().optional() }),
+        inputSchema: z.object({
+          message: z.string(),
+          title: z.string().optional(),
+        }),
         outputSchema: z.object({ approved: z.boolean() }),
         init: async () => {},
         dispose: async () => {},
@@ -212,8 +222,12 @@ describe('AppletRegistry', () => {
       const entry = await registry.get('confirm')
 
       expect(entry).toBeDefined()
-      expect(entry!.value.inputSchema.safeParse({ message: 'Approve?' }).success).toBe(true)
-      expect(entry!.value.outputSchema.safeParse({ approved: true }).success).toBe(true)
+      expect(
+        entry!.value.inputSchema.safeParse({ message: 'Approve?' }).success,
+      ).toBe(true)
+      expect(
+        entry!.value.outputSchema.safeParse({ approved: true }).success,
+      ).toBe(true)
     })
   })
 

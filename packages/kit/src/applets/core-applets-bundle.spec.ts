@@ -53,33 +53,71 @@ describe('CoreAppletsBundle', () => {
       expect(confirm.id).toBe('confirm')
     })
 
-    it('should validate input with message (required) and title (optional)', () => {
+    it('should validate input with message (required), title (optional), and resourceUrl (optional)', () => {
       const confirm = applets.get('confirm')!
 
       // Valid: message only
-      expect(confirm.inputSchema.safeParse({ message: 'Approve this post?' }).success).toBe(true)
+      expect(
+        confirm.inputSchema.safeParse({ message: 'Approve this post?' })
+          .success,
+      ).toBe(true)
 
       // Valid: message and title
-      expect(confirm.inputSchema.safeParse({
-        message: 'Approve this post?',
-        title: 'Confirm Action',
-      }).success).toBe(true)
+      expect(
+        confirm.inputSchema.safeParse({
+          message: 'Approve this post?',
+          title: 'Confirm Action',
+        }).success,
+      ).toBe(true)
+
+      // Valid: message and resourceUrl
+      expect(
+        confirm.inputSchema.safeParse({
+          message: 'Review this image',
+          resourceUrl: 'https://example.com/image.jpg',
+        }).success,
+      ).toBe(true)
+
+      // Valid: all fields
+      expect(
+        confirm.inputSchema.safeParse({
+          message: 'Review this content',
+          title: 'Content Review',
+          resourceUrl: 'https://example.com/video.mp4',
+        }).success,
+      ).toBe(true)
 
       // Invalid: missing message
       expect(confirm.inputSchema.safeParse({}).success).toBe(false)
-      expect(confirm.inputSchema.safeParse({ title: 'Title only' }).success).toBe(false)
+      expect(
+        confirm.inputSchema.safeParse({ title: 'Title only' }).success,
+      ).toBe(false)
+
+      // Invalid: resourceUrl not a valid URL
+      expect(
+        confirm.inputSchema.safeParse({
+          message: 'Test',
+          resourceUrl: 'not-a-url',
+        }).success,
+      ).toBe(false)
     })
 
     it('should validate output with approved boolean', () => {
       const confirm = applets.get('confirm')!
 
-      expect(confirm.outputSchema.safeParse({ approved: true }).success).toBe(true)
-      expect(confirm.outputSchema.safeParse({ approved: false }).success).toBe(true)
+      expect(confirm.outputSchema.safeParse({ approved: true }).success).toBe(
+        true,
+      )
+      expect(confirm.outputSchema.safeParse({ approved: false }).success).toBe(
+        true,
+      )
 
       // Invalid: missing approved
       expect(confirm.outputSchema.safeParse({}).success).toBe(false)
       // Invalid: wrong type
-      expect(confirm.outputSchema.safeParse({ approved: 'yes' }).success).toBe(false)
+      expect(confirm.outputSchema.safeParse({ approved: 'yes' }).success).toBe(
+        false,
+      )
     })
 
     /**
@@ -87,7 +125,9 @@ describe('CoreAppletsBundle', () => {
      */
     it('AC-APP-04: should accept { message: "Approve this post?" }', () => {
       const confirm = applets.get('confirm')!
-      const result = confirm.inputSchema.safeParse({ message: 'Approve this post?' })
+      const result = confirm.inputSchema.safeParse({
+        message: 'Approve this post?',
+      })
       expect(result.success).toBe(true)
     })
   })
@@ -106,33 +146,43 @@ describe('CoreAppletsBundle', () => {
       const grid = applets.get('grid')!
 
       // Valid: items only
-      expect(grid.inputSchema.safeParse({
-        items: [{ id: '1' }, { id: '2' }],
-      }).success).toBe(true)
+      expect(
+        grid.inputSchema.safeParse({
+          items: [{ id: '1' }, { id: '2' }],
+        }).success,
+      ).toBe(true)
 
       // Valid: items and labelKey
-      expect(grid.inputSchema.safeParse({
-        items: [{ id: '1', text: 'Post A' }],
-        labelKey: 'text',
-      }).success).toBe(true)
+      expect(
+        grid.inputSchema.safeParse({
+          items: [{ id: '1', text: 'Post A' }],
+          labelKey: 'text',
+        }).success,
+      ).toBe(true)
 
       // Invalid: missing items
       expect(grid.inputSchema.safeParse({}).success).toBe(false)
 
       // Invalid: items not an array
-      expect(grid.inputSchema.safeParse({ items: 'not-array' }).success).toBe(false)
+      expect(grid.inputSchema.safeParse({ items: 'not-array' }).success).toBe(
+        false,
+      )
     })
 
     it('should validate output with selected string array', () => {
       const grid = applets.get('grid')!
 
-      expect(grid.outputSchema.safeParse({ selected: ['1', '2'] }).success).toBe(true)
+      expect(
+        grid.outputSchema.safeParse({ selected: ['1', '2'] }).success,
+      ).toBe(true)
       expect(grid.outputSchema.safeParse({ selected: [] }).success).toBe(true)
 
       // Invalid: missing selected
       expect(grid.outputSchema.safeParse({}).success).toBe(false)
       // Invalid: wrong type in array
-      expect(grid.outputSchema.safeParse({ selected: [1, 2] }).success).toBe(false)
+      expect(grid.outputSchema.safeParse({ selected: [1, 2] }).success).toBe(
+        false,
+      )
     })
 
     /**
@@ -164,28 +214,36 @@ describe('CoreAppletsBundle', () => {
       const generation = applets.get('generation')!
 
       // Valid: items only
-      expect(generation.inputSchema.safeParse({
-        items: [{ id: '1', content: 'Draft post' }],
-      }).success).toBe(true)
+      expect(
+        generation.inputSchema.safeParse({
+          items: [{ id: '1', content: 'Draft post' }],
+        }).success,
+      ).toBe(true)
 
       // Valid: with prompt
-      expect(generation.inputSchema.safeParse({
-        items: [{ id: '1' }],
-        prompt: 'Generate a caption',
-      }).success).toBe(true)
+      expect(
+        generation.inputSchema.safeParse({
+          items: [{ id: '1' }],
+          prompt: 'Generate a caption',
+        }).success,
+      ).toBe(true)
 
       // Valid: with model
-      expect(generation.inputSchema.safeParse({
-        items: [{ id: '1' }],
-        model: 'gemini-flash',
-      }).success).toBe(true)
+      expect(
+        generation.inputSchema.safeParse({
+          items: [{ id: '1' }],
+          model: 'gemini-flash',
+        }).success,
+      ).toBe(true)
 
       // Valid: all options
-      expect(generation.inputSchema.safeParse({
-        items: [{ id: '1' }],
-        prompt: 'Generate a caption',
-        model: 'claude-sonnet',
-      }).success).toBe(true)
+      expect(
+        generation.inputSchema.safeParse({
+          items: [{ id: '1' }],
+          prompt: 'Generate a caption',
+          model: 'claude-sonnet',
+        }).success,
+      ).toBe(true)
 
       // Invalid: missing items
       expect(generation.inputSchema.safeParse({}).success).toBe(false)
@@ -194,22 +252,28 @@ describe('CoreAppletsBundle', () => {
     it('should validate output with results array of { id, text }', () => {
       const generation = applets.get('generation')!
 
-      expect(generation.outputSchema.safeParse({
-        results: [
-          { id: '1', text: 'Generated caption' },
-          { id: '2', text: 'Another caption' },
-        ],
-      }).success).toBe(true)
+      expect(
+        generation.outputSchema.safeParse({
+          results: [
+            { id: '1', text: 'Generated caption' },
+            { id: '2', text: 'Another caption' },
+          ],
+        }).success,
+      ).toBe(true)
 
-      expect(generation.outputSchema.safeParse({ results: [] }).success).toBe(true)
+      expect(generation.outputSchema.safeParse({ results: [] }).success).toBe(
+        true,
+      )
 
       // Invalid: missing results
       expect(generation.outputSchema.safeParse({}).success).toBe(false)
 
       // Invalid: wrong structure
-      expect(generation.outputSchema.safeParse({
-        results: [{ id: '1' }], // missing text
-      }).success).toBe(false)
+      expect(
+        generation.outputSchema.safeParse({
+          results: [{ id: '1' }], // missing text
+        }).success,
+      ).toBe(false)
     })
   })
 
