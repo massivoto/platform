@@ -93,6 +93,7 @@ describe('Unary parser', () => {
     expect(parsing.value).toEqual(expected)
   })
 
+  // Deferred to v1.5 - chained unary operators are uncommon in DSL workflows
   it.skip('should handle multiple unary operators (double not)', () => {
     const stream = Stream.ofChars('!!flag')
     const parsing = unaryGrammar.parse(stream)
@@ -109,6 +110,7 @@ describe('Unary parser', () => {
     expect(parsing.value).toEqual(expected)
   })
 
+  // Deferred to v1.5 - chained unary operators are uncommon in DSL workflows
   it.skip('should handle mixed unary operators (! followed by -)', () => {
     const stream = Stream.ofChars('!-10')
     const parsing = unaryGrammar.parse(stream)
