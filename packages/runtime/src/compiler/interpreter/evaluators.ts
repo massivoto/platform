@@ -28,7 +28,14 @@ export class EvaluationError extends Error {
 }
 
 export class ExpressionEvaluator {
-  evaluate(expr: ExpressionNode, context: ExecutionContext): any {
+  /**
+   * Evaluates an expression node and returns a Promise.
+   * All evaluations are async to support store.x lookups which require async I/O.
+   */
+  async evaluate(
+    expr: ExpressionNode,
+    context: ExecutionContext,
+  ): Promise<any> {
     switch (expr.type) {
       case 'identifier':
         return this.resolveIdentifier(expr, context)
@@ -98,15 +105,16 @@ export class ExpressionEvaluator {
    * Evaluates member access expressions like user.name or user.profile.settings.theme.
    * Returns undefined for missing properties (lenient behavior per PRD).
    *
-   * Special handling for 'scope' namespace:
+   * Special handling for namespaces:
    * - scope.x resolves via scope chain only (not data)
+   * - store.x resolves via async StoreProvider.get() (not data)
    *
    * All other roots use standard resolution (scope chain first, then data).
    */
-  private evaluateMember(
+  private async evaluateMember(
     expr: MemberExpressionNode,
     context: ExecutionContext,
-  ): any {
+  ): Promise<any> {
     // Check for special 'scope' namespace prefix
     if (
       expr.object.type === 'identifier' &&
@@ -128,8 +136,26 @@ export class ExpressionEvaluator {
       return current
     }
 
+    // Check for special 'store' namespace prefix
+    if (
+      expr.object.type === 'identifier' &&
+      expr.object.value === 'store' &&
+      expr.path.length > 0
+    ) {
+      // store.x.y.z - join path elements to form the store key
+      const storePath = expr.path.join('.')
+
+      // If no storeProvider is set, return undefined
+      if (!context.storeProvider) {
+        return undefined
+      }
+
+      // Use async StoreProvider.get() to fetch the value
+      return context.storeProvider.get(storePath)
+    }
+
     // Standard resolution: evaluate object (uses scope-first for identifiers)
-    let current = this.evaluate(expr.object, context)
+    let current = await this.evaluate(expr.object, context)
 
     // Walk the path, returning undefined if any step is missing
     for (const prop of expr.path) {
@@ -145,11 +171,11 @@ export class ExpressionEvaluator {
   /**
    * Evaluates unary expressions: !, -, +
    */
-  private evaluateUnary(
+  private async evaluateUnary(
     expr: UnaryExpressionNode,
     context: ExecutionContext,
-  ): any {
-    const arg = this.evaluate(expr.argument, context)
+  ): Promise<any> {
+    const arg = await this.evaluate(expr.argument, context)
 
     switch (expr.operator) {
       case '!':
@@ -171,12 +197,12 @@ export class ExpressionEvaluator {
    * Evaluates binary expressions: ==, !=, <, <=, >, >=, +, -, *, /, %
    * Uses strict equality (no type coercion for comparisons).
    */
-  private evaluateBinary(
+  private async evaluateBinary(
     expr: BinaryExpressionNode,
     context: ExecutionContext,
-  ): any {
-    const left = this.evaluate(expr.left, context)
-    const right = this.evaluate(expr.right, context)
+  ): Promise<any> {
+    const left = await this.evaluate(expr.left, context)
+    const right = await this.evaluate(expr.right, context)
 
     switch (expr.operator) {
       // Comparison operators (strict equality)
@@ -218,19 +244,19 @@ export class ExpressionEvaluator {
    * Evaluates logical expressions: &&, ||
    * Implements short-circuit evaluation per JS semantics.
    */
-  private evaluateLogical(
+  private async evaluateLogical(
     expr: LogicalExpressionNode,
     context: ExecutionContext,
-  ): any {
-    const left = this.evaluate(expr.left, context)
+  ): Promise<any> {
+    const left = await this.evaluate(expr.left, context)
 
     switch (expr.operator) {
       case '&&':
         // Short-circuit: if left is falsy, return it; otherwise return right
-        return left ? this.evaluate(expr.right, context) : left
+        return left ? await this.evaluate(expr.right, context) : left
       case '||':
         // Short-circuit: if left is truthy, return it; otherwise return right
-        return left ? left : this.evaluate(expr.right, context)
+        return left ? left : await this.evaluate(expr.right, context)
       default:
         throw new EvaluationError(
           `Unknown logical operator: ${(expr as any).operator}`,
@@ -244,10 +270,13 @@ export class ExpressionEvaluator {
    * Evaluates array literal expressions: [1, 2, 3]
    * Recursively evaluates each element.
    */
-  private evaluateArrayLiteral(
+  private async evaluateArrayLiteral(
     expr: ArrayLiteralNode,
     context: ExecutionContext,
-  ): any[] {
-    return expr.elements.map((el) => this.evaluate(el, context))
+  ): Promise<any[]> {
+    const results = await Promise.all(
+      expr.elements.map((el) => this.evaluate(el, context)),
+    )
+    return results
   }
 }

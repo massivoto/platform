@@ -1,6 +1,10 @@
 import { SerializableObject, ReadableDate } from '@massivoto/kit'
 
-import { fakeStorePointer, SerializableStorePointer } from './store.js'
+import {
+  fakeStorePointer,
+  SerializableStorePointer,
+  StoreProvider,
+} from './store.js'
 import {
   ScopeChain,
   createEmptyScopeChain,
@@ -22,6 +26,7 @@ export interface ExecutionContext {
     extra: SerializableObject
   }
   store: SerializableStorePointer
+  storeProvider?: StoreProvider // Optional async store provider for store.x lookups
   prompts: string[]
   cost: {
     current: number // current cost in cents
@@ -92,6 +97,7 @@ export function cloneExecutionContext(
       extra: structuredClone(context.user.extra),
     },
     store: structuredClone(context.store),
+    storeProvider: context.storeProvider, // StoreProvider is not cloned (stateful service)
     prompts: [...context.prompts],
     cost: {
       current: context.cost.current,
@@ -128,6 +134,7 @@ export function fromPartialContext(
       ),
     },
     store: structuredClone(partialContext.store || emptyContext.store),
+    storeProvider: partialContext.storeProvider, // StoreProvider is not cloned (stateful service)
     prompts: [...(partialContext.prompts || emptyContext.prompts)],
     cost: {
       current: partialContext.cost?.current || emptyContext.cost.current,
