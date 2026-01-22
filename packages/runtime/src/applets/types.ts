@@ -3,10 +3,15 @@
  *
  * Shared interfaces for the applet system. Both local (v0.5) and cloud (v1.0)
  * implementations use these interfaces.
+ *
+ * R-APP-61: Import AppletDefinition from @massivoto/kit
+ * R-APP-62: Remove duplicate AppletDefinition (keep only launcher interfaces)
  */
 
-import type { ZodSchema, ZodError } from 'zod'
 import type { ExecutionContext } from '../domain/execution-context.js'
+
+// Re-export AppletDefinition from kit for convenience
+export type { AppletDefinition } from '@massivoto/kit'
 
 /**
  * AppletLauncher - Creates and manages applet instances.
@@ -70,32 +75,17 @@ export interface AppletTerminator {
 }
 
 /**
- * AppletDefinition - Configuration for an applet type.
- * Stored in AppletRegistry.
- */
-export interface AppletDefinition {
-  /** Zod schema for validating input data */
-  inputSchema: ZodSchema
-
-  /** Zod schema for validating response data */
-  outputSchema: ZodSchema
-
-  /** npm package name, defaults to @massivoto/applet-{id} */
-  packageName?: string
-
-  /** Per-applet timeout in ms, falls back to launcher default */
-  timeoutMs?: number
-}
-
-/**
  * AppletRegistry - Registry for applet definitions.
  * Uses the same pattern as CommandRegistry from @massivoto/kit.
+ *
+ * Note: The concrete implementation is AppletRegistry from @massivoto/kit.
+ * This interface is kept for backwards compatibility and typing.
  */
 export interface AppletRegistry {
   get(
     key: string,
   ): Promise<
-    { key: string; value: AppletDefinition; bundleId: string } | undefined
+    { key: string; value: import('@massivoto/kit').AppletDefinition; bundleId: string } | undefined
   >
   has(key: string): Promise<boolean>
   keys(): Promise<string[]>
