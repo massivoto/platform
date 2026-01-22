@@ -17,11 +17,7 @@ import {
   ExecutionContext,
   fromPartialContext,
 } from '../../domain/execution-context.js'
-import {
-  createEmptyScopeChain,
-  pushScope,
-  write,
-} from './scope-chain.js'
+import { createEmptyScopeChain, pushScope, write } from './scope-chain.js'
 
 const evaluator = new ExpressionEvaluator()
 
@@ -68,36 +64,36 @@ const socialMediaContext: ExecutionContext = fromPartialContext({
 
 describe('ExpressionEvaluator - Literal Nodes', () => {
   describe('R-EVAL-01: literal-null', () => {
-    it('should evaluate literal-null node to null', () => {
+    it('should evaluate literal-null node to null', async () => {
       const expr: LiteralNullNode = { type: 'literal-null', value: null }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(null)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(null)
     })
   })
 
   describe('R-EVAL-02: existing literals still work', () => {
-    it('should evaluate literal-string', () => {
+    it('should evaluate literal-string', async () => {
       const expr: LiteralStringNode = { type: 'literal-string', value: 'hello' }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe('hello')
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe('hello')
     })
 
-    it('should evaluate literal-number', () => {
+    it('should evaluate literal-number', async () => {
       const expr: LiteralNumberNode = { type: 'literal-number', value: 42 }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(42)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(42)
     })
 
-    it('should evaluate literal-boolean true', () => {
+    it('should evaluate literal-boolean true', async () => {
       const expr: LiteralBooleanNode = { type: 'literal-boolean', value: true }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should evaluate literal-boolean false', () => {
+    it('should evaluate literal-boolean false', async () => {
       const expr: LiteralBooleanNode = { type: 'literal-boolean', value: false }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(false)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(false)
     })
 
-    it('should evaluate identifier', () => {
+    it('should evaluate identifier', async () => {
       const expr: IdentifierNode = { type: 'identifier', value: 'count' }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(42)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(42)
     })
   })
 })
@@ -110,65 +106,65 @@ describe('ExpressionEvaluator - Member Access', () => {
   describe('R-EVAL-21: member with identifier object', () => {
     // AC-EVAL-01: Given context { user: { name: "Emma", followers: 1500 } },
     // when evaluating user.name, then result is "Emma"
-    it('should evaluate user.name to "Emma"', () => {
+    it('should evaluate user.name to "Emma"', async () => {
       const expr: MemberExpressionNode = {
         type: 'member',
         object: { type: 'identifier', value: 'user' },
         path: ['name'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe('Emma')
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe('Emma')
     })
 
-    it('should evaluate user.followers to 1500', () => {
+    it('should evaluate user.followers to 1500', async () => {
       const expr: MemberExpressionNode = {
         type: 'member',
         object: { type: 'identifier', value: 'user' },
         path: ['followers'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(1500)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(1500)
     })
 
-    it('should evaluate user.isVerified to true', () => {
+    it('should evaluate user.isVerified to true', async () => {
       const expr: MemberExpressionNode = {
         type: 'member',
         object: { type: 'identifier', value: 'user' },
         path: ['isVerified'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
   })
 
   describe('R-EVAL-22: nested member path', () => {
-    it('should evaluate user.profile.bio', () => {
+    it('should evaluate user.profile.bio', async () => {
       const expr: MemberExpressionNode = {
         type: 'member',
         object: { type: 'identifier', value: 'user' },
         path: ['profile', 'bio'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(
         'Tech enthusiast',
       )
     })
 
-    it('should evaluate user.profile.settings.theme to "dark"', () => {
+    it('should evaluate user.profile.settings.theme to "dark"', async () => {
       const expr: MemberExpressionNode = {
         type: 'member',
         object: { type: 'identifier', value: 'user' },
         path: ['profile', 'settings', 'theme'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe('dark')
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe('dark')
     })
   })
 
   describe('R-EVAL-23: missing properties return undefined', () => {
     // AC-EVAL-02: Given context { user: {} }, when evaluating user.profile.name,
     // then result is undefined (no error)
-    it('should return undefined for missing property (no error)', () => {
+    it('should return undefined for missing property (no error)', async () => {
       const contextWithEmptyUser = fromPartialContext({
         data: { user: {} },
         user: { id: 'test', extra: {} },
@@ -179,17 +175,19 @@ describe('ExpressionEvaluator - Member Access', () => {
         path: ['profile', 'name'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, contextWithEmptyUser)).toBe(undefined)
+      expect(await evaluator.evaluate(expr, contextWithEmptyUser)).toBe(
+        undefined,
+      )
     })
 
-    it('should return undefined for deeply missing property', () => {
+    it('should return undefined for deeply missing property', async () => {
       const expr: MemberExpressionNode = {
         type: 'member',
         object: { type: 'identifier', value: 'user' },
         path: ['nonexistent', 'deep', 'path'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(undefined)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(undefined)
     })
   })
 })
@@ -201,7 +199,7 @@ describe('ExpressionEvaluator - Member Access', () => {
 describe('ExpressionEvaluator - Unary Operators', () => {
   describe('R-EVAL-41: logical NOT (!)', () => {
     // AC-EVAL-03: Given context { isVerified: false }, when evaluating !isVerified, then result is true
-    it('should evaluate !false to true', () => {
+    it('should evaluate !false to true', async () => {
       const contextWithFalseVerified = fromPartialContext({
         data: { isVerified: false },
         user: { id: 'test', extra: {} },
@@ -211,21 +209,23 @@ describe('ExpressionEvaluator - Unary Operators', () => {
         operator: '!',
         argument: { type: 'identifier', value: 'isVerified' },
       }
-      expect(evaluator.evaluate(expr, contextWithFalseVerified)).toBe(true)
+      expect(await evaluator.evaluate(expr, contextWithFalseVerified)).toBe(
+        true,
+      )
     })
 
     // AC-EVAL-04: Given context { isVerified: true }, when evaluating !isVerified, then result is false
-    it('should evaluate !true to false', () => {
+    it('should evaluate !true to false', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '!',
         argument: { type: 'identifier', value: 'isActive' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(false)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(false)
     })
 
     // AC-EVAL-05: Given context { count: 0 }, when evaluating !count, then result is true (0 is falsy)
-    it('should evaluate !0 to true (0 is falsy)', () => {
+    it('should evaluate !0 to true (0 is falsy)', async () => {
       const contextWithZero = fromPartialContext({
         data: { count: 0 },
         user: { id: 'test', extra: {} },
@@ -235,91 +235,91 @@ describe('ExpressionEvaluator - Unary Operators', () => {
         operator: '!',
         argument: { type: 'identifier', value: 'count' },
       }
-      expect(evaluator.evaluate(expr, contextWithZero)).toBe(true)
+      expect(await evaluator.evaluate(expr, contextWithZero)).toBe(true)
     })
 
     // AC-EVAL-06: Given context { count: 42 }, when evaluating !count, then result is false
-    it('should evaluate !42 to false (non-zero is truthy)', () => {
+    it('should evaluate !42 to false (non-zero is truthy)', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '!',
         argument: { type: 'identifier', value: 'count' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(false)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(false)
     })
 
     // AC-EVAL-07: Given context { message: "" }, when evaluating !message, then result is true
-    it('should evaluate !"" to true (empty string is falsy)', () => {
+    it('should evaluate !"" to true (empty string is falsy)', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '!',
         argument: { type: 'identifier', value: 'emptyMessage' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
     // AC-EVAL-08: Given context { message: "hello" }, when evaluating !message, then result is false
-    it('should evaluate !"hello" to false (non-empty string is truthy)', () => {
+    it('should evaluate !"hello" to false (non-empty string is truthy)', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '!',
         argument: { type: 'identifier', value: 'message' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(false)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(false)
     })
 
     // AC-EVAL-09: Given context { value: null }, when evaluating !value, then result is true
-    it('should evaluate !null to true (null is falsy)', () => {
+    it('should evaluate !null to true (null is falsy)', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '!',
         argument: { type: 'identifier', value: 'value' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
     // AC-EVAL-10: Given context { items: [] }, when evaluating !items, then result is false
-    it('should evaluate ![] to false (arrays are truthy)', () => {
+    it('should evaluate ![] to false (arrays are truthy)', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '!',
         argument: { type: 'identifier', value: 'items' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(false)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(false)
     })
   })
 
   describe('R-EVAL-42: numeric negation (-)', () => {
-    it('should evaluate -42 to -42', () => {
+    it('should evaluate -42 to -42', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '-',
         argument: { type: 'literal-number', value: 42 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(-42)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(-42)
     })
 
-    it('should evaluate -count (42) to -42', () => {
+    it('should evaluate -count (42) to -42', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '-',
         argument: { type: 'identifier', value: 'count' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(-42)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(-42)
     })
   })
 
   describe('R-EVAL-43: numeric coercion (+)', () => {
-    it('should evaluate +42 to 42', () => {
+    it('should evaluate +42 to 42', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '+',
         argument: { type: 'literal-number', value: 42 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(42)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(42)
     })
 
-    it('should evaluate +"5" to 5 (string coercion)', () => {
+    it('should evaluate +"5" to 5 (string coercion)', async () => {
       const contextWithStringNum = fromPartialContext({
         data: { strNum: '5' },
         user: { id: 'test', extra: {} },
@@ -329,12 +329,12 @@ describe('ExpressionEvaluator - Unary Operators', () => {
         operator: '+',
         argument: { type: 'identifier', value: 'strNum' },
       }
-      expect(evaluator.evaluate(expr, contextWithStringNum)).toBe(5)
+      expect(await evaluator.evaluate(expr, contextWithStringNum)).toBe(5)
     })
   })
 
   describe('R-EVAL-44: nested unary', () => {
-    it('should evaluate !!true to true', () => {
+    it('should evaluate !!true to true', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '!',
@@ -344,10 +344,10 @@ describe('ExpressionEvaluator - Unary Operators', () => {
           argument: { type: 'literal-boolean', value: true },
         },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should evaluate !!false to false', () => {
+    it('should evaluate !!false to false', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '!',
@@ -357,10 +357,10 @@ describe('ExpressionEvaluator - Unary Operators', () => {
           argument: { type: 'literal-boolean', value: false },
         },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(false)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(false)
     })
 
-    it('should evaluate --5 to 5', () => {
+    it('should evaluate --5 to 5', async () => {
       const expr: UnaryExpressionNode = {
         type: 'unary',
         operator: '-',
@@ -370,7 +370,7 @@ describe('ExpressionEvaluator - Unary Operators', () => {
           argument: { type: 'literal-number', value: 5 },
         },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(5)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(5)
     })
   })
 })
@@ -383,7 +383,7 @@ describe('ExpressionEvaluator - Binary Operators', () => {
   describe('R-EVAL-61: comparison operators', () => {
     // AC-EVAL-11: Given context { user: { followers: 1500 } },
     // when evaluating user.followers > 1000, then result is true
-    it('should evaluate user.followers > 1000 to true', () => {
+    it('should evaluate user.followers > 1000 to true', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '>',
@@ -395,40 +395,40 @@ describe('ExpressionEvaluator - Binary Operators', () => {
         },
         right: { type: 'literal-number', value: 1000 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should evaluate 5 == 5 to true (strict equality)', () => {
+    it('should evaluate 5 == 5 to true (strict equality)', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '==',
         left: { type: 'literal-number', value: 5 },
         right: { type: 'literal-number', value: 5 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should evaluate 5 == "5" to false (strict equality, no coercion)', () => {
+    it('should evaluate 5 == "5" to false (strict equality, no coercion)', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '==',
         left: { type: 'literal-number', value: 5 },
         right: { type: 'literal-string', value: '5' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(false)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(false)
     })
 
-    it('should evaluate null == null to true', () => {
+    it('should evaluate null == null to true', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '==',
         left: { type: 'literal-null', value: null },
         right: { type: 'literal-null', value: null },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should evaluate null == undefined to false (strict)', () => {
+    it('should evaluate null == undefined to false (strict)', async () => {
       const contextWithUndef = fromPartialContext({
         data: { undef: undefined },
         user: { id: 'test', extra: {} },
@@ -439,146 +439,148 @@ describe('ExpressionEvaluator - Binary Operators', () => {
         left: { type: 'literal-null', value: null },
         right: { type: 'identifier', value: 'undef' },
       }
-      expect(evaluator.evaluate(expr, contextWithUndef)).toBe(false)
+      expect(await evaluator.evaluate(expr, contextWithUndef)).toBe(false)
     })
 
-    it('should evaluate 5 != 3 to true', () => {
+    it('should evaluate 5 != 3 to true', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '!=',
         left: { type: 'literal-number', value: 5 },
         right: { type: 'literal-number', value: 3 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should evaluate 5 < 10 to true', () => {
+    it('should evaluate 5 < 10 to true', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '<',
         left: { type: 'literal-number', value: 5 },
         right: { type: 'literal-number', value: 10 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should evaluate 5 <= 5 to true', () => {
+    it('should evaluate 5 <= 5 to true', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '<=',
         left: { type: 'literal-number', value: 5 },
         right: { type: 'literal-number', value: 5 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should evaluate 10 > 5 to true', () => {
+    it('should evaluate 10 > 5 to true', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '>',
         left: { type: 'literal-number', value: 10 },
         right: { type: 'literal-number', value: 5 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should evaluate 5 >= 5 to true', () => {
+    it('should evaluate 5 >= 5 to true', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '>=',
         left: { type: 'literal-number', value: 5 },
         right: { type: 'literal-number', value: 5 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
   })
 
   describe('R-EVAL-62: arithmetic operators', () => {
     // AC-EVAL-12: Given context { price: 10, quantity: 5 },
     // when evaluating price * quantity, then result is 50
-    it('should evaluate price * quantity to 50', () => {
+    it('should evaluate price * quantity to 50', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '*',
         left: { type: 'identifier', value: 'price' },
         right: { type: 'identifier', value: 'quantity' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(50)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(50)
     })
 
-    it('should evaluate 5 + 3 to 8', () => {
+    it('should evaluate 5 + 3 to 8', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '+',
         left: { type: 'literal-number', value: 5 },
         right: { type: 'literal-number', value: 3 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(8)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(8)
     })
 
-    it('should evaluate "hello" + " world" to "hello world" (string concatenation)', () => {
+    it('should evaluate "hello" + " world" to "hello world" (string concatenation)', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '+',
         left: { type: 'literal-string', value: 'hello' },
         right: { type: 'literal-string', value: ' world' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe('hello world')
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(
+        'hello world',
+      )
     })
 
-    it('should evaluate 10 - 3 to 7', () => {
+    it('should evaluate 10 - 3 to 7', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '-',
         left: { type: 'literal-number', value: 10 },
         right: { type: 'literal-number', value: 3 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(7)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(7)
     })
 
-    it('should evaluate 10 / 2 to 5', () => {
+    it('should evaluate 10 / 2 to 5', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '/',
         left: { type: 'literal-number', value: 10 },
         right: { type: 'literal-number', value: 2 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(5)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(5)
     })
 
-    it('should evaluate 10 / 0 to Infinity (JS semantics)', () => {
+    it('should evaluate 10 / 0 to Infinity (JS semantics)', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '/',
         left: { type: 'literal-number', value: 10 },
         right: { type: 'literal-number', value: 0 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(Infinity)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(Infinity)
     })
 
-    it('should evaluate -10 / 0 to -Infinity (JS semantics)', () => {
+    it('should evaluate -10 / 0 to -Infinity (JS semantics)', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '/',
         left: { type: 'literal-number', value: -10 },
         right: { type: 'literal-number', value: 0 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(-Infinity)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(-Infinity)
     })
 
-    it('should evaluate 10 % 3 to 1', () => {
+    it('should evaluate 10 % 3 to 1', async () => {
       const expr: BinaryExpressionNode = {
         type: 'binary',
         operator: '%',
         left: { type: 'literal-number', value: 10 },
         right: { type: 'literal-number', value: 3 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(1)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(1)
     })
   })
 
   describe('R-EVAL-63: nested binary (AST structure)', () => {
-    it('should evaluate (a + b) * c respecting AST structure', () => {
+    it('should evaluate (a + b) * c respecting AST structure', async () => {
       // (5 + 3) * 2 = 16
       const expr: BinaryExpressionNode = {
         type: 'binary',
@@ -591,12 +593,12 @@ describe('ExpressionEvaluator - Binary Operators', () => {
         },
         right: { type: 'literal-number', value: 2 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(16)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(16)
     })
   })
 
   describe('R-EVAL-64: mixed binary inside logical', () => {
-    it('should evaluate count > 0 && count < 100', () => {
+    it('should evaluate count > 0 && count < 100', async () => {
       // count is 42, so 42 > 0 && 42 < 100 = true
       const expr: LogicalExpressionNode = {
         type: 'logical',
@@ -614,7 +616,7 @@ describe('ExpressionEvaluator - Binary Operators', () => {
           right: { type: 'literal-number', value: 100 },
         },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
   })
 })
@@ -627,51 +629,51 @@ describe('ExpressionEvaluator - Logical Operators', () => {
   describe('R-EVAL-81: && operator with short-circuit', () => {
     // AC-EVAL-13: Given context { hasAccess: true, isActive: true },
     // when evaluating hasAccess && isActive, then result is true
-    it('should evaluate true && true to true', () => {
+    it('should evaluate true && true to true', async () => {
       const expr: LogicalExpressionNode = {
         type: 'logical',
         operator: '&&',
         left: { type: 'identifier', value: 'hasAccess' },
         right: { type: 'identifier', value: 'isActive' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should evaluate false && anything to false (short-circuit)', () => {
+    it('should evaluate false && anything to false (short-circuit)', async () => {
       const expr: LogicalExpressionNode = {
         type: 'logical',
         operator: '&&',
         left: { type: 'literal-boolean', value: false },
         right: { type: 'literal-boolean', value: true },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(false)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(false)
     })
 
-    it('should return first falsy value (short-circuit behavior)', () => {
+    it('should return first falsy value (short-circuit behavior)', async () => {
       const expr: LogicalExpressionNode = {
         type: 'logical',
         operator: '&&',
         left: { type: 'literal-number', value: 0 },
         right: { type: 'literal-string', value: 'never reached' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(0)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(0)
     })
 
-    it('should return last value if all truthy', () => {
+    it('should return last value if all truthy', async () => {
       const expr: LogicalExpressionNode = {
         type: 'logical',
         operator: '&&',
         left: { type: 'literal-number', value: 5 },
         right: { type: 'literal-string', value: 'result' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe('result')
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe('result')
     })
   })
 
   describe('R-EVAL-82: || operator with short-circuit', () => {
     // AC-EVAL-14: Given context { hasAccess: false, isActive: true },
     // when evaluating hasAccess || isActive, then result is true
-    it('should evaluate false || true to true', () => {
+    it('should evaluate false || true to true', async () => {
       const contextWithFalseAccess = fromPartialContext({
         data: { hasAccess: false, isActive: true },
         user: { id: 'test', extra: {} },
@@ -682,42 +684,42 @@ describe('ExpressionEvaluator - Logical Operators', () => {
         left: { type: 'identifier', value: 'hasAccess' },
         right: { type: 'identifier', value: 'isActive' },
       }
-      expect(evaluator.evaluate(expr, contextWithFalseAccess)).toBe(true)
+      expect(await evaluator.evaluate(expr, contextWithFalseAccess)).toBe(true)
     })
 
-    it('should evaluate true || anything to true (short-circuit)', () => {
+    it('should evaluate true || anything to true (short-circuit)', async () => {
       const expr: LogicalExpressionNode = {
         type: 'logical',
         operator: '||',
         left: { type: 'literal-boolean', value: true },
         right: { type: 'literal-boolean', value: false },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
 
-    it('should return first truthy value (short-circuit behavior)', () => {
+    it('should return first truthy value (short-circuit behavior)', async () => {
       const expr: LogicalExpressionNode = {
         type: 'logical',
         operator: '||',
         left: { type: 'literal-string', value: 'first' },
         right: { type: 'literal-string', value: 'second' },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe('first')
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe('first')
     })
 
-    it('should return last value if all falsy', () => {
+    it('should return last value if all falsy', async () => {
       const expr: LogicalExpressionNode = {
         type: 'logical',
         operator: '||',
         left: { type: 'literal-boolean', value: false },
         right: { type: 'literal-number', value: 0 },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(0)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(0)
     })
   })
 
   describe('R-EVAL-83: nested logical respects AST precedence', () => {
-    it('should evaluate a && b || c respecting AST', () => {
+    it('should evaluate a && b || c respecting AST', async () => {
       // (false && true) || true = true
       const expr: LogicalExpressionNode = {
         type: 'logical',
@@ -730,7 +732,7 @@ describe('ExpressionEvaluator - Logical Operators', () => {
         },
         right: { type: 'literal-boolean', value: true },
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
     })
   })
 })
@@ -742,7 +744,7 @@ describe('ExpressionEvaluator - Logical Operators', () => {
 describe('ExpressionEvaluator - Array Literals', () => {
   describe('R-EVAL-101: array-literal evaluation', () => {
     // AC-EVAL-15: Given expression [1, 2, 3], when evaluated, then result is array [1, 2, 3]
-    it('should evaluate [1, 2, 3] to array [1, 2, 3]', () => {
+    it('should evaluate [1, 2, 3] to array [1, 2, 3]', async () => {
       const expr: ArrayLiteralNode = {
         type: 'array-literal',
         elements: [
@@ -751,18 +753,20 @@ describe('ExpressionEvaluator - Array Literals', () => {
           { type: 'literal-number', value: 3 },
         ],
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toEqual([1, 2, 3])
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toEqual([
+        1, 2, 3,
+      ])
     })
 
-    it('should evaluate empty array []', () => {
+    it('should evaluate empty array []', async () => {
       const expr: ArrayLiteralNode = {
         type: 'array-literal',
         elements: [],
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toEqual([])
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toEqual([])
     })
 
-    it('should evaluate mixed type array', () => {
+    it('should evaluate mixed type array', async () => {
       const expr: ArrayLiteralNode = {
         type: 'array-literal',
         elements: [
@@ -772,7 +776,7 @@ describe('ExpressionEvaluator - Array Literals', () => {
           { type: 'literal-null', value: null },
         ],
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toEqual([
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toEqual([
         1,
         'two',
         true,
@@ -780,7 +784,7 @@ describe('ExpressionEvaluator - Array Literals', () => {
       ])
     })
 
-    it('should evaluate array with identifiers', () => {
+    it('should evaluate array with identifiers', async () => {
       const expr: ArrayLiteralNode = {
         type: 'array-literal',
         elements: [
@@ -788,12 +792,14 @@ describe('ExpressionEvaluator - Array Literals', () => {
           { type: 'identifier', value: 'price' },
         ],
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toEqual([42, 10])
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toEqual([
+        42, 10,
+      ])
     })
   })
 
   describe('R-EVAL-102: nested arrays', () => {
-    it('should evaluate [[1, 2], [3, 4]]', () => {
+    it('should evaluate [[1, 2], [3, 4]]', async () => {
       const expr: ArrayLiteralNode = {
         type: 'array-literal',
         elements: [
@@ -813,7 +819,7 @@ describe('ExpressionEvaluator - Array Literals', () => {
           },
         ],
       }
-      expect(evaluator.evaluate(expr, socialMediaContext)).toEqual([
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toEqual([
         [1, 2],
         [3, 4],
       ])
@@ -827,35 +833,35 @@ describe('ExpressionEvaluator - Array Literals', () => {
 
 describe('ExpressionEvaluator - Error Handling', () => {
   describe('R-EVAL-121: unknown node type throws EvaluationError', () => {
-    it('should throw EvaluationError for unknown node type', () => {
+    it('should throw EvaluationError for unknown node type', async () => {
       const unknownExpr = {
         type: 'unknown-type',
         value: 'test',
       } as unknown as ExpressionNode
-      expect(() => evaluator.evaluate(unknownExpr, socialMediaContext)).toThrow(
-        EvaluationError,
-      )
+      await expect(
+        evaluator.evaluate(unknownExpr, socialMediaContext),
+      ).rejects.toThrow(EvaluationError)
     })
 
-    it('should include node type in error message', () => {
+    it('should include node type in error message', async () => {
       const unknownExpr = {
         type: 'some-weird-type',
         value: 'test',
       } as unknown as ExpressionNode
-      expect(() => evaluator.evaluate(unknownExpr, socialMediaContext)).toThrow(
-        /some-weird-type/,
-      )
+      await expect(
+        evaluator.evaluate(unknownExpr, socialMediaContext),
+      ).rejects.toThrow(/some-weird-type/)
     })
   })
 
   describe('R-EVAL-122: LLM-readable error messages', () => {
-    it('should provide meaningful error context', () => {
+    it('should provide meaningful error context', async () => {
       const unknownExpr = {
         type: 'mystery-node',
         data: { foo: 'bar' },
       } as unknown as ExpressionNode
       try {
-        evaluator.evaluate(unknownExpr, socialMediaContext)
+        await evaluator.evaluate(unknownExpr, socialMediaContext)
         expect.fail('Should have thrown')
       } catch (e) {
         expect(e).toBeInstanceOf(EvaluationError)
@@ -866,13 +872,13 @@ describe('ExpressionEvaluator - Error Handling', () => {
   })
 
   describe('R-EVAL-123: EvaluationError class structure', () => {
-    it('should have nodeType property', () => {
+    it('should have nodeType property', async () => {
       const unknownExpr = {
         type: 'test-node-type',
         value: 'x',
       } as unknown as ExpressionNode
       try {
-        evaluator.evaluate(unknownExpr, socialMediaContext)
+        await evaluator.evaluate(unknownExpr, socialMediaContext)
         expect.fail('Should have thrown')
       } catch (e) {
         expect(e).toBeInstanceOf(EvaluationError)
@@ -881,13 +887,13 @@ describe('ExpressionEvaluator - Error Handling', () => {
       }
     })
 
-    it('should have expression property', () => {
+    it('should have expression property', async () => {
       const unknownExpr = {
         type: 'test-node',
         value: 'xyz',
       } as unknown as ExpressionNode
       try {
-        evaluator.evaluate(unknownExpr, socialMediaContext)
+        await evaluator.evaluate(unknownExpr, socialMediaContext)
         expect.fail('Should have thrown')
       } catch (e) {
         expect(e).toBeInstanceOf(EvaluationError)
@@ -906,18 +912,18 @@ describe('ExpressionEvaluator - Error Handling', () => {
   })
 
   describe('pipe expressions throw informative error', () => {
-    it('should throw EvaluationError for pipe expressions (not yet supported)', () => {
+    it('should throw EvaluationError for pipe expressions (not yet supported)', async () => {
       const pipeExpr = {
         type: 'pipe-expression',
         input: { type: 'identifier', value: 'data' },
         segments: [{ pipeName: 'filter', args: [] }],
       } as unknown as ExpressionNode
-      expect(() => evaluator.evaluate(pipeExpr, socialMediaContext)).toThrow(
-        EvaluationError,
-      )
-      expect(() => evaluator.evaluate(pipeExpr, socialMediaContext)).toThrow(
-        /pipe/i,
-      )
+      await expect(
+        evaluator.evaluate(pipeExpr, socialMediaContext),
+      ).rejects.toThrow(EvaluationError)
+      await expect(
+        evaluator.evaluate(pipeExpr, socialMediaContext),
+      ).rejects.toThrow(/pipe/i)
     })
   })
 })
@@ -930,7 +936,7 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
   describe('R-SCOPE-21: Bare identifier resolves via scope chain first, then data', () => {
     // AC-SCOPE-01: Given context.data.user = "Emma" and empty scope,
     // when evaluating `user`, then result is "Emma"
-    it('should resolve bare identifier from data when scope is empty', () => {
+    it('should resolve bare identifier from data when scope is empty', async () => {
       const context = fromPartialContext({
         data: { user: 'Emma' },
       })
@@ -938,12 +944,12 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
       expect(context.scopeChain.current).toEqual({})
 
       const expr: IdentifierNode = { type: 'identifier', value: 'user' }
-      expect(evaluator.evaluate(expr, context)).toBe('Emma')
+      expect(await evaluator.evaluate(expr, context)).toBe('Emma')
     })
 
     // AC-SCOPE-02: Given context.data.user = "Emma" and context.scope.user = "Carlos",
     // when evaluating `user`, then result is "Carlos" (scope wins)
-    it('should resolve bare identifier from scope when both scope and data have value', () => {
+    it('should resolve bare identifier from scope when both scope and data have value', async () => {
       const scopeChain = createEmptyScopeChain()
       write('user', 'Carlos', scopeChain)
 
@@ -953,10 +959,10 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
       })
 
       const expr: IdentifierNode = { type: 'identifier', value: 'user' }
-      expect(evaluator.evaluate(expr, context)).toBe('Carlos')
+      expect(await evaluator.evaluate(expr, context)).toBe('Carlos')
     })
 
-    it('should resolve bare identifier from parent scope', () => {
+    it('should resolve bare identifier from parent scope', async () => {
       const parent = createEmptyScopeChain()
       write('user', 'Emma', parent)
 
@@ -969,10 +975,10 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
       })
 
       const expr: IdentifierNode = { type: 'identifier', value: 'user' }
-      expect(evaluator.evaluate(expr, context)).toBe('Emma')
+      expect(await evaluator.evaluate(expr, context)).toBe('Emma')
     })
 
-    it('should fall back to data when not found in any scope', () => {
+    it('should fall back to data when not found in any scope', async () => {
       const scopeChain = createEmptyScopeChain()
       write('tweet', 'Hello!', scopeChain)
 
@@ -982,12 +988,12 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
       })
 
       const expr: IdentifierNode = { type: 'identifier', value: 'followers' }
-      expect(evaluator.evaluate(expr, context)).toBe(1500)
+      expect(await evaluator.evaluate(expr, context)).toBe(1500)
     })
   })
 
   describe('R-SCOPE-22: Scope chain lookup walks from current to root', () => {
-    it('should find value in grandparent scope', () => {
+    it('should find value in grandparent scope', async () => {
       const grandparent = createEmptyScopeChain()
       write('globalUser', 'Admin', grandparent)
 
@@ -1004,10 +1010,10 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
 
       // From deepest scope, can find grandparent value
       const expr: IdentifierNode = { type: 'identifier', value: 'globalUser' }
-      expect(evaluator.evaluate(expr, context)).toBe('Admin')
+      expect(await evaluator.evaluate(expr, context)).toBe('Admin')
     })
 
-    it('should return first match when shadowing', () => {
+    it('should return first match when shadowing', async () => {
       const parent = createEmptyScopeChain()
       write('item', 'outer', parent)
 
@@ -1020,14 +1026,14 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
       })
 
       const expr: IdentifierNode = { type: 'identifier', value: 'item' }
-      expect(evaluator.evaluate(expr, context)).toBe('inner')
+      expect(await evaluator.evaluate(expr, context)).toBe('inner')
     })
   })
 
   describe('R-SCOPE-23: Explicit scope.user resolves via scope chain only', () => {
     // AC-SCOPE-03: Given context.scope.user = "Carlos",
     // when evaluating scope.user, then result is "Carlos"
-    it('should resolve scope.user from scope chain', () => {
+    it('should resolve scope.user from scope chain', async () => {
       const scopeChain = createEmptyScopeChain()
       write('user', 'Carlos', scopeChain)
 
@@ -1043,10 +1049,10 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
         path: ['user'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, context)).toBe('Carlos')
+      expect(await evaluator.evaluate(expr, context)).toBe('Carlos')
     })
 
-    it('should return undefined when scope.user not in scope chain', () => {
+    it('should return undefined when scope.user not in scope chain', async () => {
       const context = fromPartialContext({
         data: { user: 'Emma' }, // Should NOT use this for scope.user
         scopeChain: createEmptyScopeChain(),
@@ -1058,10 +1064,10 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
         path: ['user'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, context)).toBeUndefined()
+      expect(await evaluator.evaluate(expr, context)).toBeUndefined()
     })
 
-    it('should walk parent chain for scope.user', () => {
+    it('should walk parent chain for scope.user', async () => {
       const parent = createEmptyScopeChain()
       write('user', 'Emma', parent)
 
@@ -1079,14 +1085,14 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
         path: ['user'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, context)).toBe('Emma')
+      expect(await evaluator.evaluate(expr, context)).toBe('Emma')
     })
   })
 
   describe('R-SCOPE-24: Explicit data.user resolves to context.data.data.user', () => {
     // AC-SCOPE-04: Given context.data.data = { user: "Emma" },
     // when evaluating data.user, then result is "Emma" (no special meaning)
-    it('should resolve data.user from context.data.data.user', () => {
+    it('should resolve data.user from context.data.data.user', async () => {
       const context = fromPartialContext({
         data: {
           data: { user: 'Emma' }, // Nested data object
@@ -1102,10 +1108,10 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
         path: ['user'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, context)).toBe('Emma')
+      expect(await evaluator.evaluate(expr, context)).toBe('Emma')
     })
 
-    it('should return undefined when context.data.data.user does not exist', () => {
+    it('should return undefined when context.data.data.user does not exist', async () => {
       const context = fromPartialContext({
         data: {
           user: 'Carlos', // Top-level, not context.data.data.user
@@ -1118,14 +1124,14 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
         path: ['user'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, context)).toBeUndefined()
+      expect(await evaluator.evaluate(expr, context)).toBeUndefined()
     })
   })
 
   describe('R-SCOPE-25: Member expression uses same resolution for root object', () => {
     // AC-SCOPE-11: Given context.scope.user = { name: "Carlos", followers: 5000 },
     // when evaluating user.followers, then result is 5000 (scope resolution for root)
-    it('should resolve root object from scope for member expression', () => {
+    it('should resolve root object from scope for member expression', async () => {
       const scopeChain = createEmptyScopeChain()
       write('user', { name: 'Carlos', followers: 5000 }, scopeChain)
 
@@ -1141,10 +1147,10 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
         path: ['followers'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, context)).toBe(5000)
+      expect(await evaluator.evaluate(expr, context)).toBe(5000)
     })
 
-    it('should resolve root object from data when not in scope', () => {
+    it('should resolve root object from data when not in scope', async () => {
       const context = fromPartialContext({
         data: { user: { name: 'Emma', followers: 1500 } },
         scopeChain: createEmptyScopeChain(),
@@ -1156,17 +1162,21 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
         path: ['followers'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, context)).toBe(1500)
+      expect(await evaluator.evaluate(expr, context)).toBe(1500)
     })
 
-    it('should handle nested member paths with scope resolution', () => {
+    it('should handle nested member paths with scope resolution', async () => {
       const scopeChain = createEmptyScopeChain()
-      write('user', {
-        name: 'Carlos',
-        profile: {
-          settings: { theme: 'light' },
+      write(
+        'user',
+        {
+          name: 'Carlos',
+          profile: {
+            settings: { theme: 'light' },
+          },
         },
-      }, scopeChain)
+        scopeChain,
+      )
 
       const context = fromPartialContext({
         data: {
@@ -1187,7 +1197,7 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
         path: ['profile', 'settings', 'theme'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, context)).toBe('light')
+      expect(await evaluator.evaluate(expr, context)).toBe('light')
     })
   })
 })
@@ -1198,7 +1208,7 @@ describe('ExpressionEvaluator - Variable Resolution with Scope Chain', () => {
 
 describe('ExpressionEvaluator - Scope-Aware Evaluation', () => {
   describe('R-SCOPE-81: evaluate() uses new resolution logic', () => {
-    it('should use scope-first resolution in evaluate()', () => {
+    it('should use scope-first resolution in evaluate()', async () => {
       const scopeChain = createEmptyScopeChain()
       write('count', 999, scopeChain)
 
@@ -1208,12 +1218,12 @@ describe('ExpressionEvaluator - Scope-Aware Evaluation', () => {
       })
 
       const expr: IdentifierNode = { type: 'identifier', value: 'count' }
-      expect(evaluator.evaluate(expr, context)).toBe(999)
+      expect(await evaluator.evaluate(expr, context)).toBe(999)
     })
   })
 
   describe('R-SCOPE-82: IdentifierNode resolution walks scope chain then data', () => {
-    it('should walk scope chain for identifier', () => {
+    it('should walk scope chain for identifier', async () => {
       const grandparent = createEmptyScopeChain()
       write('level0', 'grandparent', grandparent)
 
@@ -1229,12 +1239,27 @@ describe('ExpressionEvaluator - Scope-Aware Evaluation', () => {
       })
 
       // All resolve from scope chain, not data
-      expect(evaluator.evaluate({ type: 'identifier', value: 'level0' }, context)).toBe('grandparent')
-      expect(evaluator.evaluate({ type: 'identifier', value: 'level1' }, context)).toBe('parent')
-      expect(evaluator.evaluate({ type: 'identifier', value: 'level2' }, context)).toBe('child')
+      expect(
+        await evaluator.evaluate(
+          { type: 'identifier', value: 'level0' },
+          context,
+        ),
+      ).toBe('grandparent')
+      expect(
+        await evaluator.evaluate(
+          { type: 'identifier', value: 'level1' },
+          context,
+        ),
+      ).toBe('parent')
+      expect(
+        await evaluator.evaluate(
+          { type: 'identifier', value: 'level2' },
+          context,
+        ),
+      ).toBe('child')
     })
 
-    it('should fall through to data when not in scope', () => {
+    it('should fall through to data when not in scope', async () => {
       const scopeChain = createEmptyScopeChain()
       write('scopeOnly', 'from-scope', scopeChain)
 
@@ -1243,13 +1268,23 @@ describe('ExpressionEvaluator - Scope-Aware Evaluation', () => {
         scopeChain,
       })
 
-      expect(evaluator.evaluate({ type: 'identifier', value: 'scopeOnly' }, context)).toBe('from-scope')
-      expect(evaluator.evaluate({ type: 'identifier', value: 'dataOnly' }, context)).toBe('from-data')
+      expect(
+        await evaluator.evaluate(
+          { type: 'identifier', value: 'scopeOnly' },
+          context,
+        ),
+      ).toBe('from-scope')
+      expect(
+        await evaluator.evaluate(
+          { type: 'identifier', value: 'dataOnly' },
+          context,
+        ),
+      ).toBe('from-data')
     })
   })
 
   describe('R-SCOPE-83: MemberExpressionNode applies scope chain logic to root', () => {
-    it('should apply scope resolution to root of member expression', () => {
+    it('should apply scope resolution to root of member expression', async () => {
       const scopeChain = createEmptyScopeChain()
       write('config', { debug: true, maxRetries: 5 }, scopeChain)
 
@@ -1264,10 +1299,10 @@ describe('ExpressionEvaluator - Scope-Aware Evaluation', () => {
         path: ['debug'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, context)).toBe(true)
+      expect(await evaluator.evaluate(expr, context)).toBe(true)
     })
 
-    it('should handle scope.x member expression specially', () => {
+    it('should handle scope.x member expression specially', async () => {
       const scopeChain = createEmptyScopeChain()
       write('x', 'scope-value', scopeChain)
 
@@ -1283,7 +1318,375 @@ describe('ExpressionEvaluator - Scope-Aware Evaluation', () => {
         path: ['x'],
         computed: false,
       }
-      expect(evaluator.evaluate(expr, context)).toBe('scope-value')
+      expect(await evaluator.evaluate(expr, context)).toBe('scope-value')
+    })
+  })
+})
+
+// ============================================================================
+// ASYNC EVALUATOR (R-ASYNC-01 to R-ASYNC-04, R-STORE-21 to R-STORE-24)
+// ============================================================================
+
+describe('ExpressionEvaluator - Async Evaluation', () => {
+  describe('R-ASYNC-01: evaluate() returns Promise<any> for all expression types', () => {
+    // AC-ASYNC-01: Given expression `42`, when evaluated, then `await evaluate()` returns `42`
+    it('should return Promise that resolves to literal number', async () => {
+      const expr: LiteralNumberNode = { type: 'literal-number', value: 42 }
+      const result = evaluator.evaluate(expr, socialMediaContext)
+      expect(result).toBeInstanceOf(Promise)
+      expect(await result).toBe(42)
+    })
+
+    it('should return Promise that resolves to literal string', async () => {
+      const expr: LiteralStringNode = { type: 'literal-string', value: 'hello' }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe('hello')
+    })
+
+    it('should return Promise that resolves to literal boolean', async () => {
+      const expr: LiteralBooleanNode = { type: 'literal-boolean', value: true }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+    })
+
+    it('should return Promise that resolves to null', async () => {
+      const expr: LiteralNullNode = { type: 'literal-null', value: null }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(null)
+    })
+
+    it('should return Promise that resolves to identifier value', async () => {
+      const expr: IdentifierNode = { type: 'identifier', value: 'count' }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(42)
+    })
+  })
+
+  describe('R-ASYNC-02: Literal evaluation resolves immediately', () => {
+    it('should resolve literal immediately without async overhead', async () => {
+      const expr: LiteralNumberNode = { type: 'literal-number', value: 42 }
+      // The promise should resolve synchronously (no real async work)
+      const promise = evaluator.evaluate(expr, socialMediaContext)
+      expect(await promise).toBe(42)
+    })
+  })
+
+  describe('R-ASYNC-03: All existing evaluator patterns work with async/await', () => {
+    // AC-ASYNC-02: Given expression `user.name` with context `{ user: { name: "Emma" } }`,
+    // when evaluated, then `await evaluate()` returns `"Emma"`
+    it('should resolve member expression asynchronously', async () => {
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'user' },
+        path: ['name'],
+        computed: false,
+      }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe('Emma')
+    })
+
+    it('should resolve unary expression asynchronously', async () => {
+      const expr: UnaryExpressionNode = {
+        type: 'unary',
+        operator: '!',
+        argument: { type: 'literal-boolean', value: false },
+      }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+    })
+
+    it('should resolve binary expression asynchronously', async () => {
+      const expr: BinaryExpressionNode = {
+        type: 'binary',
+        operator: '+',
+        left: { type: 'literal-number', value: 5 },
+        right: { type: 'literal-number', value: 3 },
+      }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(8)
+    })
+
+    it('should resolve logical expression asynchronously', async () => {
+      const expr: LogicalExpressionNode = {
+        type: 'logical',
+        operator: '&&',
+        left: { type: 'literal-boolean', value: true },
+        right: { type: 'literal-boolean', value: true },
+      }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+    })
+
+    it('should resolve array literal asynchronously', async () => {
+      const expr: ArrayLiteralNode = {
+        type: 'array-literal',
+        elements: [
+          { type: 'literal-number', value: 1 },
+          { type: 'literal-number', value: 2 },
+        ],
+      }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toEqual([1, 2])
+    })
+  })
+
+  describe('R-ASYNC-04: Nested expressions await inner results before computing outer', () => {
+    it('should await nested binary operations', async () => {
+      // (5 + 3) * 2 = 16
+      const expr: BinaryExpressionNode = {
+        type: 'binary',
+        operator: '*',
+        left: {
+          type: 'binary',
+          operator: '+',
+          left: { type: 'literal-number', value: 5 },
+          right: { type: 'literal-number', value: 3 },
+        },
+        right: { type: 'literal-number', value: 2 },
+      }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(16)
+    })
+
+    it('should await nested logical operations', async () => {
+      // (true && false) || true = true
+      const expr: LogicalExpressionNode = {
+        type: 'logical',
+        operator: '||',
+        left: {
+          type: 'logical',
+          operator: '&&',
+          left: { type: 'literal-boolean', value: true },
+          right: { type: 'literal-boolean', value: false },
+        },
+        right: { type: 'literal-boolean', value: true },
+      }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toBe(true)
+    })
+
+    it('should await array elements before returning array', async () => {
+      const expr: ArrayLiteralNode = {
+        type: 'array-literal',
+        elements: [
+          { type: 'identifier', value: 'count' },
+          { type: 'identifier', value: 'price' },
+        ],
+      }
+      expect(await evaluator.evaluate(expr, socialMediaContext)).toEqual([
+        42, 10,
+      ])
+    })
+  })
+})
+
+// ============================================================================
+// STORE ACCESS (R-STORE-21 to R-STORE-24)
+// ============================================================================
+
+describe('ExpressionEvaluator - Store Access', () => {
+  // Helper to create context with store provider
+  const createContextWithStore = (storeData: Record<string, any>) => {
+    const storeProvider = {
+      get: async (path: string): Promise<any> => {
+        // Simulate async store access
+        return storeData[path]
+      },
+      set: undefined,
+      toSerializable: () => ({
+        uri: 'memory://test-store',
+        name: 'test-store',
+        option: undefined,
+      }),
+    }
+    return fromPartialContext({
+      data: { localVar: 'local-value' },
+      storeProvider,
+    })
+  }
+
+  describe('R-STORE-21: store.customers resolves via StoreProvider.get()', () => {
+    // AC-ASYNC-03: Given store with `{ followers: 1500 }`, when evaluating `store.followers`, then result is `1500`
+    it('should resolve store.followers to 1500', async () => {
+      const context = createContextWithStore({ followers: 1500 })
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'store' },
+        path: ['followers'],
+        computed: false,
+      }
+      expect(await evaluator.evaluate(expr, context)).toBe(1500)
+    })
+
+    it('should resolve store.customers to customer data', async () => {
+      const context = createContextWithStore({
+        customers: [
+          { id: 1, name: 'Alice' },
+          { id: 2, name: 'Bob' },
+        ],
+      })
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'store' },
+        path: ['customers'],
+        computed: false,
+      }
+      const result = await evaluator.evaluate(expr, context)
+      expect(result).toEqual([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ])
+    })
+  })
+
+  describe('R-STORE-22: store.nested.path resolves via StoreProvider.get()', () => {
+    // AC-ASYNC-04: Given store with `{ user: { name: "Carlos" } }`, when evaluating `store.user.name`, then result is `"Carlos"`
+    it('should resolve store.user.name to Carlos', async () => {
+      const context = createContextWithStore({ 'user.name': 'Carlos' })
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'store' },
+        path: ['user', 'name'],
+        computed: false,
+      }
+      expect(await evaluator.evaluate(expr, context)).toBe('Carlos')
+    })
+
+    it('should resolve deeply nested store paths', async () => {
+      const context = createContextWithStore({ 'config.db.host': 'localhost' })
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'store' },
+        path: ['config', 'db', 'host'],
+        computed: false,
+      }
+      expect(await evaluator.evaluate(expr, context)).toBe('localhost')
+    })
+  })
+
+  describe('R-STORE-23: Missing store key returns undefined', () => {
+    // AC-ASYNC-05: Given empty store, when evaluating `store.missing`, then result is `undefined`
+    it('should return undefined for missing store key', async () => {
+      const context = createContextWithStore({})
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'store' },
+        path: ['missing'],
+        computed: false,
+      }
+      expect(await evaluator.evaluate(expr, context)).toBeUndefined()
+    })
+
+    it('should return undefined for missing nested store path', async () => {
+      const context = createContextWithStore({})
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'store' },
+        path: ['missing', 'nested', 'path'],
+        computed: false,
+      }
+      expect(await evaluator.evaluate(expr, context)).toBeUndefined()
+    })
+  })
+
+  describe('R-STORE-24: Store access works in complex expressions', () => {
+    // AC-ASYNC-06: Given store `{ count: 10 }` and context `{ limit: 5 }`, when evaluating `store.count > limit`, then result is `true`
+    it('should evaluate store.count > limit to true', async () => {
+      const storeProvider = {
+        get: async (path: string): Promise<any> => {
+          if (path === 'count') return 10
+          return undefined
+        },
+        set: undefined,
+        toSerializable: () => ({
+          uri: 'memory://test-store',
+          name: 'test-store',
+          option: undefined,
+        }),
+      }
+      const context = fromPartialContext({
+        data: { limit: 5 },
+        storeProvider,
+      })
+      const expr: BinaryExpressionNode = {
+        type: 'binary',
+        operator: '>',
+        left: {
+          type: 'member',
+          object: { type: 'identifier', value: 'store' },
+          path: ['count'],
+          computed: false,
+        },
+        right: { type: 'identifier', value: 'limit' },
+      }
+      expect(await evaluator.evaluate(expr, context)).toBe(true)
+    })
+
+    // AC-ASYNC-07: Given store `{ price: 10 }` and context `{ qty: 3 }`, when evaluating `store.price * qty`, then result is `30`
+    it('should evaluate store.price * qty to 30', async () => {
+      const storeProvider = {
+        get: async (path: string): Promise<any> => {
+          if (path === 'price') return 10
+          return undefined
+        },
+        set: undefined,
+        toSerializable: () => ({
+          uri: 'memory://test-store',
+          name: 'test-store',
+          option: undefined,
+        }),
+      }
+      const context = fromPartialContext({
+        data: { qty: 3 },
+        storeProvider,
+      })
+      const expr: BinaryExpressionNode = {
+        type: 'binary',
+        operator: '*',
+        left: {
+          type: 'member',
+          object: { type: 'identifier', value: 'store' },
+          path: ['price'],
+          computed: false,
+        },
+        right: { type: 'identifier', value: 'qty' },
+      }
+      expect(await evaluator.evaluate(expr, context)).toBe(30)
+    })
+
+    it('should evaluate store value in logical expression', async () => {
+      const storeProvider = {
+        get: async (path: string): Promise<any> => {
+          if (path === 'isEnabled') return true
+          return undefined
+        },
+        set: undefined,
+        toSerializable: () => ({
+          uri: 'memory://test-store',
+          name: 'test-store',
+          option: undefined,
+        }),
+      }
+      const context = fromPartialContext({
+        data: { hasPermission: true },
+        storeProvider,
+      })
+      const expr: LogicalExpressionNode = {
+        type: 'logical',
+        operator: '&&',
+        left: {
+          type: 'member',
+          object: { type: 'identifier', value: 'store' },
+          path: ['isEnabled'],
+          computed: false,
+        },
+        right: { type: 'identifier', value: 'hasPermission' },
+      }
+      expect(await evaluator.evaluate(expr, context)).toBe(true)
+    })
+  })
+
+  describe('Store access without storeProvider', () => {
+    it('should return undefined when no storeProvider is set', async () => {
+      const context = fromPartialContext({
+        data: { localVar: 'value' },
+      })
+      const expr: MemberExpressionNode = {
+        type: 'member',
+        object: { type: 'identifier', value: 'store' },
+        path: ['anything'],
+        computed: false,
+      }
+      expect(await evaluator.evaluate(expr, context)).toBeUndefined()
     })
   })
 })
