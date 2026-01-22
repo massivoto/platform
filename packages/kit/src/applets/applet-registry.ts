@@ -76,7 +76,9 @@ export class AppletRegistry {
    * @param appletId - The applet identifier (e.g., "confirm", "grid")
    * @returns Entry with value and bundleId, or undefined if not found
    */
-  async get(appletId: string): Promise<RegistryEntry<AppletDefinition> | undefined> {
+  async get(
+    appletId: string,
+  ): Promise<RegistryEntry<AppletDefinition> | undefined> {
     return this.inner.get(appletId)
   }
 
