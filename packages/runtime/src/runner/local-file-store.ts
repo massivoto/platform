@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'fs'
+import { readFile, writeFile } from 'fs/promises'
 import lodashGet from 'lodash.get'
 import lodashSet from 'lodash.set'
 import { SerializableStorePointer, StoreProvider } from '../domain/store.js'
@@ -6,16 +6,17 @@ import { SerializableStorePointer, StoreProvider } from '../domain/store.js'
 export class LocalFileStore implements StoreProvider {
   constructor(private filePath: string) {}
 
-  get(path: string): any {
-    const raw = JSON.parse(readFileSync(this.filePath, 'utf8'))
+  async get(path: string): Promise<any> {
+    const content = await readFile(this.filePath, 'utf8')
+    const raw = JSON.parse(content)
     return lodashGet(raw, path)
   }
 
-  set(path: string, value: any): void {
-    const raw = JSON.parse(readFileSync(this.filePath, 'utf8'))
-    // implémentation set possible via lodash.set
+  async set(path: string, value: any): Promise<void> {
+    const content = await readFile(this.filePath, 'utf8')
+    const raw = JSON.parse(content)
     lodashSet(raw, path, value)
-    writeFileSync(this.filePath, JSON.stringify(raw, null, 2))
+    await writeFile(this.filePath, JSON.stringify(raw, null, 2))
   }
 
   toSerializable(): SerializableStorePointer {

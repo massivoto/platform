@@ -64,7 +64,7 @@ export class Interpreter {
 
     const args: Record<string, any> = {}
     for (const arg of instruction.args) {
-      args[arg.name.value] = this.evaluator.evaluate(arg.value, context)
+      args[arg.name.value] = await this.evaluator.evaluate(arg.value, context)
     }
 
     const result = await handler.run(args, context)
@@ -167,7 +167,10 @@ export class Interpreter {
 
     // Check condition if present
     if (block.condition) {
-      const conditionValue = this.evaluator.evaluate(block.condition, context)
+      const conditionValue = await this.evaluator.evaluate(
+        block.condition,
+        context,
+      )
       if (!conditionValue) {
         // Condition is falsy, skip block
         return context
@@ -203,14 +206,12 @@ export class Interpreter {
     context: ExecutionContext,
   ): Promise<ExecutionContext> {
     // Evaluate the iterable expression
-    const iterable = this.evaluator.evaluate(forEach.iterable, context)
+    const iterable = await this.evaluator.evaluate(forEach.iterable, context)
 
     // Validate that the iterable is actually an array
     if (!Array.isArray(iterable)) {
       const type = iterable === null ? 'null' : typeof iterable
-      throw new Error(
-        `Cannot iterate over ${type}. forEach requires an array.`,
-      )
+      throw new Error(`Cannot iterate over ${type}. forEach requires an array.`)
     }
 
     // R-FE-103: Empty collection should execute 0 times
