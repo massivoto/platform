@@ -202,10 +202,10 @@ See `license.prd.md` for full details.
 ### Licensing Implementation
 
 - [ ] **Implement hybrid licensing**: BSL 1.1 for runtime, Apache 2.0 for other packages
-- [ ] **Add LICENSE files**: BSL in `packages/runtime/`, Apache 2.0 at root and other packages
+- [x] **Add LICENSE files**: Apache 2.0 at root (BSL for runtime deferred)
 - [ ] **License headers**: Add BSL header to runtime source files
-- [ ] **NOTICE file**: Third-party attributions
-- [ ] **CONTRIBUTING.md**: Explain license per package, CLA for runtime
+- [x] **NOTICE file**: Third-party attributions
+- [x] **CONTRIBUTING.md**: Explain license per package, CLA for runtime
 
 ### massivoto-custom Repository
 
@@ -226,6 +226,18 @@ See `license.prd.md` for full details.
 ## v1.0 - Production SaaS
 
 Paying customers require reliability, security, and easy deployment.
+
+### CLI Tool (`@massivoto/oto`)
+
+A standalone CLI to run OTO programs from the terminal.
+
+- [ ] **Create `@massivoto/oto` package**: new package in `packages/oto`
+- [ ] **Global install support**: `npm install -g @massivoto/oto` installs `oto` command
+- [ ] **npx support**: `npx @massivoto/oto` runs without install
+- [ ] **Default file discovery**: `oto` looks for `oto.md` in current directory
+- [ ] **Custom file flag**: `oto -f my-workflow.oto.md` runs specified file
+- [ ] **Exit codes**: 0 on success, non-zero on failure (for CI/CD integration)
+- [ ] **Output formatting**: structured output for human and machine consumption
 
 ## Quality
 
