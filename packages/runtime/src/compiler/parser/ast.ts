@@ -162,7 +162,7 @@ export interface ForEachArgNode {
 /**
  * Union of all reserved argument types.
  */
-export type ReservedArgNode = OutputArgNode | IfArgNode | ForEachArgNode
+export type ReservedArgNode = OutputArgNode | IfArgNode | ForEachArgNode | LabelArgNode
 
 /**
  * ActionNode represents the @package/name identifier in OTO source.
@@ -178,6 +178,16 @@ export interface ActionNode {
 }
 
 /**
+ * Reserved argument: label="name"
+ * Marks a command as a jump target for @flow/goto.
+ * Label must match pattern ^[a-zA-Z_][a-zA-Z0-9_-]*$
+ */
+export interface LabelArgNode {
+  type: 'label-arg'
+  name: string // The label name (validated identifier pattern)
+}
+
+/**
  * InstructionNode is a complete executable unit: action + arguments + reserved args.
  * A Program is a sequence of Instructions.
  */
@@ -188,6 +198,7 @@ export interface InstructionNode {
   output?: IdentifierNode // from output=identifier
   condition?: ExpressionNode // from if=expression
   forEach?: ForEachArgNode // from forEach=iterable -> iterator (used by @block/begin)
+  label?: string // from label="name" - jump target for @flow/goto
 }
 
 export type DslAstNode =

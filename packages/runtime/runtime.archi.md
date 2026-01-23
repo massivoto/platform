@@ -8,6 +8,7 @@
 
 ## Children
 
+- [Interpreter](./src/compiler/interpreter/interpreter.archi.md)
 - [Pipe Registry](./src/compiler/pipe-registry/pipe-registry.archi.md)
 
 ## Overview

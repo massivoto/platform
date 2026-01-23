@@ -197,42 +197,29 @@ describe('InstructionLog', () => {
 
 describe('ExecutionContext', () => {
   describe('createEmptyExecutionContext', () => {
-    it('should initialize cost.current to 0', () => {
+    it('should initialize with user id', () => {
       const context = createEmptyExecutionContext('emma-123')
 
-      expect(context.cost.current).toBe(0)
+      expect(context.user.id).toBe('emma-123')
     })
 
-    it('should initialize empty history array', () => {
+    it('should initialize meta with updatedAt', () => {
       const context = createEmptyExecutionContext('carlos-456')
 
-      expect(context.meta.history).toEqual([])
+      expect(context.meta.updatedAt).toBeDefined()
     })
   })
 
   describe('cloneExecutionContext', () => {
-    it('should preserve cost and history in clone', () => {
+    it('should clone data independently', () => {
       const original = createEmptyExecutionContext('emma-123')
-      original.cost.current = 150
-      original.meta.history.push({
-        command: '@utils/set',
-        success: true,
-        start: '2026-01-20T10:00:00.000Z',
-        end: '2026-01-20T10:00:00.005Z',
-        duration: 5,
-        messages: ['Set followers'],
-        cost: 0,
-        output: 'followers',
-        value: 1500,
-      })
+      original.data.followers = 1500
 
       const cloned = cloneExecutionContext(original)
+      cloned.data.followers = 2000
 
-      expect(cloned.cost.current).toBe(150)
-      expect(cloned.meta.history).toHaveLength(1)
-      expect(cloned.meta.history[0].output).toBe('followers')
-      expect(cloned.meta.history[0].value).toBe(1500)
-      expect(cloned.meta.history[0].cost).toBe(0)
+      expect(original.data.followers).toBe(1500)
+      expect(cloned.data.followers).toBe(2000)
     })
   })
 })

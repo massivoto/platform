@@ -1,6 +1,9 @@
 import { nowTs, toReadableDate } from '@massivoto/kit'
 import lodashSet from 'lodash.set'
-import { cloneExecutionContext } from '../../domain/execution-context.js'
+import {
+  cloneExecutionContext,
+  InstructionLog,
+} from '../../domain/execution-context.js'
 import {
   InstructionNode,
   ProgramNode,
@@ -10,8 +13,59 @@ import {
 } from '../parser/ast.js'
 import { CommandRegistry } from '../handlers/command-registry.js'
 import { ExpressionEvaluator } from './evaluators.js'
-import { ExecutionContext } from '../../domain/index.js'
+import {
+  ExecutionContext,
+  ProgramResult,
+  CostInfo,
+  createNormalCompletion,
+  createEarlyExit,
+  createReturn,
+} from '../../domain/index.js'
 import { write, pushScope, popScope } from './scope-chain.js'
+import type { GotoResult } from '../core-handlers/flow/goto.handler.js'
+import type { ExitResult } from '../core-handlers/flow/exit.handler.js'
+import type { ReturnResult } from '../core-handlers/flow/return.handler.js'
+
+/**
+ * Flow control result from a statement execution.
+ * Used to signal goto, exit, or return to the program loop.
+ */
+export type FlowControl =
+  | { type: 'continue' }
+  | { type: 'goto'; target: string }
+  | { type: 'exit'; code: number }
+  | { type: 'return'; value: unknown }
+
+/**
+ * R-BLK-01: LabelLocation type for path-based label indexing.
+ * Path is an array of indices to reach the label in the AST.
+ * For example, [2] means the label is on statement 2 of the current list.
+ * [1, 0] means statement 1 is a block, and the label is on statement 0 of that block's body.
+ */
+export interface LabelLocation {
+  path: number[] // Indices to reach the label in the AST
+  instruction: InstructionNode // The instruction with the label
+}
+
+/**
+ * R-BLK-02: Enhanced label index mapping label names to LabelLocation.
+ * Walks the AST and builds a map of label names to their locations.
+ */
+export type EnhancedLabelIndex = Map<string, LabelLocation>
+
+/**
+ * Result of executing a single statement.
+ * Includes the updated context, flow control signal, and instruction log.
+ *
+ * R-INT-41: History is no longer stored in context, but returned separately.
+ * R-INT-42: Cost is no longer stored in context, but returned separately.
+ */
+export interface StatementResult {
+  context: ExecutionContext
+  flow: FlowControl
+  log?: InstructionLog // The instruction log for this execution (if instruction)
+  cost: number // Cost of this execution
+}
 
 /**
  * Output target namespace and key parsed from output=... argument.
@@ -46,16 +100,68 @@ export function parseOutputTarget(output: string): OutputTarget {
   }
 }
 
+/**
+ * Result of executing a statement list.
+ * Includes updated context, flow control, accumulated history and cost.
+ */
+export interface StatementListResult {
+  context: ExecutionContext
+  flow: FlowControl
+  history: InstructionLog[]
+  cost: number
+}
+
 export class Interpreter {
   constructor(
     private registry: CommandRegistry,
     private evaluator = new ExpressionEvaluator(),
   ) {}
 
+  /**
+   * R-BLK-02: Build enhanced label index that maps labels to their AST locations.
+   * Labels can only appear on InstructionNode (R-BLK-03).
+   */
+  buildEnhancedLabelIndex(program: ProgramNode): EnhancedLabelIndex {
+    const index: EnhancedLabelIndex = new Map()
+
+    const walkStatements = (
+      statements: StatementNode[],
+      pathPrefix: number[],
+    ) => {
+      for (let i = 0; i < statements.length; i++) {
+        const statement = statements[i]
+        const currentPath = [...pathPrefix, i]
+
+        if (statement.type === 'instruction') {
+          // R-BLK-03: Labels can only appear on InstructionNode
+          if (statement.label) {
+            index.set(statement.label, {
+              path: currentPath,
+              instruction: statement,
+            })
+          }
+        } else if (statement.type === 'block') {
+          // Recursively walk block body
+          walkStatements(statement.body, currentPath)
+        }
+        // TemplateNode and other types don't have labels
+      }
+    }
+
+    walkStatements(program.body, [])
+    return index
+  }
+
+  /**
+   * Execute a single instruction and return both the updated context and flow control signal.
+   *
+   * R-INT-41: History is not stored in context, but returned as log in StatementResult.
+   * R-INT-42: Cost is not stored in context, but returned in StatementResult.
+   */
   async execute(
     instruction: InstructionNode,
     context: ExecutionContext,
-  ): Promise<ExecutionContext> {
+  ): Promise<StatementResult> {
     const start = nowTs()
     const { package: pkg, name } = instruction.action
     const id = `@${pkg}/${name}`
@@ -96,11 +202,8 @@ export class Interpreter {
       }
     }
 
-    // Add cost from handler to context
-    returnedContext.cost.current += result.cost
-
-    // Log complete InstructionLog with cost, output, and value
-    returnedContext.meta.history.push({
+    // Build InstructionLog (returned separately, not stored in context)
+    const log: InstructionLog = {
       command: id,
       success: outcome.success,
       start: toReadableDate(start),
@@ -111,58 +214,298 @@ export class Interpreter {
       cost: result.cost,
       output: outputKey,
       value: hasOutput ? outcome.value : undefined,
-    })
+    }
 
-    return returnedContext
+    // Determine flow control based on command result
+    const flow = this.determineFlowControl(id, result.value)
+
+    return { context: returnedContext, flow, log, cost: result.cost }
+  }
+
+  /**
+   * Determine flow control based on command execution result.
+   * Flow commands (@flow/goto, @flow/exit, @flow/return) return special values.
+   */
+  private determineFlowControl(commandId: string, value: any): FlowControl {
+    if (commandId === '@flow/goto' && value?.type === 'goto') {
+      const gotoResult = value as GotoResult
+      return { type: 'goto', target: gotoResult.target }
+    }
+
+    if (commandId === '@flow/exit' && value?.type === 'exit') {
+      const exitResult = value as ExitResult
+      return { type: 'exit', code: exitResult.code }
+    }
+
+    if (commandId === '@flow/return' && value?.type === 'return') {
+      const returnResult = value as ReturnResult
+      return { type: 'return', value: returnResult.value }
+    }
+
+    return { type: 'continue' }
   }
 
   /**
    * Execute a full program (sequence of statements).
-   * Handles InstructionNode and BlockNode.
+   * Handles InstructionNode, BlockNode, flow control, and labels.
+   *
+   * R-BLK-41: Uses executeStatementList() for statement-based execution.
+   * R-GOTO-22: Handles instruction pointer jumps for @flow/goto
+   * R-GOTO-25: Preserves execution context on jumps
+   * R-INT-41: Accumulates history in local array
+   * R-INT-42: Tracks cost.current locally
+   * R-INT-43: Builds final ProgramResult with flat structure
    */
   async executeProgram(
     program: ProgramNode,
     context: ExecutionContext,
-  ): Promise<ExecutionContext> {
-    let currentContext = context
+  ): Promise<ProgramResult> {
+    // R-BLK-02: Build enhanced label index
+    const labelIndex = this.buildEnhancedLabelIndex(program)
 
-    for (const statement of program.body) {
-      currentContext = await this.executeStatement(statement, currentContext)
+    // R-BLK-41: Execute using statement-based execution
+    const result = await this.executeStatementList(
+      program.body,
+      context,
+      labelIndex,
+      [],
+      0,
+    )
+
+    // Build cost info
+    const cost: CostInfo = { current: result.cost }
+
+    // exitedAt is the 0-based index of the last executed instruction
+    // Since history contains all executed instructions, exitedAt = history.length - 1
+    const exitedAt = result.history.length > 0 ? result.history.length - 1 : 0
+
+    // Handle final flow control
+    switch (result.flow.type) {
+      case 'exit': {
+        return createEarlyExit(
+          result.context,
+          result.flow.code,
+          exitedAt,
+          result.history,
+          cost,
+        )
+      }
+      case 'return': {
+        return createReturn(
+          result.context,
+          result.flow.value,
+          exitedAt,
+          result.history,
+          cost,
+        )
+      }
+      case 'goto': {
+        // Unresolved goto at top level - label not found
+        throw new Error(`Unknown label: ${result.flow.target}`)
+      }
+      case 'continue':
+      default:
+        return createNormalCompletion(result.context, result.history, cost)
     }
-
-    return currentContext
   }
 
   /**
-   * Execute a single statement (instruction or block).
+   * R-BLK-21: Execute a list of statements with support for goto, blocks, and forEach.
+   *
+   * @param statements - The list of statements to execute
+   * @param context - Current execution context
+   * @param labelIndex - Enhanced label index for goto resolution
+   * @param currentPath - Path to this statement list in the AST (for goto resolution)
+   * @param startIndex - Index to start execution from (for goto within same list)
    */
-  private async executeStatement(
-    statement: StatementNode,
+  private async executeStatementList(
+    statements: StatementNode[],
     context: ExecutionContext,
-  ): Promise<ExecutionContext> {
-    if (statement.type === 'instruction') {
-      return this.execute(statement, context)
+    labelIndex: EnhancedLabelIndex,
+    currentPath: number[],
+    startIndex: number = 0,
+  ): Promise<StatementListResult> {
+    const history: InstructionLog[] = []
+    let totalCost = 0
+    let currentContext = context
+    let i = startIndex
+
+    while (i < statements.length) {
+      const statement = statements[i]
+
+      if (statement.type === 'instruction') {
+        // R-BLK-22: For InstructionNode: check condition, execute, handle flow control
+        if (statement.condition) {
+          const conditionValue = await this.evaluator.evaluate(
+            statement.condition,
+            currentContext,
+          )
+          if (!conditionValue) {
+            // Condition is falsy, skip this instruction
+            i++
+            continue
+          }
+        }
+
+        const result = await this.execute(statement, currentContext)
+        currentContext = result.context
+
+        if (result.log) {
+          history.push(result.log)
+        }
+        totalCost += result.cost
+
+        // Handle flow control
+        if (result.flow.type === 'goto') {
+          // R-BLK-24: Try to resolve goto
+          const gotoResult = this.resolveGoto(
+            result.flow.target,
+            labelIndex,
+            currentPath,
+            statements,
+          )
+
+          if (gotoResult.type === 'local') {
+            // Local goto - adjust index and continue
+            i = gotoResult.index
+            continue
+          } else {
+            // Non-local goto - bubble up
+            return {
+              context: currentContext,
+              flow: result.flow,
+              history,
+              cost: totalCost,
+            }
+          }
+        }
+
+        if (result.flow.type !== 'continue') {
+          // exit or return - bubble up
+          return {
+            context: currentContext,
+            flow: result.flow,
+            history,
+            cost: totalCost,
+          }
+        }
+      } else if (statement.type === 'block') {
+        // R-BLK-23: For BlockNode: call executeBlock(), propagate flow control
+        const blockResult = await this.executeBlockWithStatementList(
+          statement,
+          currentContext,
+          labelIndex,
+          [...currentPath, i],
+        )
+
+        currentContext = blockResult.context
+        history.push(...blockResult.history)
+        totalCost += blockResult.cost
+
+        // Handle flow control from block
+        if (blockResult.flow.type === 'goto') {
+          // Try to resolve goto at this level
+          const gotoResult = this.resolveGoto(
+            blockResult.flow.target,
+            labelIndex,
+            currentPath,
+            statements,
+          )
+
+          if (gotoResult.type === 'local') {
+            i = gotoResult.index
+            continue
+          } else {
+            // Non-local goto - bubble up
+            return {
+              context: currentContext,
+              flow: blockResult.flow,
+              history,
+              cost: totalCost,
+            }
+          }
+        }
+
+        if (blockResult.flow.type !== 'continue') {
+          // exit or return - bubble up
+          return {
+            context: currentContext,
+            flow: blockResult.flow,
+            history,
+            cost: totalCost,
+          }
+        }
+      }
+      // TemplateNode and other types are skipped for now
+
+      i++
     }
 
-    if (statement.type === 'block') {
-      return this.executeBlock(statement, context)
+    return {
+      context: currentContext,
+      flow: { type: 'continue' },
+      history,
+      cost: totalCost,
     }
-
-    // For other statement types (like TemplateNode), pass through for now
-    return context
   }
 
   /**
-   * Execute a block by executing all statements in its body.
+   * R-BLK-24: Resolve a goto target. Returns local if target is in the same statement list,
+   * or non-local if it needs to bubble up.
+   */
+  private resolveGoto(
+    target: string,
+    labelIndex: EnhancedLabelIndex,
+    currentPath: number[],
+    statements: StatementNode[],
+  ): { type: 'local'; index: number } | { type: 'non-local' } {
+    const location = labelIndex.get(target)
+    if (!location) {
+      // Unknown label - will be caught at top level
+      return { type: 'non-local' }
+    }
+
+    // Check if the label is in this statement list (same path prefix)
+    const labelPath = location.path
+    const pathDepth = currentPath.length
+
+    // If label path starts with current path and has exactly one more element,
+    // it's a direct child of this statement list
+    if (labelPath.length === pathDepth + 1) {
+      const prefixMatches = currentPath.every((v, idx) => labelPath[idx] === v)
+      if (prefixMatches) {
+        // Local goto - return the index
+        return { type: 'local', index: labelPath[pathDepth] }
+      }
+    }
+
+    // Also handle case where we're at root level (currentPath is empty)
+    if (pathDepth === 0 && labelPath.length === 1) {
+      return { type: 'local', index: labelPath[0] }
+    }
+
+    return { type: 'non-local' }
+  }
+
+  /**
+   * R-BLK-42: Execute a block using executeStatementList for body execution.
    * Handles both conditional blocks (if=) and iteration blocks (forEach=).
    */
-  private async executeBlock(
+  private async executeBlockWithStatementList(
     block: BlockNode,
     context: ExecutionContext,
-  ): Promise<ExecutionContext> {
+    labelIndex: EnhancedLabelIndex,
+    blockPath: number[],
+  ): Promise<StatementListResult> {
     // Check for forEach - takes precedence over condition (mutually exclusive)
     if (block.forEach) {
-      return this.executeForEach(block, block.forEach, context)
+      return this.executeForEachWithStatementList(
+        block,
+        block.forEach,
+        context,
+        labelIndex,
+        blockPath,
+      )
     }
 
     // Check condition if present
@@ -173,21 +516,27 @@ export class Interpreter {
       )
       if (!conditionValue) {
         // Condition is falsy, skip block
-        return context
+        return {
+          context,
+          flow: { type: 'continue' },
+          history: [],
+          cost: 0,
+        }
       }
     }
 
     // Execute all statements in the block body
-    let currentContext = context
-    for (const statement of block.body) {
-      currentContext = await this.executeStatement(statement, currentContext)
-    }
-
-    return currentContext
+    return this.executeStatementList(
+      block.body,
+      context,
+      labelIndex,
+      blockPath,
+      0,
+    )
   }
 
   /**
-   * Execute a forEach block by iterating over the collection.
+   * R-BLK-43: Execute a forEach block using executeStatementList for each iteration.
    *
    * System variables injected into each iteration's scope:
    * - _index: 0-based index
@@ -200,11 +549,16 @@ export class Interpreter {
    *
    * The iterator variable (e.g., "user" in "users -> user") is also injected.
    */
-  private async executeForEach(
+  private async executeForEachWithStatementList(
     block: BlockNode,
     forEach: ForEachArgNode,
     context: ExecutionContext,
-  ): Promise<ExecutionContext> {
+    labelIndex: EnhancedLabelIndex,
+    blockPath: number[],
+  ): Promise<StatementListResult> {
+    const history: InstructionLog[] = []
+    let totalCost = 0
+
     // Evaluate the iterable expression
     const iterable = await this.evaluator.evaluate(forEach.iterable, context)
 
@@ -216,7 +570,12 @@ export class Interpreter {
 
     // R-FE-103: Empty collection should execute 0 times
     if (iterable.length === 0) {
-      return context
+      return {
+        context,
+        flow: { type: 'continue' },
+        history: [],
+        cost: 0,
+      }
     }
 
     const iteratorName = forEach.iterator.value
@@ -242,17 +601,39 @@ export class Interpreter {
       // Inject the iterator variable
       write(iteratorName, item, currentContext.scopeChain)
 
-      // Execute all statements in the block body
-      for (const statement of block.body) {
-        currentContext = await this.executeStatement(statement, currentContext)
-      }
+      // Execute all statements in the block body using executeStatementList
+      const result = await this.executeStatementList(
+        block.body,
+        currentContext,
+        labelIndex,
+        blockPath,
+        0,
+      )
+
+      currentContext = result.context
+      history.push(...result.history)
+      totalCost += result.cost
 
       // Pop the scope to discard iteration-specific variables
-      // But preserve changes to data namespace
       currentContext.scopeChain = popScope(currentContext.scopeChain)
+
+      // Propagate flow control signals up (exit, return, goto)
+      if (result.flow.type !== 'continue') {
+        return {
+          context: currentContext,
+          flow: result.flow,
+          history,
+          cost: totalCost,
+        }
+      }
     }
 
-    return currentContext
+    return {
+      context: currentContext,
+      flow: { type: 'continue' },
+      history,
+      cost: totalCost,
+    }
   }
 }
 

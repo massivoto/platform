@@ -41,8 +41,8 @@ describe('Interpreter with parsed instruction', () => {
 
     const ast = result.value as InstructionNode
 
-    const context = await interpreter.execute(ast, baseContext)
-    expect(context.data.finalCount).toBe(3)
+    const statementResult = await interpreter.execute(ast, baseContext)
+    expect(statementResult.context.data.finalCount).toBe(3)
   })
 
   it('should evaluate identifier input from context.data and store in output', async () => {
@@ -52,8 +52,8 @@ describe('Interpreter with parsed instruction', () => {
 
     const ast = result.value as InstructionNode
 
-    const context = await interpreter.execute(ast, baseContext)
-    expect(context.data.backup).toBe(42)
+    const statementResult = await interpreter.execute(ast, baseContext)
+    expect(statementResult.context.data.backup).toBe(42)
   })
 
   /*

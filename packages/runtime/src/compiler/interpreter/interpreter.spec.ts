@@ -132,57 +132,57 @@ describe('Cost Tracking', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.meta.history[0].cost).toBe(100)
+      expect(statementResult.log?.cost).toBe(100)
     })
   })
 
-  describe('R-COST-03: Interpreter adds cost to context.cost.current', () => {
-    it('should accumulate cost from single instruction', async () => {
+  describe('R-COST-03: Interpreter returns cost in StatementResult', () => {
+    it('should return cost from single instruction', async () => {
       registry.register('@mock/paid', new MockCostHandler(50))
 
       const dsl = '@mock/paid'
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.cost.current).toBe(50)
+      expect(statementResult.cost).toBe(50)
     })
 
-    it('should accumulate cost from multiple instructions', async () => {
+    it('should return cost from each instruction execution', async () => {
       registry.register('@mock/paid', new MockCostHandler(25))
 
       const dsl = '@mock/paid'
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      // Execute first instruction
-      let currentContext = await interpreter.execute(ast, context)
-      expect(currentContext.cost.current).toBe(25)
+      // Execute first instruction - cost is returned in StatementResult
+      let statementResult = await interpreter.execute(ast, context)
+      expect(statementResult.cost).toBe(25)
 
       // Execute second instruction
-      currentContext = await interpreter.execute(ast, currentContext)
-      expect(currentContext.cost.current).toBe(50)
+      statementResult = await interpreter.execute(ast, statementResult.context)
+      expect(statementResult.cost).toBe(25)
 
       // Execute third instruction
-      currentContext = await interpreter.execute(ast, currentContext)
-      expect(currentContext.cost.current).toBe(75)
+      statementResult = await interpreter.execute(ast, statementResult.context)
+      expect(statementResult.cost).toBe(25)
     })
   })
 
   describe('R-COST-04: Interpreter stores cost in InstructionLog', () => {
-    it('should store cost in history entry', async () => {
+    it('should store cost in log entry', async () => {
       registry.register('@mock/paid', new MockCostHandler(150))
 
       const dsl = '@mock/paid'
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.meta.history[0].cost).toBe(150)
+      expect(statementResult.log?.cost).toBe(150)
     })
   })
 })
@@ -202,14 +202,14 @@ describe('Interpreter Enhancements', () => {
     context = createEmptyExecutionContext('carlos-456')
   })
 
-  describe('R-INT-01: execute() logs complete InstructionLog with cost', () => {
-    it('should log complete InstructionLog for @utils/log', async () => {
+  describe('R-INT-01: execute() returns complete InstructionLog with cost', () => {
+    it('should return complete InstructionLog for @utils/log', async () => {
       const dsl = '@utils/log message="Hello Emma"'
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
-      const log = newContext.meta.history[0]
+      const statementResult = await interpreter.execute(ast, context)
+      const log = statementResult.log!
 
       expect(log.command).toBe('@utils/log')
       expect(log.success).toBe(true)
@@ -220,13 +220,13 @@ describe('Interpreter Enhancements', () => {
       expect(log.messages).toContain('Logged: Hello Emma')
     })
 
-    it('should log output and value for @utils/set', async () => {
+    it('should return log with output and value for @utils/set', async () => {
       const dsl = '@utils/set input="Emma" output=user'
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
-      const log = newContext.meta.history[0]
+      const statementResult = await interpreter.execute(ast, context)
+      const log = statementResult.log!
 
       expect(log.command).toBe('@utils/set')
       expect(log.success).toBe(true)
@@ -245,11 +245,11 @@ describe('Interpreter Enhancements', () => {
       `.trim()
 
       const program = programParser.val(source) as ProgramNode
-      const newContext = await interpreter.executeProgram(program, context)
+      const programResult = await interpreter.executeProgram(program, context)
 
-      expect(newContext.meta.history).toHaveLength(3)
-      expect(newContext.data.user).toBe('Emma')
-      expect(newContext.data.followers).toBe(1500)
+      expect(programResult.history).toHaveLength(3)
+      expect(programResult.data.user).toBe('Emma')
+      expect(programResult.data.followers).toBe(1500)
     })
 
     it('should accumulate cost across program execution', async () => {
@@ -262,10 +262,10 @@ describe('Interpreter Enhancements', () => {
       `.trim()
 
       const program = programParser.val(source) as ProgramNode
-      const newContext = await interpreter.executeProgram(program, context)
+      const programResult = await interpreter.executeProgram(program, context)
 
-      expect(newContext.cost.current).toBe(30)
-      expect(newContext.meta.history).toHaveLength(3)
+      expect(programResult.cost.current).toBe(30)
+      expect(programResult.history).toHaveLength(3)
     })
   })
 
@@ -281,13 +281,13 @@ describe('Interpreter Enhancements', () => {
       `.trim()
 
       const program = programParser.val(source) as ProgramNode
-      const newContext = await interpreter.executeProgram(program, context)
+      const programResult = await interpreter.executeProgram(program, context)
 
-      expect(newContext.data.author).toBe('Carlos')
-      expect(newContext.data.content).toBe('Hello world!')
-      expect(newContext.data.likes).toBe(42)
+      expect(programResult.data.author).toBe('Carlos')
+      expect(programResult.data.content).toBe('Hello world!')
+      expect(programResult.data.likes).toBe(42)
       // 1 before block + 2 inside block + 1 after block = 4 instructions
-      expect(newContext.meta.history).toHaveLength(4)
+      expect(programResult.history).toHaveLength(4)
     })
 
     it('should handle nested blocks', async () => {
@@ -301,11 +301,11 @@ describe('Interpreter Enhancements', () => {
       `.trim()
 
       const program = programParser.val(source) as ProgramNode
-      const newContext = await interpreter.executeProgram(program, context)
+      const programResult = await interpreter.executeProgram(program, context)
 
-      expect(newContext.data.user).toBe('Emma')
-      expect(newContext.data.count).toBe(100)
-      expect(newContext.meta.history).toHaveLength(2)
+      expect(programResult.data.user).toBe('Emma')
+      expect(programResult.data.count).toBe(100)
+      expect(programResult.history).toHaveLength(2)
     })
   })
 })
@@ -331,10 +331,10 @@ describe('Acceptance Criteria', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.meta.history[0].command).toBe('@utils/log')
-      expect(newContext.meta.history[0].success).toBe(true)
+      expect(statementResult.log?.command).toBe('@utils/log')
+      expect(statementResult.log?.success).toBe(true)
     })
   })
 
@@ -344,10 +344,10 @@ describe('Acceptance Criteria', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.data.user).toBe('Emma')
-      expect(newContext.meta.history[0].output).toBe('user')
+      expect(statementResult.context.data.user).toBe('Emma')
+      expect(statementResult.log?.output).toBe('user')
     })
   })
 
@@ -357,9 +357,9 @@ describe('Acceptance Criteria', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.meta.history[0].value).toBe(42)
+      expect(statementResult.log?.value).toBe(42)
     })
   })
 
@@ -369,14 +369,14 @@ describe('Acceptance Criteria', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.meta.history[0].cost).toBe(0)
+      expect(statementResult.log?.cost).toBe(0)
     })
   })
 
   describe('AC-LOG-05: cumulative cost tracking', () => {
-    it('should sum individual costs in context.cost.current', async () => {
+    it('should sum individual costs in result.cost.current', async () => {
       registry.register('@mock/cheap', new MockCostHandler(10))
       registry.register('@mock/medium', new MockCostHandler(50))
       registry.register('@mock/expensive', new MockCostHandler(100))
@@ -388,9 +388,9 @@ describe('Acceptance Criteria', () => {
       `.trim()
 
       const program = programParser.val(source) as ProgramNode
-      const newContext = await interpreter.executeProgram(program, context)
+      const programResult = await interpreter.executeProgram(program, context)
 
-      expect(newContext.cost.current).toBe(160) // 10 + 50 + 100
+      expect(programResult.cost.current).toBe(160) // 10 + 50 + 100
     })
   })
 
@@ -403,9 +403,9 @@ describe('Acceptance Criteria', () => {
       `.trim()
 
       const program = programParser.val(source) as ProgramNode
-      const newContext = await interpreter.executeProgram(program, context)
+      const programResult = await interpreter.executeProgram(program, context)
 
-      expect(newContext.meta.history).toHaveLength(3)
+      expect(programResult.history).toHaveLength(3)
     })
   })
 
@@ -417,10 +417,10 @@ describe('Acceptance Criteria', () => {
       `.trim()
 
       const program = programParser.val(source) as ProgramNode
-      const newContext = await interpreter.executeProgram(program, context)
+      const programResult = await interpreter.executeProgram(program, context)
 
       // The log should have resolved 'user' to 'Emma'
-      expect(newContext.meta.history[1].messages).toContain('Logged: Emma')
+      expect(programResult.history[1].messages).toContain('Logged: Emma')
     })
   })
 
@@ -437,15 +437,15 @@ describe('Acceptance Criteria', () => {
   })
 
   describe('AC-LOG-09: missing required argument', () => {
-    it('should fail with error in history when message missing', async () => {
+    it('should fail with error in log when message missing', async () => {
       const dsl = '@utils/log'
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.meta.history[0].success).toBe(false)
-      expect(newContext.meta.history[0].fatalError).toBe('Message is required')
+      expect(statementResult.log?.success).toBe(false)
+      expect(statementResult.log?.fatalError).toBe('Message is required')
     })
   })
 })
@@ -478,11 +478,11 @@ describe('Output Targeting', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.data.user).toBe('Emma')
+      expect(statementResult.context.data.user).toBe('Emma')
       // Verify it's NOT in scope
-      expect(lookup('user', newContext.scopeChain)).toBeUndefined()
+      expect(lookup('user', statementResult.context.scopeChain)).toBeUndefined()
     })
 
     it('should write object to context.data', async () => {
@@ -490,9 +490,9 @@ describe('Output Targeting', () => {
       const source = `@utils/set input="Emma" output=userName`
 
       const program = programParser.val(source) as ProgramNode
-      const newContext = await interpreter.executeProgram(program, context)
+      const programResult = await interpreter.executeProgram(program, context)
 
-      expect(newContext.data.userName).toBe('Emma')
+      expect(programResult.data.userName).toBe('Emma')
     })
   })
 
@@ -505,12 +505,12 @@ describe('Output Targeting', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
       // Should be in scope chain
-      expect(lookup('user', newContext.scopeChain)).toBe('Carlos')
+      expect(lookup('user', statementResult.context.scopeChain)).toBe('Carlos')
       // Should NOT be in data
-      expect(newContext.data.user).toBeUndefined()
+      expect(statementResult.context.data.user).toBeUndefined()
     })
 
     it('should write to current scope only', async () => {
@@ -525,12 +525,12 @@ describe('Output Targeting', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
       // Should be in current scope
-      expect(newContext.scopeChain.current.newVar).toBe('child-value')
+      expect(statementResult.context.scopeChain.current.newVar).toBe('child-value')
       // Parent should be unchanged
-      expect(newContext.scopeChain.parent?.current.newVar).toBeUndefined()
+      expect(statementResult.context.scopeChain.parent?.current.newVar).toBeUndefined()
     })
   })
 
@@ -542,10 +542,10 @@ describe('Output Targeting', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
       // data.user is a nested path: context.data['data']['user']
-      expect(newContext.data.data).toEqual({ user: 'Emma' })
+      expect(statementResult.context.data.data).toEqual({ user: 'Emma' })
     })
   })
 
@@ -606,10 +606,10 @@ describe('Output Targeting Integration', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.meta.history[0].output).toBe('scope.user')
-      expect(newContext.meta.history[0].value).toBe('Carlos')
+      expect(statementResult.log?.output).toBe('scope.user')
+      expect(statementResult.log?.value).toBe('Carlos')
     })
 
     it('should log output target for data writes', async () => {
@@ -617,10 +617,10 @@ describe('Output Targeting Integration', () => {
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
 
-      const newContext = await interpreter.execute(ast, context)
+      const statementResult = await interpreter.execute(ast, context)
 
-      expect(newContext.meta.history[0].output).toBe('followers')
-      expect(newContext.meta.history[0].value).toBe(1500)
+      expect(statementResult.log?.output).toBe('followers')
+      expect(statementResult.log?.value).toBe(1500)
     })
   })
 })
