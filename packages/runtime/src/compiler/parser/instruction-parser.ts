@@ -13,6 +13,7 @@ import {
   IdentifierNode,
   IfArgNode,
   InstructionNode,
+  LabelArgNode,
   MapperExpressionNode,
   OutputArgNode,
   SingleStringNode,
@@ -25,6 +26,7 @@ export interface InstructionTokens extends ArgTokens {
   OUTPUT_KEY: SingleParser<'output='>
   IF_KEY: SingleParser<'if='>
   FOREACH_KEY: SingleParser<'forEach='>
+  LABEL_KEY: SingleParser<'label='>
 }
 
 function getInstructionTokens(genlex: IGenLex): InstructionTokens {
@@ -46,14 +48,30 @@ function getInstructionTokens(genlex: IGenLex): InstructionTokens {
     FOREACH_KEY: genlex
       .tokenize(C.string('forEach='), 'FOREACH_KEY', 500)
       .map(leanToken) as SingleParser<'forEach='>,
+    LABEL_KEY: genlex
+      .tokenize(C.string('label='), 'LABEL_KEY', 500)
+      .map(leanToken) as SingleParser<'label='>,
   }
 }
 
+/**
+ * Regex pattern for valid label names.
+ * Must start with letter or underscore, followed by letters, numbers, underscores, or hyphens.
+ * Pattern: ^[a-zA-Z_][a-zA-Z0-9_-]*$
+ */
+const LABEL_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_-]*$/
+
+/**
+ * Note: this function is ok for now, but next addition
+ * in a fuure iteration will have to think on splitting it as
+ * it may become too complex
+ * @param tokens
+ */
 export function createInstructionGrammar(
   tokens: InstructionTokens,
 ): SingleParser<InstructionNode> {
   const regularArg = createArgGrammar(tokens)
-  const { ACTION, OUTPUT_KEY, IF_KEY, FOREACH_KEY, IDENTIFIER, DOT } = tokens
+  const { ACTION, OUTPUT_KEY, IF_KEY, FOREACH_KEY, LABEL_KEY, IDENTIFIER, DOT, STRING } = tokens
 
   // Expression parser for if= value (includes mapper expression support)
   const expression = createExpressionWithPipe(tokens)
@@ -104,8 +122,25 @@ export function createInstructionGrammar(
       }
     })
 
+  // label="name" - LABEL_KEY is dropped, must be a string literal matching identifier pattern
+  // R-GOTO-03: Must be a simple string literal (not expression, not identifier)
+  // R-GOTO-04: Must match pattern ^[a-zA-Z_][a-zA-Z0-9_-]*$
+  const labelArg: SingleParser<LabelArgNode> = LABEL_KEY.drop()
+    .then(STRING)
+    .filter((tuple) => {
+      const stringNode = tuple.single() as { type: 'literal-string'; value: string }
+      return LABEL_PATTERN.test(stringNode.value)
+    })
+    .map((tuple) => {
+      const stringNode = tuple.single() as { type: 'literal-string'; value: string }
+      return {
+        type: 'label-arg' as const,
+        name: stringNode.value,
+      }
+    })
+
   // Combined reserved arg parser with backtracking
-  const reservedArg = F.try(outputArg).or(F.try(ifArg)).or(forEachArg)
+  const reservedArg = F.try(outputArg).or(F.try(ifArg)).or(F.try(forEachArg)).or(labelArg)
 
   // Any arg: try reserved first, then regular
   const anyArg = F.try(reservedArg).or(regularArg)
@@ -117,6 +152,7 @@ export function createInstructionGrammar(
       | OutputArgNode
       | IfArgNode
       | ForEachArgNode
+      | LabelArgNode
     )[]
 
     // Separate reserved args from regular args
@@ -124,6 +160,7 @@ export function createInstructionGrammar(
     let output: IdentifierNode | undefined
     let condition: ExpressionNode | undefined
     let forEach: ForEachArgNode | undefined
+    let label: string | undefined
 
     for (const arg of allArgs) {
       if (arg.type === 'output-arg') {
@@ -132,6 +169,8 @@ export function createInstructionGrammar(
         condition = arg.condition
       } else if (arg.type === 'forEach-arg') {
         forEach = arg
+      } else if (arg.type === 'label-arg') {
+        label = arg.name
       } else {
         regularArgs.push(arg)
       }
@@ -144,6 +183,7 @@ export function createInstructionGrammar(
       output,
       condition,
       forEach,
+      label,
     }
     return instructionNode
   })

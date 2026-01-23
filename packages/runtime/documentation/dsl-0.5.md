@@ -90,7 +90,7 @@ Tooling
 ```markdown
 @cms, @ai, @llm, @auth, @webhook, @scheduler, @queue, @storage, @cdn, @etl,
 @render, @vault, @db, @search, @index, @http, @fetch, @proxy, @retry, @cron,
-@validate, @test, @mock, @logger, @metrics, @trace, @alert,
+@validate, @test, @mock, @logger, @metrics, @trace, @alert, @flow,
 ```
 
 ## examples
@@ -320,4 +320,26 @@ See block section in documentation/bloc-rules.md
 
 ## Goto and Label
 
-Not for 0.5
+Label is a reserved argument. Goto is a command in the `@flow` package.
+
+```oto
+@utils/set value=0 output=counter label="retry"
+@http/fetch url="https://api.example.com" output=response
+@flow/goto target="success" if={response.status == 200}
+@utils/increment input=counter output=counter
+@flow/goto target="retry" if={counter < 3}
+
+@log/error message="Failed after 3 retries" label="failure"
+@flow/exit code=1
+
+@log/info message="Request succeeded" label="success"
+```
+
+**Rules:**
+- `label="name"` can be added to any command
+- `@flow/goto target="name"` jumps to the labeled command
+- Goto to a `forEach` restarts the loop
+- Goto to an `if` re-evaluates the condition
+- Label names must be unique (validated in AST post-processing)
+
+See PRD: `packages/runtime/src/compiler/interpreter/goto-label.prd.md`
