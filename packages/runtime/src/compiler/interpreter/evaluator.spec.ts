@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import {
   IdentifierNode,
   LiteralStringNode,
@@ -1687,6 +1687,554 @@ describe('ExpressionEvaluator - Store Access', () => {
         computed: false,
       }
       expect(await evaluator.evaluate(expr, context)).toBeUndefined()
+    })
+  })
+})
+
+// ============================================================================
+// PIPE EXPRESSION EVALUATION (R-PIPE-01 to R-PIPE-83)
+// ============================================================================
+
+import { PipeExpressionNode } from '../parser/args-details/pipe-parser/pipe-parser.js'
+import { PipeRegistry, CorePipesBundle } from '../pipe-registry/index.js'
+
+describe('ExpressionEvaluator - Pipe Expressions', () => {
+  // Create evaluator with pipe registry
+  let pipeEvaluator: ExpressionEvaluator
+  let pipeRegistry: PipeRegistry
+
+  beforeAll(async () => {
+    pipeRegistry = new PipeRegistry()
+    pipeRegistry.addBundle(new CorePipesBundle())
+    await pipeRegistry.reload()
+    pipeEvaluator = new ExpressionEvaluator(pipeRegistry)
+  })
+
+  // Theme: Social Media Automation - users array for testing
+  // Note: Property names like 'name', 'active' are added to context so identifier
+  // arguments in pipes resolve correctly per R-PIPE-43 (identifiers resolve from context)
+  const usersContext = fromPartialContext({
+    data: {
+      users: [
+        { name: 'Emma', active: true, followers: 1500 },
+        { name: 'Bob', active: false, followers: 500 },
+        { name: 'Carlos', active: true, followers: 3000 },
+      ],
+      items: [1, 2, 3, 4, 5],
+      names: ['Alice', 'Bob'],
+      parts: ['a', 'b', 'c'],
+      duplicates: [1, 2, 2, 3, 1],
+      nested: [[1, 2], [3, 4], [5]] as any,
+      count: 5,
+      field: 'active',
+      expected: true,
+      // Property name strings for pipe argument resolution
+      name: 'name',
+      active: 'active',
+      nonexistent: 'nonexistent',
+      followers: 'followers',
+      x: 'x',
+    },
+  })
+
+  // ============================================================================
+  // CORE PIPES: filter, map, first, last, join, length (R-PIPE-01 to R-PIPE-06)
+  // ============================================================================
+
+  describe('R-PIPE-01: filter:propName:value', () => {
+    // AC-PIPE-01: Given users array, when evaluating {users | filter:active:true},
+    // then result is array of active users
+    it('should filter array by property value', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'users' },
+        segments: [
+          {
+            pipeName: 'filter',
+            args: [
+              { type: 'identifier', value: 'active' },
+              { type: 'literal-boolean', value: true },
+            ],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual([
+        { name: 'Emma', active: true, followers: 1500 },
+        { name: 'Carlos', active: true, followers: 3000 },
+      ])
+    })
+
+    it('should filter by string property value', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'users' },
+        segments: [
+          {
+            pipeName: 'filter',
+            args: [
+              { type: 'identifier', value: 'name' },
+              { type: 'literal-string', value: 'Emma' },
+            ],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual([{ name: 'Emma', active: true, followers: 1500 }])
+    })
+  })
+
+  describe('R-PIPE-02: map:propName', () => {
+    // AC-PIPE-02: Given users array, when evaluating {users | map:name},
+    // then result is ["Emma", "Bob", "Carlos"]
+    it('should extract property from each item', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'users' },
+        segments: [
+          {
+            pipeName: 'map',
+            args: [{ type: 'identifier', value: 'name' }],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual(['Emma', 'Bob', 'Carlos'])
+    })
+
+    it('should return undefined for missing properties', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'users' },
+        segments: [
+          {
+            pipeName: 'map',
+            args: [{ type: 'identifier', value: 'nonexistent' }],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual([undefined, undefined, undefined])
+    })
+  })
+
+  describe('R-PIPE-03: first', () => {
+    // AC-PIPE-04: Given items = [1, 2, 3], when evaluating {items | first}, then result is 1
+    it('should return first element of array', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'items' },
+        segments: [{ pipeName: 'first', args: [] }],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toBe(1)
+    })
+
+    // AC-PIPE-06: Given items = [], when evaluating {items | first}, then result is undefined
+    it('should return undefined for empty array', async () => {
+      const context = fromPartialContext({ data: { items: [] } })
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'items' },
+        segments: [{ pipeName: 'first', args: [] }],
+      }
+      const result = await pipeEvaluator.evaluate(expr, context)
+      expect(result).toBeUndefined()
+    })
+  })
+
+  describe('R-PIPE-04: last', () => {
+    // AC-PIPE-05: Given items = [1, 2, 3], when evaluating {items | last}, then result is 3
+    it('should return last element of array', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'items' },
+        segments: [{ pipeName: 'last', args: [] }],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toBe(5)
+    })
+
+    it('should return undefined for empty array', async () => {
+      const context = fromPartialContext({ data: { items: [] } })
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'items' },
+        segments: [{ pipeName: 'last', args: [] }],
+      }
+      const result = await pipeEvaluator.evaluate(expr, context)
+      expect(result).toBeUndefined()
+    })
+  })
+
+  describe('R-PIPE-05: join:separator', () => {
+    // AC-PIPE-07: Given names = ["Alice", "Bob"], when evaluating {names | join:", "},
+    // then result is "Alice, Bob"
+    it('should join array with custom separator', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'names' },
+        segments: [
+          {
+            pipeName: 'join',
+            args: [{ type: 'literal-string', value: ', ' }],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toBe('Alice, Bob')
+    })
+
+    // AC-PIPE-13: Given names, when evaluating {names | join}, then result is "Alice,Bob"
+    it('should use default comma separator when no argument', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'names' },
+        segments: [{ pipeName: 'join', args: [] }],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toBe('Alice,Bob')
+    })
+
+    // AC-PIPE-14: Given parts = ["a", "b", "c"], when evaluating {parts | join:":"},
+    // then result is "a:b:c"
+    it('should join with colon separator', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'parts' },
+        segments: [
+          {
+            pipeName: 'join',
+            args: [{ type: 'literal-string', value: ':' }],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toBe('a:b:c')
+    })
+  })
+
+  describe('R-PIPE-06: length', () => {
+    // AC-PIPE-08: Given names = ["Alice", "Bob"], when evaluating {names | length},
+    // then result is 2
+    it('should return length of array', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'names' },
+        segments: [{ pipeName: 'length', args: [] }],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toBe(2)
+    })
+
+    it('should return length of string', async () => {
+      const context = fromPartialContext({ data: { message: 'hello' } })
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'message' },
+        segments: [{ pipeName: 'length', args: [] }],
+      }
+      const result = await pipeEvaluator.evaluate(expr, context)
+      expect(result).toBe(5)
+    })
+  })
+
+  // ============================================================================
+  // ADDITIONAL PIPES: flatten, reverse, slice, unique (R-PIPE-21 to R-PIPE-24)
+  // ============================================================================
+
+  describe('R-PIPE-21: flatten', () => {
+    it('should flatten one level of nested arrays', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'nested' },
+        segments: [{ pipeName: 'flatten', args: [] }],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual([1, 2, 3, 4, 5])
+    })
+  })
+
+  describe('R-PIPE-22: reverse', () => {
+    it('should return reversed array without mutating original', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'items' },
+        segments: [{ pipeName: 'reverse', args: [] }],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual([5, 4, 3, 2, 1])
+      // Original should not be mutated
+      expect(usersContext.data.items).toEqual([1, 2, 3, 4, 5])
+    })
+  })
+
+  describe('R-PIPE-23: slice:start:end', () => {
+    // AC-PIPE-15: Given items = [1, 2, 3, 4, 5], when evaluating {items | slice:1:3},
+    // then result is [2, 3]
+    it('should return slice with start and end', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'items' },
+        segments: [
+          {
+            pipeName: 'slice',
+            args: [
+              { type: 'literal-number', value: 1 },
+              { type: 'literal-number', value: 3 },
+            ],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual([2, 3])
+    })
+
+    // AC-PIPE-16: Given items = [1, 2, 3, 4, 5], when evaluating {items | slice:2},
+    // then result is [3, 4, 5]
+    it('should slice from start to end when no end argument', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'items' },
+        segments: [
+          {
+            pipeName: 'slice',
+            args: [{ type: 'literal-number', value: 2 }],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual([3, 4, 5])
+    })
+  })
+
+  describe('R-PIPE-24: unique', () => {
+    // AC-PIPE-17: Given items = [1, 2, 2, 3, 1], when evaluating {items | unique},
+    // then result is [1, 2, 3]
+    it('should return array with duplicates removed', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'duplicates' },
+        segments: [{ pipeName: 'unique', args: [] }],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual([1, 2, 3])
+    })
+  })
+
+  // ============================================================================
+  // PIPE ARGUMENTS: R-PIPE-41 to R-PIPE-44
+  // ============================================================================
+
+  describe('R-PIPE-41 to R-PIPE-44: Pipe Arguments', () => {
+    // R-PIPE-41: Pipe arguments are evaluated as expressions
+    it('should evaluate identifier arguments from context', async () => {
+      // Uses field="active" and expected=true from context
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'users' },
+        segments: [
+          {
+            pipeName: 'filter',
+            args: [
+              { type: 'identifier', value: 'field' },
+              { type: 'identifier', value: 'expected' },
+            ],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual([
+        { name: 'Emma', active: true, followers: 1500 },
+        { name: 'Carlos', active: true, followers: 3000 },
+      ])
+    })
+
+    // R-PIPE-44: Multiple arguments supported
+    it('should pass multiple arguments to slice pipe', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'items' },
+        segments: [
+          {
+            pipeName: 'slice',
+            args: [
+              { type: 'literal-number', value: 0 },
+              { type: 'literal-number', value: 3 },
+            ],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual([1, 2, 3])
+    })
+  })
+
+  // ============================================================================
+  // CHAINING: R-PIPE-61 to R-PIPE-63
+  // ============================================================================
+
+  describe('R-PIPE-61 to R-PIPE-63: Pipe Chaining', () => {
+    // AC-PIPE-03: Given users, when evaluating {users | filter:active:true | map:name},
+    // then result is ["Emma", "Carlos"]
+    it('should chain filter and map pipes', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'users' },
+        segments: [
+          {
+            pipeName: 'filter',
+            args: [
+              { type: 'identifier', value: 'active' },
+              { type: 'literal-boolean', value: true },
+            ],
+          },
+          {
+            pipeName: 'map',
+            args: [{ type: 'identifier', value: 'name' }],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toEqual(['Emma', 'Carlos'])
+    })
+
+    // AC-PIPE-09: Given users, when evaluating {users | filter:active:true | map:name | first},
+    // then result is "Emma"
+    it('should chain three pipes', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'users' },
+        segments: [
+          {
+            pipeName: 'filter',
+            args: [
+              { type: 'identifier', value: 'active' },
+              { type: 'literal-boolean', value: true },
+            ],
+          },
+          {
+            pipeName: 'map',
+            args: [{ type: 'identifier', value: 'name' }],
+          },
+          { pipeName: 'first', args: [] },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toBe('Emma')
+    })
+
+    it('should chain map and join', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'users' },
+        segments: [
+          {
+            pipeName: 'map',
+            args: [{ type: 'identifier', value: 'name' }],
+          },
+          {
+            pipeName: 'join',
+            args: [{ type: 'literal-string', value: ', ' }],
+          },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toBe('Emma, Bob, Carlos')
+    })
+
+    it('should chain slice and length', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'items' },
+        segments: [
+          {
+            pipeName: 'slice',
+            args: [
+              { type: 'literal-number', value: 0 },
+              { type: 'literal-number', value: 3 },
+            ],
+          },
+          { pipeName: 'length', args: [] },
+        ],
+      }
+      const result = await pipeEvaluator.evaluate(expr, usersContext)
+      expect(result).toBe(3)
+    })
+  })
+
+  // ============================================================================
+  // ERROR HANDLING: R-PIPE-81 to R-PIPE-83
+  // ============================================================================
+
+  describe('R-PIPE-81 to R-PIPE-83: Error Handling', () => {
+    // AC-PIPE-11: Given users, when evaluating {users | unknownPipe},
+    // then throws EvaluationError mentioning "Unknown pipe: unknownPipe"
+    it('should throw error for unknown pipe', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'users' },
+        segments: [{ pipeName: 'unknownPipe', args: [] }],
+      }
+      await expect(
+        pipeEvaluator.evaluate(expr, usersContext),
+      ).rejects.toThrow(/unknown.*pipe.*unknownPipe/i)
+    })
+
+    // AC-PIPE-10: Given count = 5, when evaluating {count | filter:x:true},
+    // then throws error mentioning "filter requires array"
+    it('should throw error for type mismatch (filter on non-array)', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'count' },
+        segments: [
+          {
+            pipeName: 'filter',
+            args: [
+              { type: 'identifier', value: 'x' },
+              { type: 'literal-boolean', value: true },
+            ],
+          },
+        ],
+      }
+      await expect(
+        pipeEvaluator.evaluate(expr, usersContext),
+      ).rejects.toThrow(/filter.*array/i)
+    })
+
+    it('should throw error for map on non-array', async () => {
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'count' },
+        segments: [
+          {
+            pipeName: 'map',
+            args: [{ type: 'identifier', value: 'x' }],
+          },
+        ],
+      }
+      await expect(
+        pipeEvaluator.evaluate(expr, usersContext),
+      ).rejects.toThrow(/map.*array/i)
+    })
+  })
+
+  // ============================================================================
+  // BACKWARD COMPATIBILITY: AC-PIPE-12
+  // ============================================================================
+
+  describe('AC-PIPE-12: Backward Compatibility', () => {
+    it('should still work with evaluator without pipe registry', async () => {
+      // Old evaluator without pipe registry should throw informative error
+      const oldEvaluator = new ExpressionEvaluator()
+      const expr: PipeExpressionNode = {
+        type: 'pipe-expression',
+        input: { type: 'identifier', value: 'items' },
+        segments: [{ pipeName: 'first', args: [] }],
+      }
+      await expect(
+        oldEvaluator.evaluate(expr, usersContext),
+      ).rejects.toThrow(/pipe/i)
     })
   })
 })
