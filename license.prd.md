@@ -1,7 +1,7 @@
 # PRD: Massivoto Licensing Strategy
 
-**Status:** DRAFT
-**Last updated:** 2026-01-21
+**Status:** APPROVED
+**Last updated:** 2026-01-23
 
 > - DRAFT: Decision not yet made, options being evaluated
 > - APPROVED: License selected, ready for implementation
@@ -13,8 +13,8 @@
 |---------|--------|----------|
 | Context | Complete | - |
 | Options | Complete | - |
-| Decision | Not Made | - |
-| Implementation | Not Started | 0/5 |
+| Decision | **Approved** | Hybrid model |
+| Implementation | Not Started | 0/12 |
 | **Overall** | **DRAFT** | **0%** |
 
 ## Context
@@ -51,15 +51,21 @@ Change License: Apache 2.0
 | Becomes open source | Yes, after 4 years |
 
 **Pros:**
-- Well-understood, used by major companies
-- Eventual open source builds trust
-- Clear legal framework
-- Allows community contributions
+- Well-understood, used by major companies (HashiCorp, Sentry, CockroachDB)
+- Eventual open source builds trust - shows commitment to community
+- Clear legal framework with standardized template
+- Allows community contributions under CLA
+- Explicit protection against cloud commoditization
+- Self-hosting friendly - companies can deploy internally
+- No revenue tracking or user counting needed
 
 **Cons:**
 - Not OSI-approved (can't call it "open source")
-- 4-year wait may frustrate purists
-- Some enterprises have blanket BSL bans
+- 4-year wait may frustrate open-source purists
+- Some enterprises have blanket BSL bans in procurement policies
+- Competitors may fork right before Change Date
+
+> **Note:** "Bait and switch" backlash (like HashiCorp 2023) only applies when switching FROM open source TO BSL. Starting with BSL avoids this entirely.
 
 ### Option B: Elastic License 2.0
 
@@ -79,14 +85,19 @@ License: Elastic License 2.0
 | Becomes open source | No (never) |
 
 **Pros:**
-- Simpler than BSL (no time conversion)
-- Battle-tested by Elastic
-- Very clear restrictions
+- Simpler than BSL (no time conversion complexity)
+- Battle-tested by Elastic (large-scale adoption)
+- Very clear restrictions - easy to understand
+- Permanent protection against cloud providers
+- No "countdown clock" to worry about
 
 **Cons:**
-- Never becomes open source
-- Not OSI-approved
+- Never becomes open source - no trust-building path
+- Not OSI-approved - can't market as open source
 - Less community goodwill than BSL
+- OpenSearch fork showed community may abandon project
+- Harder to attract contributors without open-source promise
+- Perceived as purely corporate-protective
 
 ### Option C: AGPL 3.0 + Commercial
 
@@ -107,14 +118,20 @@ License: AGPL 3.0 for open source
 | Is open source | Yes (OSI-approved) |
 
 **Pros:**
-- True open source (OSI-approved)
-- Strong copyleft scares cloud providers
-- Can accept contributions freely
+- True open source (OSI-approved) - marketing advantage
+- Strong copyleft scares cloud providers (must open their stack)
+- Can accept contributions freely without CLA complexity
+- Community trust is highest - no "bait and switch" perception
+- Grafana model proves it can work commercially
+- No license change drama risk
 
 **Cons:**
-- AGPL "viral" nature scares some enterprises
-- Doesn't fully block determined competitors
-- AWS famously ignores AGPL spirit
+- AGPL "viral" nature scares many enterprises - legal teams reject
+- Doesn't fully block determined competitors (they can comply)
+- AWS famously ignores AGPL spirit - enforcement is expensive
+- Dual licensing requires careful contribution management
+- Some developers refuse to contribute to AGPL projects
+- Cloud providers can technically comply by open-sourcing their wrapper
 
 ### Option D: Source Available + Proprietary Runtime
 
@@ -132,14 +149,19 @@ Runtime (packages/runtime): Proprietary with free local use
 | Fork and compete | Can fork MIT parts, not runtime |
 
 **Pros:**
-- Maximum control over core IP
-- Clear separation of free vs paid
-- MIT parts encourage adoption
+- Maximum control over core IP (runtime)
+- Clear separation of free vs paid components
+- MIT parts encourage adoption and ecosystem building
+- Can change strategy per-component over time
+- Protects the "secret sauce" while sharing utilities
 
 **Cons:**
-- Split licensing is complex
-- Contributors may be confused
-- Less community trust
+- Split licensing is complex to explain and enforce
+- Contributors confused about which license applies
+- Less community trust - feels like bait and switch
+- Must maintain clear boundaries between components
+- Dependency direction must be carefully managed
+- Harder to market - "partially open source" is weak positioning
 
 ### Option E: Fair Source (FSL)
 
@@ -159,14 +181,20 @@ Use Limitation: 10 users / $1M revenue
 | Becomes open source | Yes, after 2 years (Apache 2.0) |
 
 **Pros:**
-- Smaller companies use free
-- Only charges successful businesses
-- Faster open-source conversion (2 years)
+- Smaller companies and startups use free - lowers adoption barrier
+- Only charges successful businesses - fair perception
+- Faster open-source conversion (2 years) - builds trust quicker
+- Aligned incentives - you pay when you succeed
+- Modern approach designed for current SaaS landscape
+- Sentry's endorsement adds credibility
 
 **Cons:**
-- Newer, less proven
-- Threshold enforcement is honor-system
-- Revenue tracking is tricky
+- Newer, less proven in courts
+- Threshold enforcement is honor-system - hard to audit
+- Revenue tracking is tricky - what counts as "Massivoto revenue"?
+- Legal precedent is minimal
+- Enterprise legal teams unfamiliar - may reject by default
+- User/revenue thresholds can be gamed or misreported
 
 ## Comparison Matrix
 
@@ -193,19 +221,89 @@ Use Limitation: 10 users / $1M revenue
 5. **Should be legally clear** - Avoid ambiguity
 6. **Should allow contributions** - With appropriate CLA
 
-## Recommendation
+## Decision
 
-**BSL 1.1** with:
-- Change Date: 4 years
-- Change License: Apache 2.0
-- Additional Use Grant: Development, testing, personal projects, internal business use
+**APPROVED: Hybrid Licensing Model**
 
-**Rationale:**
-1. Proven by HashiCorp, Sentry, CockroachDB
-2. 4-year conversion builds trust and community
-3. Clear legal framework
-4. Blocks cloud commoditization
-5. Allows self-hosting
+### Repository Structure
+
+| Repository | License | Purpose |
+|------------|---------|---------|
+| **massivoto-platform** | Hybrid (see below) | Core platform: runtime, auth, commands, pipes, applets |
+| **massivoto-custom** | Apache 2.0 | Template monorepo for companies to extend Massivoto |
+| **massivoto-saas** | Proprietary (private) | SaaS business logic - full copyright, hidden |
+
+### massivoto-platform License Structure
+
+| Component | License | Why |
+|-----------|---------|-----|
+| `packages/runtime` | **BSL 1.1** | Core automation engine - blocks commoditization |
+| `packages/kit` | Apache 2.0 | Utilities - encourages adoption |
+| `packages/auth` | Apache 2.0 | Auth module - community friendly |
+| `packages/*` (commands, pipes, applets) | Apache 2.0 | Standard extensions - community friendly |
+| `apps/*` | Apache 2.0 | Frontend apps - community friendly |
+| `services/*` | Apache 2.0 | Backend services - community friendly |
+
+### massivoto-custom (Template Repository)
+
+Fully open-source (Apache 2.0) monorepo template that allows companies to:
+- Extend Massivoto with custom commands, pipes, and applets
+- Keep company code separate from platform code
+- Update platform via `git pull` without merge conflicts
+- Self-host their customized Massivoto instance
+
+### BSL 1.1 Configuration (for runtime)
+
+```
+License: BSL 1.1
+Additional Use Grant: Development, testing, personal projects, internal business use
+Change Date: 4 years after each release
+Change License: Apache 2.0
+```
+
+### What This Allows
+
+| Actor | Action | Allowed? |
+|-------|--------|----------|
+| Developer | Read, run, modify all code locally | Yes |
+| Company | Clone massivoto-custom, extend, self-host | Yes |
+| Company | Update platform without touching custom code | Yes (git pull) |
+| Startup | Build product using Massivoto | Yes |
+| Hostinger/Vercel | Offer "one-click Massivoto deploy" | No (needs commercial license) |
+| Competitor | Fork runtime and sell as service | No (until Change Date) |
+| Contributor | Submit PRs to Apache packages | Yes (no CLA needed) |
+| Contributor | Submit PRs to runtime | Yes (CLA required) |
+
+### Pros of Hybrid Model
+
+| Category | Pro |
+|----------|-----|
+| **Business Protection** | Runtime BSL blocks "Massivoto-as-a-Service" |
+| **Adoption** | Apache 2.0 parts encourage ecosystem building |
+| **Community** | Most code is truly open source (Apache 2.0) |
+| **Contributions** | Apache parts accept PRs without CLA friction |
+| **Flexibility** | Can open-source runtime components later if desired |
+| **SaaS Protection** | Private repo = zero exposure of business logic |
+| **Marketing** | "Open source platform, source-available runtime" |
+| **Clean Upgrades** | massivoto-custom separates platform from company code |
+| **Easy Onboarding** | Companies clone template, extend, pull updates cleanly |
+
+### Cons of Hybrid Model
+
+| Category | Con | Mitigation |
+|----------|-----|------------|
+| **Complexity** | Three licenses to explain | Clear CONTRIBUTING.md and LICENSE files per package |
+| **Dependency Direction** | Apache parts cannot import BSL internals | Runtime exposes public API; internals stay private |
+| **Contributor Confusion** | Which license applies where? | License badge in each package README |
+| **Enterprise Review** | Legal must review multiple licenses | Provide license summary doc for procurement |
+
+### Rationale
+
+1. **Best of both worlds** - Open source goodwill + commercial protection
+2. **Clear boundaries** - Runtime is the "engine", everything else is ecosystem
+3. **SaaS fully protected** - Private repo has no license obligations
+4. **Starting fresh** - No "bait and switch" backlash since we're not changing existing licenses
+5. **Proven pattern** - Similar to Grafana (AGPL core + Apache plugins) but with BSL
 
 ## Open Questions
 
@@ -215,18 +313,33 @@ Use Limitation: 10 users / $1M revenue
 - [ ] Should we have a "startup friendly" tier (free under $X revenue)?
 - [ ] Trademark policy separate from code license?
 
-## Requirements (Post-Decision)
+## Requirements
 
 ### Implementation
 
-**Last updated:** 2026-01-21
-**Progress:** 0/5 (0%)
+**Last updated:** 2026-01-23
+**Progress:** 0/12 (0%)
 
-- [ ] R-LICENSE-01: Add LICENSE file at repository root
-- [ ] R-LICENSE-02: Add license header to all source files
-- [ ] R-LICENSE-03: Create NOTICE file for third-party attributions
-- [ ] R-LICENSE-04: Document license in README.md
-- [ ] R-LICENSE-05: Set up CLA bot for contributions (if needed)
+#### massivoto-platform (this repo)
+
+- [ ] R-LICENSE-01: Add BSL 1.1 LICENSE file in `packages/runtime/`
+- [ ] R-LICENSE-02: Add Apache 2.0 LICENSE file at repository root (default)
+- [ ] R-LICENSE-03: Add Apache 2.0 LICENSE file in each `packages/*` (except runtime)
+- [ ] R-LICENSE-04: Add license header to runtime source files (BSL)
+- [ ] R-LICENSE-05: Create NOTICE file for third-party attributions
+- [ ] R-LICENSE-06: Document hybrid licensing in root README.md
+- [ ] R-LICENSE-07: Create CONTRIBUTING.md explaining license per package
+- [ ] R-LICENSE-08: Set up CLA bot for runtime contributions only
+
+#### massivoto-custom (new repo)
+
+- [ ] R-LICENSE-09: Create massivoto-custom repository
+- [ ] R-LICENSE-10: Add Apache 2.0 LICENSE file at root
+- [ ] R-LICENSE-11: Document extension patterns in README.md
+
+#### massivoto-saas (private repo)
+
+- [ ] R-LICENSE-12: Ensure no LICENSE file (full copyright by default)
 
 ## References
 
