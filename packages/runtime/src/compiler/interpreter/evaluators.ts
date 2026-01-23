@@ -8,8 +8,10 @@ import {
   ArrayLiteralNode,
   IdentifierNode,
 } from '../parser/ast.js'
+import { PipeExpressionNode } from '../parser/args-details/pipe-parser/pipe-parser.js'
 import { ExecutionContext } from '../../domain/execution-context.js'
 import { lookup } from './scope-chain.js'
+import { PipeRegistry } from '../pipe-registry/index.js'
 
 /**
  * Custom error class for evaluation failures.
@@ -28,6 +30,18 @@ export class EvaluationError extends Error {
 }
 
 export class ExpressionEvaluator {
+  private readonly pipeRegistry?: PipeRegistry
+
+  /**
+   * Creates an ExpressionEvaluator.
+   *
+   * @param pipeRegistry - Optional PipeRegistry for evaluating pipe expressions.
+   *                       If not provided, pipe expressions will throw an error.
+   */
+  constructor(pipeRegistry?: PipeRegistry) {
+    this.pipeRegistry = pipeRegistry
+  }
+
   /**
    * Evaluates an expression node and returns a Promise.
    * All evaluations are async to support store.x lookups which require async I/O.
@@ -64,11 +78,7 @@ export class ExpressionEvaluator {
         return this.evaluateArrayLiteral(expr, context)
 
       case 'pipe-expression':
-        throw new EvaluationError(
-          'Pipe expressions not yet supported',
-          'pipe-expression',
-          expr,
-        )
+        return this.evaluatePipe(expr, context)
 
       default:
         throw new EvaluationError(
@@ -278,5 +288,56 @@ export class ExpressionEvaluator {
       expr.elements.map((el) => this.evaluate(el, context)),
     )
     return results
+  }
+
+  /**
+   * Evaluates pipe expressions: {input | pipe1:arg1 | pipe2:arg2}
+   *
+   * Pipe expressions chain transformations left-to-right:
+   * 1. Evaluate the input expression
+   * 2. For each segment, evaluate arguments and apply the pipe
+   * 3. Pass the result to the next pipe
+   *
+   * @throws EvaluationError if no PipeRegistry is configured
+   * @throws EvaluationError if a pipe is not found in the registry
+   */
+  private async evaluatePipe(
+    expr: PipeExpressionNode,
+    context: ExecutionContext,
+  ): Promise<any> {
+    // Check if pipe registry is available
+    if (!this.pipeRegistry) {
+      throw new EvaluationError(
+        'Pipe expressions require a PipeRegistry. Create evaluator with: new ExpressionEvaluator(pipeRegistry)',
+        'pipe-expression',
+        expr,
+      )
+    }
+
+    // 1. Evaluate input expression
+    let current = await this.evaluate(expr.input, context)
+
+    // 2. Chain through each segment
+    for (const segment of expr.segments) {
+      // Evaluate all arguments
+      const args = await Promise.all(
+        segment.args.map((arg) => this.evaluate(arg, context)),
+      )
+
+      // Get pipe from registry
+      const entry = await this.pipeRegistry.get(segment.pipeName)
+      if (!entry) {
+        throw new EvaluationError(
+          `Unknown pipe: ${segment.pipeName}`,
+          'pipe-expression',
+          expr,
+        )
+      }
+
+      // Execute pipe with current value and arguments
+      current = await entry.value.execute(current, args)
+    }
+
+    return current
   }
 }
