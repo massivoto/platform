@@ -392,13 +392,19 @@ inconsistently. This needs cleanup.
 | **Action**  | OTO       | What the user writes: `@package/name args...`          |
 | **Command** | TypeScript | The handler class that executes an Action              |
 
-**Terms to eliminate from codebase:**
+**Terms to eliminate:**
 
-| Current Term    | Replace With | Notes                                      |
-|-----------------|--------------|-------------------------------------------|
-| `Instruction`   | `Action`     | `InstructionNode` → `ActionNode`          |
-| `Statement`     | Remove       | Use `Action` or `Block` directly          |
-| `StatementNode` | Remove       | Union type of `ActionNode \| BlockNode`   |
+| Current Term  | Replace With | Notes                            |
+|---------------|--------------|----------------------------------|
+| `Instruction` | `Action`     | `InstructionNode` → `ActionNode` |
+
+**Open question:** Is a Block just a composite Action?
+
+If yes, we don't need "Statement" at all - everything executable is an Action:
+- Single `@pkg/name` = Action
+- Block `{ ... }` = Action (composite)
+
+This would eliminate the need for `StatementNode` entirely.
 
 **Result types:**
 - `ActionResult` - returned by Command handler (`handler.run()`)
@@ -406,7 +412,7 @@ inconsistently. This needs cleanup.
 
 **Refactoring tasks:**
 - [ ] Rename `InstructionNode` → `ActionNode`
-- [ ] Rename `StatementNode` → `ActionNode | BlockNode` (inline union)
+- [ ] Decide on `StatementNode` naming (keep or rename to `StepNode`?)
 - [ ] Rename `instruction-parser.ts` → `action-parser.ts`
 - [ ] Update all references in interpreter, evaluator, tests
 

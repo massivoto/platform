@@ -207,4 +207,135 @@ describe('Reserved Arguments', () => {
       expect(instr.args.length).toBe(0)
     })
   })
+
+  describe('label="name" reserved argument', () => {
+    describe('R-GOTO-01: label is a reserved argument', () => {
+      it('parses label="retry" and stores in InstructionNode.label', () => {
+        const parsing = parse('@utils/set input="hello" label="retry"')
+        expect(parsing.isAccepted()).toBe(true)
+        const instr = parsing.value
+
+        expect(instr.label).toBe('retry')
+        // label should not appear in regular args
+        expect(
+          instr.args.find((a: any) => a.name.value === 'label'),
+        ).toBeUndefined()
+      })
+
+      it('parses label at beginning of args', () => {
+        const parsing = parse('@utils/set label="start" input="value"')
+        expect(parsing.isAccepted()).toBe(true)
+        const instr = parsing.value
+
+        expect(instr.label).toBe('start')
+        expect(instr.args.length).toBe(1)
+        expect(instr.args[0].name.value).toBe('input')
+      })
+
+      it('parses label as only arg', () => {
+        const parsing = parse('@utils/log label="checkpoint"')
+        expect(parsing.isAccepted()).toBe(true)
+        const instr = parsing.value
+
+        expect(instr.label).toBe('checkpoint')
+        expect(instr.args.length).toBe(0)
+      })
+    })
+
+    describe('R-GOTO-03: label must be a simple string literal', () => {
+      it('rejects label=identifier (must be quoted string)', () => {
+        const parsing = parseStrict('@utils/set label=myLabel')
+        expect(parsing.isAccepted()).toBe(false)
+      })
+
+      it('rejects label={expression} (must be string literal)', () => {
+        const parsing = parseStrict('@utils/set label={name}')
+        expect(parsing.isAccepted()).toBe(false)
+      })
+
+      it('rejects label=123 (must be string literal)', () => {
+        const parsing = parseStrict('@utils/set label=123')
+        expect(parsing.isAccepted()).toBe(false)
+      })
+    })
+
+    describe('R-GOTO-04: label must match identifier pattern', () => {
+      it('accepts label="retry"', () => {
+        const parsing = parse('@utils/set label="retry"')
+        expect(parsing.isAccepted()).toBe(true)
+        expect(parsing.value.label).toBe('retry')
+      })
+
+      it('accepts label="my_label"', () => {
+        const parsing = parse('@utils/set label="my_label"')
+        expect(parsing.isAccepted()).toBe(true)
+        expect(parsing.value.label).toBe('my_label')
+      })
+
+      it('accepts label="retry-loop"', () => {
+        const parsing = parse('@utils/set label="retry-loop"')
+        expect(parsing.isAccepted()).toBe(true)
+        expect(parsing.value.label).toBe('retry-loop')
+      })
+
+      it('accepts label="_private"', () => {
+        const parsing = parse('@utils/set label="_private"')
+        expect(parsing.isAccepted()).toBe(true)
+        expect(parsing.value.label).toBe('_private')
+      })
+
+      it('accepts label="Label123"', () => {
+        const parsing = parse('@utils/set label="Label123"')
+        expect(parsing.isAccepted()).toBe(true)
+        expect(parsing.value.label).toBe('Label123')
+      })
+
+      it('rejects label="123start" (must start with letter or underscore)', () => {
+        const parsing = parseStrict('@utils/set label="123start"')
+        expect(parsing.isAccepted()).toBe(false)
+      })
+
+      it('rejects label="-invalid" (must start with letter or underscore)', () => {
+        const parsing = parseStrict('@utils/set label="-invalid"')
+        expect(parsing.isAccepted()).toBe(false)
+      })
+
+      it('rejects label="has space" (no spaces allowed)', () => {
+        const parsing = parseStrict('@utils/set label="has space"')
+        expect(parsing.isAccepted()).toBe(false)
+      })
+
+      it('rejects label="" (empty string)', () => {
+        const parsing = parseStrict('@utils/set label=""')
+        expect(parsing.isAccepted()).toBe(false)
+      })
+    })
+
+    describe('combined with other reserved args', () => {
+      it('parses label with output and if', () => {
+        const parsing = parse(
+          '@utils/set input="value" label="checkpoint" output=result if=isActive',
+        )
+        expect(parsing.isAccepted()).toBe(true)
+        const instr = parsing.value
+
+        expect(instr.label).toBe('checkpoint')
+        expect(instr.output).toEqual({ type: 'identifier', value: 'result' })
+        expect(instr.condition).toEqual({ type: 'identifier', value: 'isActive' })
+        expect(instr.args.length).toBe(1)
+      })
+
+      it('parses label in any position', () => {
+        const parsing = parse(
+          '@utils/set output=result label="mid" input="value"',
+        )
+        expect(parsing.isAccepted()).toBe(true)
+        const instr = parsing.value
+
+        expect(instr.label).toBe('mid')
+        expect(instr.output).toBeDefined()
+        expect(instr.args.length).toBe(1)
+      })
+    })
+  })
 })

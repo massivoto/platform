@@ -16,9 +16,18 @@
  *
  */
 
-import { C, SingleParser } from '@masala/parser'
+import { C, F, SingleParser } from '@masala/parser'
 import { ActionNode } from '../ast.js'
-import { identifier } from '../shared-parser.js'
+
+/**
+ * Identifier pattern for action segments.
+ * Unlike the standard identifier parser, this allows reserved words
+ * so that commands like @flow/return work correctly.
+ * Action paths are not expressions - they're just strings.
+ */
+const actionSegment = F.regex(/[a-zA-Z_][a-zA-Z0-9_-]*/).filter(
+  (s) => s.charAt(s.length - 1) !== '-',
+)
 
 /**
  * Build a standalone action parser using character-level combinators (NO GenLex).
@@ -29,16 +38,17 @@ import { identifier } from '../shared-parser.js'
  * - Must start with @
  * - Must have at least one segment after package (e.g., @pkg/cmd)
  * - No spaces allowed anywhere inside the action
+ * - Reserved words ARE allowed in action segments (e.g., @flow/return)
  */
 export function buildActionParser(): SingleParser<ActionNode> {
   const at = C.char('@')
   const slash = C.char('/')
 
   // @package
-  const packagePart = at.drop().then(identifier)
+  const packagePart = at.drop().then(actionSegment)
 
   // /function (at least one required)
-  const segment = slash.drop().then(identifier)
+  const segment = slash.drop().then(actionSegment)
 
   const action: SingleParser<ActionNode> = packagePart
     .then(segment.rep())

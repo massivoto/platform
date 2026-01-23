@@ -6,12 +6,18 @@
  * - R-CMD-42: id is 'core'
  * - R-CMD-43: load() returns Map of built-in handlers
  * - R-CMD-44: Migrated handlers: @utils/log, @utils/set
+ * - R-GOTO-41: @flow/goto handler
+ * - R-GOTO-44: @flow/exit handler
+ * - R-GOTO-47: @flow/return handler
  */
 import type { RegistryBundle } from '@massivoto/kit'
 import type { CommandHandler } from './types.js'
 import { BaseCommandHandler } from './base-command-handler.js'
 import type { ActionResult } from './action-result.js'
 import type { ExecutionContext } from '../../domain/index.js'
+import { GotoHandler } from '../core-handlers/flow/goto.handler.js'
+import { ExitHandler } from '../core-handlers/flow/exit.handler.js'
+import { ReturnHandler } from '../core-handlers/flow/return.handler.js'
 
 // =============================================================================
 // Core Handlers with RegistryItem interface
@@ -100,6 +106,10 @@ export class CoreHandlersBundle implements RegistryBundle<CommandHandler<any>> {
     const coreHandlers: CommandHandler<any>[] = [
       new LogHandler(),
       new SetHandler(),
+      // Flow control handlers (R-GOTO-41, R-GOTO-44, R-GOTO-47)
+      new GotoHandler(),
+      new ExitHandler(),
+      new ReturnHandler(),
     ]
 
     // Register each handler by its id

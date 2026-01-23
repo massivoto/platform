@@ -18,7 +18,6 @@ export interface ExecutionContext {
   extra: any
   meta: {
     tool?: string
-    history: InstructionLog[]
     updatedAt: ReadableDate
   }
   user: {
@@ -28,12 +27,6 @@ export interface ExecutionContext {
   store: SerializableStorePointer
   storeProvider?: StoreProvider // Optional async store provider for store.x lookups
   prompts: string[]
-  cost: {
-    current: number // current cost in cents
-    estimated: number // estimated cost in cents
-    maximum: number // maximum cost allowed by the user for this run
-    credits: number // credits available for the user
-  }
 }
 
 export interface InstructionLog {
@@ -60,7 +53,6 @@ export function createEmptyExecutionContext(
     extra,
     meta: {
       tool: undefined,
-      history: [],
       updatedAt: new Date().toISOString(),
     },
     user: {
@@ -69,13 +61,6 @@ export function createEmptyExecutionContext(
     },
     store: fakeStorePointer(),
     prompts: [],
-
-    cost: {
-      current: 0,
-      estimated: 0,
-      maximum: -1, // <0 means no limit
-      credits: 0,
-    },
   }
 }
 
@@ -89,7 +74,6 @@ export function cloneExecutionContext(
     extra: structuredClone(context.extra),
     meta: {
       tool: context.meta.tool,
-      history: [...context.meta.history],
       updatedAt: context.meta.updatedAt,
     },
     user: {
@@ -99,12 +83,6 @@ export function cloneExecutionContext(
     store: structuredClone(context.store),
     storeProvider: context.storeProvider, // StoreProvider is not cloned (stateful service)
     prompts: [...context.prompts],
-    cost: {
-      current: context.cost.current,
-      estimated: context.cost.estimated,
-      maximum: context.cost.maximum,
-      credits: context.cost.credits,
-    },
   }
 }
 
@@ -124,7 +102,6 @@ export function fromPartialContext(
     extra: structuredClone(partialContext.extra),
     meta: {
       tool: partialContext.meta?.tool || emptyContext.meta.tool,
-      history: [...(partialContext.meta?.history || emptyContext.meta.history)],
       updatedAt: partialContext.meta?.updatedAt || emptyContext.meta.updatedAt,
     },
     user: {
@@ -136,11 +113,5 @@ export function fromPartialContext(
     store: structuredClone(partialContext.store || emptyContext.store),
     storeProvider: partialContext.storeProvider, // StoreProvider is not cloned (stateful service)
     prompts: [...(partialContext.prompts || emptyContext.prompts)],
-    cost: {
-      current: partialContext.cost?.current || emptyContext.cost.current,
-      estimated: partialContext.cost?.estimated || emptyContext.cost.estimated,
-      maximum: partialContext.cost?.maximum || emptyContext.cost.maximum,
-      credits: partialContext.cost?.credits || emptyContext.cost.credits,
-    },
   }
 }
