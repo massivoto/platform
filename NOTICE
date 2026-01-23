@@ -1,0 +1,52 @@
+Massivoto Platform
+Copyright 2024-2026 Nicolas Zozol
+
+This product includes software developed by the Massivoto project
+(https://massivoto.com).
+
+================================================================================
+Third-Party Dependencies
+================================================================================
+
+This software uses the following third-party libraries:
+
+@react-oauth/google - MIT License
+  Copyright (c) MomenSherif
+  https://github.com/MomenSherif/react-oauth
+
+appwrite - BSD-3-Clause License
+  Copyright (c) Appwrite
+  https://github.com/appwrite/sdk-for-web
+
+jwt-decode - MIT License
+  Copyright (c) Auth0, Inc.
+  https://github.com/auth0/jwt-decode
+
+TypeScript - Apache-2.0 License
+  Copyright (c) Microsoft Corporation
+  https://github.com/microsoft/TypeScript
+
+Zod - MIT License
+  Copyright (c) Colin McDonnell
+  https://github.com/colinhacks/zod
+
+Vitest - MIT License
+  Copyright (c) Anthony Fu
+  https://github.com/vitest-dev/vitest
+
+React - MIT License
+  Copyright (c) Meta Platforms, Inc. and affiliates
+  https://github.com/facebook/react
+
+Vite - MIT License
+  Copyright (c) Evan You and Vite contributors
+  https://github.com/vitejs/vite
+
+Express - MIT License
+  Copyright (c) TJ Holowaychuk and Express contributors
+  https://github.com/expressjs/express
+
+================================================================================
+
+For the complete list of dependencies and their licenses, see the package.json
+files in each workspace package.

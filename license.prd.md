@@ -14,8 +14,8 @@
 | Context | Complete | - |
 | Options | Complete | - |
 | Decision | **Approved** | Hybrid model |
-| Implementation | Not Started | 0/12 |
-| **Overall** | **DRAFT** | **0%** |
+| Implementation | In Progress | 4/12 |
+| **Overall** | **IN PROGRESS** | **33%** |
 
 ## Context
 
@@ -318,17 +318,17 @@ Change License: Apache 2.0
 ### Implementation
 
 **Last updated:** 2026-01-23
-**Progress:** 0/12 (0%)
+**Progress:** 4/12 (33%)
 
 #### massivoto-platform (this repo)
 
 - [ ] R-LICENSE-01: Add BSL 1.1 LICENSE file in `packages/runtime/`
-- [ ] R-LICENSE-02: Add Apache 2.0 LICENSE file at repository root (default)
+- [x] R-LICENSE-02: Add Apache 2.0 LICENSE file at repository root (default)
 - [ ] R-LICENSE-03: Add Apache 2.0 LICENSE file in each `packages/*` (except runtime)
 - [ ] R-LICENSE-04: Add license header to runtime source files (BSL)
-- [ ] R-LICENSE-05: Create NOTICE file for third-party attributions
-- [ ] R-LICENSE-06: Document hybrid licensing in root README.md
-- [ ] R-LICENSE-07: Create CONTRIBUTING.md explaining license per package
+- [x] R-LICENSE-05: Create NOTICE file for third-party attributions
+- [x] R-LICENSE-06: Document hybrid licensing in root README.md
+- [x] R-LICENSE-07: Create CONTRIBUTING.md explaining license per package
 - [ ] R-LICENSE-08: Set up CLA bot for runtime contributions only
 
 #### massivoto-custom (new repo)
