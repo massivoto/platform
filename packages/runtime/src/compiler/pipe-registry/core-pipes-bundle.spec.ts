@@ -28,12 +28,12 @@ describe('CorePipesBundle', () => {
       expect(pipes).toBeInstanceOf(Map)
     })
 
-    it('AC-PIPE-01: should register 9 pipes', async () => {
+    it('AC-PIPE-01: should register 10 pipes', async () => {
       const bundle = new CorePipesBundle()
 
       const pipes = await bundle.load()
 
-      expect(pipes.size).toBe(9)
+      expect(pipes.size).toBe(10)
     })
 
     it('should return pipes with proper PipeFunction interface', async () => {
@@ -53,7 +53,7 @@ describe('CorePipesBundle', () => {
       }
     })
 
-    it('should include all 9 core pipes', async () => {
+    it('should include all 10 core pipes', async () => {
       const bundle = new CorePipesBundle()
       const pipes = await bundle.load()
 
@@ -67,6 +67,7 @@ describe('CorePipesBundle', () => {
         'flatten',
         'reverse',
         'unique',
+        'slice',
       ]
 
       for (const pipeId of expectedPipes) {
@@ -561,6 +562,66 @@ describe('unique pipe', () => {
     it('should throw PipeTypeError for non-array input', async () => {
       await expect(uniquePipe.execute('string', [])).rejects.toThrow(
         PipeTypeError,
+      )
+    })
+  })
+})
+
+describe('slice pipe', () => {
+  let slicePipe: PipeFunction
+
+  beforeEach(async () => {
+    const bundle = new CorePipesBundle()
+    const pipes = await bundle.load()
+    slicePipe = pipes.get('slice')!
+  })
+
+  describe('R-PIPE-50: slice pipe returns array slice', () => {
+    it('should return slice with start and end', async () => {
+      const result = await slicePipe.execute([1, 2, 3, 4, 5], [1, 3])
+
+      expect(result).toEqual([2, 3])
+    })
+
+    it('should slice from start to end when no end argument', async () => {
+      const result = await slicePipe.execute([1, 2, 3, 4, 5], [2])
+
+      expect(result).toEqual([3, 4, 5])
+    })
+
+    it('should handle empty arrays', async () => {
+      const result = await slicePipe.execute([], [0, 1])
+
+      expect(result).toEqual([])
+    })
+
+    it('should handle slice from beginning', async () => {
+      const result = await slicePipe.execute([1, 2, 3, 4, 5], [0, 3])
+
+      expect(result).toEqual([1, 2, 3])
+    })
+
+    it('should handle slice past end', async () => {
+      const result = await slicePipe.execute([1, 2, 3], [1, 10])
+
+      expect(result).toEqual([2, 3])
+    })
+
+    it('should throw PipeTypeError for non-array input', async () => {
+      await expect(slicePipe.execute('string', [0, 1])).rejects.toThrow(
+        PipeTypeError,
+      )
+    })
+
+    it('should throw PipeArgumentError for non-numeric start', async () => {
+      await expect(slicePipe.execute([1, 2, 3], ['one'])).rejects.toThrow(
+        PipeArgumentError,
+      )
+    })
+
+    it('should throw PipeArgumentError for non-numeric end', async () => {
+      await expect(slicePipe.execute([1, 2, 3], [0, 'two'])).rejects.toThrow(
+        PipeArgumentError,
       )
     })
   })

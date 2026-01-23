@@ -98,7 +98,7 @@ describe('PipeRegistry', () => {
       await registry.reload()
 
       const keys = await registry.keys()
-      expect(keys).toHaveLength(9)
+      expect(keys).toHaveLength(10)
     })
 
     it('should throw RegistryNotLoadedError if get() called before reload()', async () => {
@@ -212,7 +212,7 @@ describe('PipeRegistry', () => {
       expect(entry).toBeUndefined()
     })
 
-    it('should return all 9 core pipes', async () => {
+    it('should return all 10 core pipes', async () => {
       const expectedPipes = [
         'filter',
         'map',
@@ -223,6 +223,7 @@ describe('PipeRegistry', () => {
         'flatten',
         'reverse',
         'unique',
+        'slice',
       ]
 
       for (const pipeId of expectedPipes) {
@@ -252,14 +253,14 @@ describe('PipeRegistry', () => {
 
       expect(keys).toContain('filter')
       expect(keys).toContain('map')
-      expect(keys).toHaveLength(9)
+      expect(keys).toHaveLength(10)
     })
 
     it('should have entries() method', async () => {
       const entries = await registry.entries()
 
       expect(entries).toBeInstanceOf(Map)
-      expect(entries.size).toBe(9)
+      expect(entries.size).toBe(10)
       expect(entries.get('filter')).toBeDefined()
     })
   })
