@@ -1,0 +1,10 @@
+The packages/runtime package is licensed under the Business Source License.
+
+You may use this package in accordance with the terms of the Business Source License, which can be found in the LICENSE_BSL file at the root of this repository.
+
+This runtime is a huge effort and deserve money to build and maintain it, but we believe you have the right to know what is running on your machine.
+This runtime package can be totally dropped and replaced with an alternative implementation without affecting other parts of the system.
+
+We encourage the community to create more efficient alternative, in other languages, or with different dependencies.
+
+Contact us at https://www.robusta.build if you need more informations on architecture and technical partnerships.
