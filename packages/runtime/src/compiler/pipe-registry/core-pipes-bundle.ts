@@ -4,8 +4,8 @@
  * Requirements:
  * - R-PIPE-41 to R-PIPE-49: Core Pipes Implementation
  *
- * Provides 9 built-in pipes:
- * - filter: Filter array by truthy property
+ * Provides 10 built-in pipes:
+ * - filter: Filter array by property value (filter:prop:value) or truthy (filter:prop)
  * - map: Extract property from each item
  * - first: Get first element
  * - last: Get last element
@@ -14,6 +14,7 @@
  * - flatten: Flatten one level of nested arrays
  * - reverse: Reverse array (non-mutating)
  * - unique: Remove duplicates preserving order
+ * - slice: Get array slice (slice:start:end)
  */
 import type { RegistryBundle } from '@massivoto/kit'
 import type { PipeFunction } from './types.js'
@@ -25,11 +26,17 @@ import { PipeTypeError, PipeArgumentError } from './errors.js'
 // =============================================================================
 
 /**
- * FilterPipe - filters array where item[propName] is truthy.
+ * FilterPipe - filters array where item[propName] equals value.
+ *
+ * Supports two forms:
+ * - filter:propName:value - filters where item[propName] === value
+ * - filter:propName - filters where item[propName] is truthy (legacy)
  *
  * @example
  * ```dsl
- * {users | filter:active}
+ * {users | filter:active:true}
+ * {users | filter:name:"Emma"}
+ * {users | filter:active}  // truthy check (legacy)
  * ```
  */
 class FilterPipe extends BasePipeFunction {
@@ -43,6 +50,12 @@ class FilterPipe extends BasePipeFunction {
     if (typeof propName !== 'string') {
       throw new PipeArgumentError('filter', 'property name (string)')
     }
+    // If two arguments, filter by equality
+    if (args.length >= 2) {
+      const expectedValue = args[1]
+      return input.filter((item) => item?.[propName] === expectedValue)
+    }
+    // Single argument: filter by truthy value (legacy)
     return input.filter((item) => item?.[propName])
   }
 }
@@ -212,6 +225,38 @@ class UniquePipe extends BasePipeFunction {
   }
 }
 
+/**
+ * SlicePipe - returns a slice of the array.
+ *
+ * Arguments:
+ * - start: Starting index (inclusive)
+ * - end: Optional ending index (exclusive)
+ *
+ * @example
+ * ```dsl
+ * {items | slice:1:3}  // [2, 3] from [1, 2, 3, 4, 5]
+ * {items | slice:2}    // [3, 4, 5] from [1, 2, 3, 4, 5]
+ * ```
+ */
+class SlicePipe extends BasePipeFunction {
+  readonly id = 'slice'
+
+  async execute(input: any, args: any[]): Promise<any[]> {
+    if (!Array.isArray(input)) {
+      throw new PipeTypeError('slice', 'array', typeof input)
+    }
+    const start = args[0] ?? 0
+    const end = args[1] // undefined means slice to end
+    if (typeof start !== 'number') {
+      throw new PipeArgumentError('slice', 'start index (number)')
+    }
+    if (end !== undefined && typeof end !== 'number') {
+      throw new PipeArgumentError('slice', 'end index (number, optional)')
+    }
+    return input.slice(start, end)
+  }
+}
+
 // =============================================================================
 // CorePipesBundle
 // =============================================================================
@@ -248,6 +293,7 @@ export class CorePipesBundle implements RegistryBundle<PipeFunction> {
       new FlattenPipe(),
       new ReversePipe(),
       new UniquePipe(),
+      new SlicePipe(),
     ]
 
     // Register each pipe by its id
