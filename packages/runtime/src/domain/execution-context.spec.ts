@@ -5,7 +5,7 @@ import {
   cloneExecutionContext,
   fromPartialContext,
 } from './execution-context.js'
-import { createEmptyScopeChain, pushScope } from '../compiler/interpreter/scope-chain.js'
+import { createEmptyScopeChain, pushScope } from '../interpreter/evaluator/scope-chain.js'
 
 /**
  * Test file: execution-context.spec.ts

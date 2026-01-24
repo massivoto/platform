@@ -9,7 +9,7 @@ import {
   ScopeChain,
   createEmptyScopeChain,
   cloneScopeChain,
-} from '../compiler/interpreter/scope-chain.js'
+} from '../interpreter/evaluator/scope-chain.js'
 
 export interface ExecutionContext {
   env: Record<string, string> // will not be saved nor shared

@@ -1,4 +1,4 @@
-import { Interpreter } from '../compiler/index.js'
+import { Interpreter } from '../interpreter/index.js'
 import { ExecutionContext } from '../domain/index.js'
 import { SerializableStorePointer, StoreProvider } from '../domain/store.js'
 import { LocalFileStore } from './local-file-store.js'

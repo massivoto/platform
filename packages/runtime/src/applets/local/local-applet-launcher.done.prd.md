@@ -553,7 +553,7 @@ CloudAppletLauncher will implement the same interface but:
 
 > **Theme:** Social Media Automation
 >
-> Reused from: [dsl-0.5-parser.prd.md](../../compiler/parser/dsl-0.5-parser.prd.md)
+> Reused from: [dsl-0.5-parser.prd.md](../../interpreter/parser/dsl-0.5-parser.prd.md)
 >
 > Test scenarios use content approval workflows where human reviewers validate
 > AI-generated social media posts before publishing.

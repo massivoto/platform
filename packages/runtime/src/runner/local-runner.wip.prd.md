@@ -199,7 +199,7 @@ What we need:
 
 > **Theme:** Social Media Automation
 >
-> Reused from: [dsl-0.5-parser.prd.md](../../compiler/parser/dsl-0.5-parser.prd.md)
+> Reused from: [dsl-0.5-parser.prd.md](../../interpreter/parser/dsl-0.5-parser.prd.md)
 
 ### Criteria
 

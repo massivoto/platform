@@ -83,7 +83,7 @@ The refactoring separates these concerns: `ExecutionContext` becomes a pure vari
 ### ProgramResult Enhancement
 
 **Last updated:** 2026-01-23
-**Test:** `npx vitest run packages/runtime/src/compiler/interpreter/program-result.spec.ts`
+**Test:** `npx vitest run packages/runtime/src/interpreter/evaluator/program-result.spec.ts`
 **Progress:** 4/4 (100%)
 
 - ✅ R-RES-21: Add `data: Record<string, any>` directly to `ProgramResult` (copy from final context)
@@ -94,7 +94,7 @@ The refactoring separates these concerns: `ExecutionContext` becomes a pure vari
 ### Interpreter Updates
 
 **Last updated:** 2026-01-23
-**Test:** `npx vitest run packages/runtime/src/compiler/interpreter/interpreter.spec.ts`
+**Test:** `npx vitest run packages/runtime/src/interpreter/evaluator/interpreter.spec.ts`
 **Progress:** 3/3 (100%)
 
 - ✅ R-INT-41: Accumulate `history` in a local array during `executeProgram()`, not in context
