@@ -8,8 +8,8 @@
 
 ## Children
 
-- [Interpreter](./src/compiler/interpreter/interpreter.archi.md)
-- [Pipe Registry](./src/compiler/pipe-registry/pipe-registry.archi.md)
+- [Interpreter](src/interpreter/evaluator/interpreter.archi.md)
+- [Pipe Registry](src/interpreter/pipe-registry/pipe-registry.archi.md)
 
 ## Overview
 
@@ -30,7 +30,7 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │                                   │                                         │
 │                                   ▼                                         │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                        COMPILER PIPELINE                             │   │
+│  │                        INTERPRETER PIPELINE                             │   │
 │  ├─────────────────────────────────────────────────────────────────────┤   │
 │  │                                                                       │  │
 │  │  ┌─────────┐    ┌───────────┐    ┌─────────────┐    ┌────────────┐  │  │
@@ -59,14 +59,14 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Compiler Pipeline
+## Interpreter Pipeline
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           COMPILER STAGES                                   │
+│                           INTERPRETER STAGES                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  1. PARSER (src/compiler/parser/)                                          │
+│  1. PARSER (src/interpreter/parser/)                                          │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │  Source Text ─────► Tokenizer ─────► AST (ProgramNode)              │   │
 │  │                                                                      │   │
@@ -80,7 +80,7 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                    │                                        │
 │                                    ▼                                        │
-│  2. EVALUATOR (src/compiler/interpreter/evaluators.ts)                     │
+│  2. EVALUATOR (src/interpreter/evaluator/evaluators.ts)                     │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │  Expression + Context ─────► Resolved value                         │   │
 │  │                                                                      │   │
@@ -101,7 +101,7 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                    │                                        │
 │                                    ▼                                        │
-│  3. INTERPRETER (src/compiler/interpreter/interpreter.ts)                  │
+│  3. INTERPRETER (src/interpreter/evaluator/interpreter.ts)                  │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │  Instruction + Context ─────► Handler.run() ─────► New Context      │   │
 │  │                                                                      │   │
@@ -119,7 +119,7 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                    │                                        │
 │                                    ▼                                        │
-│  4. PROGRAM RUNNER (src/compiler/interpreter/program-runner.ts)            │
+│  4. PROGRAM RUNNER (src/interpreter/program-runner.ts)            │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │  runProgram(source, context?) ─────► ExecutionContext               │   │
 │  │                                                                      │   │
@@ -136,12 +136,12 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 
 | Component | Location | Responsibility |
 |-----------|----------|----------------|
-| `Parser` | src/compiler/parser/ | Tokenize and parse DSL source to AST |
-| `ExpressionEvaluator` | src/compiler/interpreter/evaluators.ts | Scope-aware variable resolution, expression evaluation |
-| `ScopeChain` | src/compiler/interpreter/scope-chain.ts | Nested scope management (push, pop, lookup) |
-| `Interpreter` | src/compiler/interpreter/interpreter.ts | Execute instructions, log history, track cost |
-| `runProgram` | src/compiler/interpreter/program-runner.ts | End-to-end program execution helper |
-| `CommandRegistry` | src/compiler/command-registry/ | Register and resolve command handlers |
+| `Parser` | src/interpreter/parser/ | Tokenize and parse DSL source to AST |
+| `ExpressionEvaluator` | src/interpreter/evaluator/evaluators.ts | Scope-aware variable resolution, expression evaluation |
+| `ScopeChain` | src/interpreter/evaluator/scope-chain.ts | Nested scope management (push, pop, lookup) |
+| `Interpreter` | src/interpreter/evaluator/interpreter.ts | Execute instructions, log history, track cost |
+| `runProgram` | src/interpreter/program-runner.ts | End-to-end program execution helper |
+| `CommandRegistry` | src/interpreter/command-registry/ | Register and resolve command handlers |
 | `ExecutionContext` | src/domain/execution-context.ts | State: data, scopeChain, meta.history, cost |
 
 ## Domain Model

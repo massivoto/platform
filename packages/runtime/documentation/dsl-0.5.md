@@ -342,4 +342,4 @@ Label is a reserved argument. Goto is a command in the `@flow` package.
 - Goto to an `if` re-evaluates the condition
 - Label names must be unique (validated in AST post-processing)
 
-See PRD: `packages/runtime/src/compiler/interpreter/goto-label.prd.md`
+See PRD: `packages/runtime/src/interpreter/evaluator/goto-label.prd.md`
