@@ -57,7 +57,7 @@ To enable this split cleanly, we need to:
 
 ```
 packages/runtime/src/
-├── compiler/
+├── interpreter/
 │   ├── parser/              <- COMMODITY (syntax parsing)
 │   ├── interpreter/         <- STRATEGIC (execution engine)
 │   │   ├── interpreter.ts
@@ -112,7 +112,7 @@ packages/runtime/src/
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  src/                                                                │
-│  ├── compiler/                                                       │
+│  ├── interpreter/                                                       │
 │  │   └── parser/           <- All parser code stays                 │
 │  │       ├── ast.ts                                                  │
 │  │       ├── tokenizer.ts                                            │
@@ -419,7 +419,7 @@ packages/runtime/
 ├── package.json
 ├── src/
 │   ├── index.ts               # Main exports
-│   ├── compiler/
+│   ├── interpreter/
 │   │   └── parser/            # All parser code
 │   ├── domain/                # All domain types
 │   ├── interfaces/            # NEW
