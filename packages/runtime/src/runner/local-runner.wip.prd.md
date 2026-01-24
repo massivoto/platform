@@ -16,6 +16,9 @@
 input context (file) → OTO script → output context (file or stdout)
 ```
 
+The ProgramResult object will wrap the new context, including logs (including errors), command played, costs, duration, etc.
+A ProgramResult can also contain a value when the Program will use @flow/return - which is very optional.
+
 This enables:
 - Chaining scripts: output of one becomes input of next
 - CI/CD integration: pass data via JSON files
@@ -49,7 +52,7 @@ This enables:
 The ROADMAP v0.5 defines three LocalRunner features:
 1. **File-based execution**: run `.oto` files from command line
 2. **Local store**: file-based state persistence
-3. **REPL mode**: interactive execution for debugging
+3. **REPL mode**: interactive execution for debugging<<
 
 This PRD focuses on **file-based execution only**. Store and REPL are deferred.
 
@@ -66,20 +69,20 @@ What we need:
 
 ## Decision Log
 
-| Date | Option | Decision | Rationale |
-|------|--------|----------|-----------|
-| 2026-01-21 | Architecture | **Library + CLI** | Testable, embeddable, separation of concerns |
-| 2026-01-21 | CLI framework | **Commander** | Lighter (~50KB), zero deps, sufficient for our needs |
-| 2026-01-21 | Package location | **packages/runtime** | Keep runner with runtime, CLI in bin/ |
-| 2026-01-21 | Store implementation | **Deferred** | Not needed for basic file execution |
-| 2026-01-21 | REPL implementation | **Deferred** | Not needed for basic file execution |
-| 2026-01-21 | Complex --var types | **Deferred** | Simple strings only for v0.5, JSON support later |
-| 2026-01-21 | Timing in output | **No** | Not needed |
-| 2026-01-21 | File extension | **Required .oto** | Branding feature |
-| 2026-01-21 | Output flag name | **--save** | Avoids conflict with OTO reserved word `output` |
-| 2026-01-21 | Default output | **ExecutionContext to stdout** | CLI as context transformer, enables chaining |
+| Date | Option | Decision                                       | Rationale |
+|------|--------|------------------------------------------------|-----------|
+| 2026-01-21 | Architecture | **Library + CLI**                              | Testable, embeddable, separation of concerns |
+| 2026-01-21 | CLI framework | **Commander**                                  | Lighter (~50KB), zero deps, sufficient for our needs |
+| 2026-01-21 | Package location | **packages/runtime**                           | Keep runner with runtime, CLI in bin/ |
+| 2026-01-21 | Store implementation | **Deferred**                                   | Not needed for basic file execution |
+| 2026-01-21 | REPL implementation | **Deferred**                                   | Not needed for basic file execution |
+| 2026-01-21 | Complex --var types | **Deferred**                                   | Simple strings only for v0.5, JSON support later |
+| 2026-01-21 | Timing in output | **No**                                         | Not needed |
+| 2026-01-21 | File extension | **Required oto.md or *.oto.md**                | Branding feature |
+| 2026-01-21 | Output flag name | **--save**                                     | Avoids conflict with OTO reserved word `output` |
+| 2026-01-21 | Default output | **ExecutionContext to stdout**                 | CLI as context transformer, enables chaining |
 | 2026-01-21 | Result types | **CommandLog + CommandResult + ProgramResult** | Clear hierarchy: Program has Commands, Command has Logs |
-| 2026-01-21 | InstructionLog | **Remove (breaking)** | Replaced by CommandLog (message) + CommandResult (metrics) |
+| 2026-01-21 | InstructionLog | **Remove (breaking)**                          | Replaced by CommandLog (message) + CommandResult (metrics) |
 
 ## Scope
 

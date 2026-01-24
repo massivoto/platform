@@ -1,7 +1,7 @@
 # PRD: ForEach Reserved Argument
 
-**Status:** DRAFT
-**Last updated:** 2026-01-20
+**Status:** IMPLEMENTED
+**Last updated:** 2026-01-24
 
 > - DRAFT: Coding should not start, requirements being defined
 > - APPROVED: Code can start, requirements stable
@@ -14,15 +14,15 @@
 |---------|--------|----------|
 | Context | ✅ Complete | 100% |
 | Scope | ✅ Complete | 100% |
-| Requirements: System Variables Convention | ❌ Not Started | 0/3 |
-| Requirements: AST Types | ❌ Not Started | 0/3 |
-| Requirements: Parser Tokens | ❌ Not Started | 0/1 |
-| Requirements: Reserved Arg Parser | ❌ Not Started | 0/3 |
-| Requirements: Block Integration | ❌ Not Started | 0/2 |
-| Requirements: Interpreter | ❌ Not Started | 0/6 |
-| Acceptance Criteria | ❌ Not Started | 0/16 |
+| Requirements: System Variables Convention | ✅ Complete | 3/3 |
+| Requirements: AST Types | ✅ Complete | 3/3 |
+| Requirements: Parser Tokens | ✅ Complete | 1/1 |
+| Requirements: Reserved Arg Parser | ✅ Complete | 3/3 |
+| Requirements: Block Integration | ✅ Complete | 2/2 |
+| Requirements: Interpreter | ✅ Complete | 6/6 |
+| Acceptance Criteria | ✅ Complete | 16/16 |
 | Theme | ✅ Defined | - |
-| **Overall** | **DRAFT** | **0%** |
+| **Overall** | **IMPLEMENTED** | **100%** |
 
 ## Parent PRD
 
@@ -104,30 +104,30 @@ ForEach **requires** the scope chain from [variable-scope.prd.md](../interpreter
 
 ### System Variables Convention
 
-**Last updated:** 2026-01-20
+**Last updated:** 2026-01-24
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/shared-parser.spec.ts`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- ❌ R-FE-01: Document `_` prefix convention: identifiers starting with `_` are reserved for system use
+- ✅ R-FE-01: Document `_` prefix convention: identifiers starting with `_` are reserved for system use
   - User-defined variables should not start with `_`
   - Parser does NOT enforce this (allows `_` prefix) - it's a convention
   - Interpreter may overwrite user's `_index` inside forEach scope
 
-- ❌ R-FE-02: Verify identifier parser allows `_` prefix: regex `[a-zA-Z_][a-zA-Z0-9_-]*`
+- ✅ R-FE-02: Verify identifier parser allows `_` prefix: regex `[a-zA-Z_][a-zA-Z0-9_-]*`
   - `_index`, `_first`, `_myVar` are all valid identifiers
   - Add test cases for `_` prefixed identifiers
 
-- ❌ R-FE-03: Document system variables in DSL specification
+- ✅ R-FE-03: Document system variables in DSL specification
   - Add section to `dsl-0.5.md` listing forEach system variables
   - Note that these are only available inside forEach blocks
 
 ### AST Types
 
-**Last updated:** 2026-01-20
+**Last updated:** 2026-01-24
 **Test:** `npx vitest run packages/runtime/src/compiler/parser`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- ❌ R-FE-21: Add `ForEachArgNode` type to `ast.ts`:
+- ✅ R-FE-21: Add `ForEachArgNode` type to `ast.ts`:
   ```typescript
   interface ForEachArgNode {
     type: 'forEach-arg'
@@ -136,12 +136,12 @@ ForEach **requires** the scope chain from [variable-scope.prd.md](../interpreter
   }
   ```
 
-- ❌ R-FE-22: Update `ReservedArgNode` union type:
+- ✅ R-FE-22: Update `ReservedArgNode` union type:
   ```typescript
   type ReservedArgNode = OutputArgNode | IfArgNode | ForEachArgNode
   ```
 
-- ❌ R-FE-23: Update `BlockNode` with forEach field:
+- ✅ R-FE-23: Update `BlockNode` with forEach field:
   ```typescript
   interface BlockNode {
     type: 'block'
@@ -154,57 +154,57 @@ ForEach **requires** the scope chain from [variable-scope.prd.md](../interpreter
 
 ### Parser Tokens
 
-**Last updated:** 2026-01-20
+**Last updated:** 2026-01-24
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/reserved-args.spec.ts`
-**Progress:** 0/1 (0%)
+**Progress:** 1/1 (100%)
 
-- ❌ R-FE-41: Add `FOREACH_KEY` token to `InstructionTokens`:
+- ✅ R-FE-41: Add `FOREACH_KEY` token to `InstructionTokens`:
   ```typescript
   FOREACH_KEY: genlex.tokenize(C.string('forEach='), 'FOREACH_KEY', 500)
   ```
 
 ### Reserved Arg Parser
 
-**Last updated:** 2026-01-20
+**Last updated:** 2026-01-24
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/reserved-args.spec.ts`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- ❌ R-FE-61: `forEachArg` parser: `FOREACH_KEY` followed by `mapperExpression`
+- ✅ R-FE-61: `forEachArg` parser: `FOREACH_KEY` followed by `mapperExpression`
   - Validates result is MapperExpressionNode (has `->`)
   - Rejects non-mapper: `forEach=users` fails with "forEach requires 'collection -> variable' syntax"
 
-- ❌ R-FE-62: Update `reservedArg` parser to include forEach:
+- ✅ R-FE-62: Update `reservedArg` parser to include forEach:
   ```typescript
   const reservedArg = F.try(outputArg)
     .or(F.try(ifArg))
     .or(forEachArg)
   ```
 
-- ❌ R-FE-63: Ensure `forEach` is in reserved words in `shared-parser.ts`
+- ✅ R-FE-63: Ensure `forEach` is in reserved words in `shared-parser.ts`
   - Prevents `forEach` from being used as regular argument key
 
 ### Block Integration
 
-**Last updated:** 2026-01-20
+**Last updated:** 2026-01-24
 **Test:** `npx vitest run packages/runtime/src/compiler/parser/block-parser.spec.ts`
-**Progress:** 0/2 (0%)
+**Progress:** 2/2 (100%)
 
-- ❌ R-FE-81: Block parser extracts `forEach=` from `@block/begin` arguments
+- ✅ R-FE-81: Block parser extracts `forEach=` from `@block/begin` arguments
   - Populates `BlockNode.forEach` field
 
-- ❌ R-FE-82: Validation: `forEach=` and `if=` are mutually exclusive on same block
+- ✅ R-FE-82: Validation: `forEach=` and `if=` are mutually exclusive on same block
   - Error: "Block cannot have both forEach= and if= arguments"
   - Rationale: Use nested blocks for conditional forEach
 
 ### Interpreter
 
-**Last updated:** 2026-01-20
+**Last updated:** 2026-01-24
 **Test:** `npx vitest run packages/runtime/src/compiler/interpreter/foreach.spec.ts`
-**Progress:** 0/6 (0%)
+**Progress:** 6/6 (100%)
 
-- ❌ R-FE-101: `executeBlock()` detects `block.forEach` and calls `executeForEach()`
+- ✅ R-FE-101: `executeBlock()` detects `block.forEach` and calls `executeForEach()`
 
-- ❌ R-FE-102: `executeForEach()` implementation:
+- ✅ R-FE-102: `executeForEach()` implementation:
   ```typescript
   async executeForEach(block: BlockNode, context: ExecutionContext): Promise<ExecutionContext> {
     const { iterable, iterator } = block.forEach!
@@ -246,16 +246,16 @@ ForEach **requires** the scope chain from [variable-scope.prd.md](../interpreter
   }
   ```
 
-- ❌ R-FE-103: Empty collection skips block body (0 iterations, no error)
+- ✅ R-FE-103: Empty collection skips block body (0 iterations, no error)
 
-- ❌ R-FE-104: Nested forEach creates nested scope chain
+- ✅ R-FE-104: Nested forEach creates nested scope chain
   - Outer iterator and system variables remain accessible via scope chain walk
   - Inner `_index` shadows outer `_index` (expected behavior)
 
-- ❌ R-FE-105: Data changes inside forEach persist after loop
+- ✅ R-FE-105: Data changes inside forEach persist after loop
   - `output=data.result` writes to `context.data`, survives scope pop
 
-- ❌ R-FE-106: System variables are only available inside forEach scope
+- ✅ R-FE-106: System variables are only available inside forEach scope
   - Accessing `_index` outside forEach returns `undefined` (not an error)
 
 ## Dependencies
@@ -290,30 +290,30 @@ ForEach **requires** the scope chain from [variable-scope.prd.md](../interpreter
 ### Criteria
 
 **Parsing:**
-- [ ] AC-FE-01: Given `@block/begin forEach=users -> user`, when parsed, then `BlockNode.forEach` is `{ iterable: Identifier(users), iterator: SingleString(user) }`
-- [ ] AC-FE-02: Given `@block/begin forEach={users|filter:active} -> user`, when parsed, then `forEach.iterable` is `PipeExpressionNode`
-- [ ] AC-FE-03: Given `@block/begin forEach=users` (no arrow), when parsed, then parser rejects with "forEach requires 'collection -> variable' syntax"
-- [ ] AC-FE-04: Given `@block/begin forEach=users -> user if=cond`, when parsed, then parser rejects with "Block cannot have both forEach= and if="
+- [x] AC-FE-01: Given `@block/begin forEach=users -> user`, when parsed, then `BlockNode.forEach` is `{ iterable: Identifier(users), iterator: SingleString(user) }`
+- [x] AC-FE-02: Given `@block/begin forEach={users|filter:active} -> user`, when parsed, then `forEach.iterable` is `PipeExpressionNode`
+- [x] AC-FE-03: Given `@block/begin forEach=users` (no arrow), when parsed, then parser rejects with "forEach requires 'collection -> variable' syntax"
+- [x] AC-FE-04: Given `@block/begin forEach=users -> user if=cond`, when parsed, then parser rejects with "Block cannot have both forEach= and if="
 
 **System Variables:**
-- [ ] AC-FE-05: Given forEach over 3-element array, when `_index` accessed, then values are 0, 1, 2
-- [ ] AC-FE-06: Given forEach over 3-element array, when `_count` accessed, then values are 1, 2, 3
-- [ ] AC-FE-07: Given forEach over 3-element array, when `_length` accessed, then value is always 3
-- [ ] AC-FE-08: Given forEach over array, when `_first` accessed on first iteration, then value is `true`
-- [ ] AC-FE-09: Given forEach over array, when `_last` accessed on last iteration, then value is `true`
-- [ ] AC-FE-10: Given forEach over array, when `_odd` and `_even` accessed, then they alternate correctly
+- [x] AC-FE-05: Given forEach over 3-element array, when `_index` accessed, then values are 0, 1, 2
+- [x] AC-FE-06: Given forEach over 3-element array, when `_count` accessed, then values are 1, 2, 3
+- [x] AC-FE-07: Given forEach over 3-element array, when `_length` accessed, then value is always 3
+- [x] AC-FE-08: Given forEach over array, when `_first` accessed on first iteration, then value is `true`
+- [x] AC-FE-09: Given forEach over array, when `_last` accessed on last iteration, then value is `true`
+- [x] AC-FE-10: Given forEach over array, when `_odd` and `_even` accessed, then they alternate correctly
 
 **Execution:**
-- [ ] AC-FE-11: Given `users = [{name: "Emma"}, {name: "Carlos"}]` and forEach block logging `user.name`, when executed, then logs show "Emma" then "Carlos"
-- [ ] AC-FE-12: Given `users = []` (empty) and forEach block, when executed, then block body executes 0 times (no error)
-- [ ] AC-FE-13: Given `users = "not-array"` and forEach block, when executed, then runtime error "Cannot iterate over string"
-- [ ] AC-FE-14: Given nested forEach (users -> user, user.tweets -> tweet), when executed, then both `user` and `tweet` are resolvable in inner block
-- [ ] AC-FE-15: Given forEach that sets `output=data.count` inside loop, when loop completes, then `context.data.count` reflects final value
-- [ ] AC-FE-16: Given forEach with iterator `user`, when loop completes, then `user` and `_index` are no longer resolvable (scope popped)
+- [x] AC-FE-11: Given `users = [{name: "Emma"}, {name: "Carlos"}]` and forEach block logging `user.name`, when executed, then logs show "Emma" then "Carlos"
+- [x] AC-FE-12: Given `users = []` (empty) and forEach block, when executed, then block body executes 0 times (no error)
+- [x] AC-FE-13: Given `users = "not-array"` and forEach block, when executed, then runtime error "Cannot iterate over string"
+- [x] AC-FE-14: Given nested forEach (users -> user, user.tweets -> tweet), when executed, then both `user` and `tweet` are resolvable in inner block
+- [x] AC-FE-15: Given forEach that sets `output=data.count` inside loop, when loop completes, then `context.data.count` reflects final value
+- [x] AC-FE-16: Given forEach with iterator `user`, when loop completes, then `user` and `_index` are no longer resolvable (scope popped)
 
 **General:**
-- [ ] All automated tests pass
-- [ ] Edge cases covered in `foreach.edge.spec.ts`
+- [x] All automated tests pass
+- [x] Edge cases covered in `foreach.edge.spec.ts`
 
 ## Implementation Notes
 

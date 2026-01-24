@@ -207,6 +207,20 @@ See `license.prd.md` for full details.
 - [x] **NOTICE file**: Third-party attributions
 - [x] **CONTRIBUTING.md**: Explain license per package, CLA for runtime
 
+### Runtime Package Split (BSL Extraction)
+
+See `packages/runtime/runtime-split.wip.prd.md` for full details.
+
+Split `@massivoto/runtime` into:
+- **Apache 2.0** (`@massivoto/runtime`): Parser, AST, domain types, interfaces, LocalRunner shell
+- **BSL 1.1** (`@massivoto/runtime-engine`): Interpreter, evaluator, core handlers, core pipes
+
+- [ ] **Extract interfaces**: `IInterpreter`, `IEvaluator`, `IPipeFunction`, `ICommandRegistry`
+- [ ] **Refactor LocalRunner**: Accept `IInterpreter` via dependency injection
+- [ ] **Create BSL repo**: `massivoto-runtime-engine` with interpreter implementation
+- [ ] **Move strategic code**: Interpreter, evaluator, CoreHandlersBundle, CorePipesBundle
+- [ ] **Integration tests**: Verify Apache + BSL packages work together
+
 ### massivoto-custom Repository
 
 - [ ] **Create massivoto-custom repo**: Template monorepo for companies to extend Massivoto
