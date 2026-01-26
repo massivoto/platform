@@ -15,6 +15,8 @@ Monorepo for the Massivoto automation platform.
 - Vite for frontend builds
 - ESM modules throughout
 
+We don't care of backward compatibility. Move fast and break things.
+
 ## Conventions
 
 ### Code Style
