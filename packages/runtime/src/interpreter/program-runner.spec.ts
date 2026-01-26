@@ -55,13 +55,13 @@ describe('Program Runner', () => {
 
       const result = await runProgram(source)
 
-      expect(result.meta.history).toHaveLength(3)
-      expect(result.meta.history[0].command).toBe('@utils/set')
-      expect(result.meta.history[0].output).toBe('user')
-      expect(result.meta.history[0].value).toBe('Emma')
-      expect(result.meta.history[1].output).toBe('followers')
-      expect(result.meta.history[1].value).toBe(1500)
-      expect(result.meta.history[2].command).toBe('@utils/log')
+      expect(result.batches[0].actions).toHaveLength(3)
+      expect(result.batches[0].actions[0].command).toBe('@utils/set')
+      expect(result.batches[0].actions[0].output).toBe('user')
+      expect(result.batches[0].actions[0].value).toBe('Emma')
+      expect(result.batches[0].actions[1].output).toBe('followers')
+      expect(result.batches[0].actions[1].value).toBe(1500)
+      expect(result.batches[0].actions[2].command).toBe('@utils/log')
     })
 
     it('should track cumulative cost', async () => {
@@ -84,7 +84,7 @@ describe('Program Runner', () => {
 
       const result = await runProgram(source)
 
-      for (const log of result.meta.history) {
+      for (const log of result.batches[0].actions) {
         expect(typeof log.cost).toBe('number')
       }
     })
@@ -139,7 +139,7 @@ describe('Program Runner', () => {
       const result = await runProgram(source)
 
       // The log message should have resolved the variable
-      expect(result.meta.history[1].messages).toContain('Logged: Emma')
+      expect(result.batches[0].actions[1].messages).toContain('Logged: Emma')
     })
 
     it('should handle blocks with conditional', async () => {
@@ -161,7 +161,7 @@ describe('Program Runner', () => {
 
       const result = await runProgram(source)
 
-      expect(result.meta.history).toHaveLength(0)
+      expect(result.batches[0].actions).toHaveLength(0)
     })
 
     it('should handle program with only whitespace', async () => {
@@ -172,7 +172,7 @@ describe('Program Runner', () => {
 
       const result = await runProgram(source)
 
-      expect(result.meta.history).toHaveLength(0)
+      expect(result.batches[0].actions).toHaveLength(0)
     })
 
     it('PRD example: social media automation', async () => {
@@ -186,9 +186,9 @@ describe('Program Runner', () => {
 
       expect(result.data.user).toBe('Emma')
       expect(result.data.followers).toBe(1500)
-      expect(result.meta.history).toHaveLength(3)
-      expect(result.meta.history[0].output).toBe('user')
-      expect(result.meta.history[0].value).toBe('Emma')
+      expect(result.batches[0].actions).toHaveLength(3)
+      expect(result.batches[0].actions[0].output).toBe('user')
+      expect(result.batches[0].actions[0].value).toBe('Emma')
       expect(result.cost.current).toBe(0)
     })
   })

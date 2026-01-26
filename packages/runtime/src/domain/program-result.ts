@@ -5,14 +5,12 @@
  * - exitCode: 0 for success, non-zero for failure (C/Unix convention)
  * - exitedEarly: true if @flow/exit or @flow/return was called
  * - value: optional return value from @flow/return
- * - exitedAt: instruction index where exit occurred
+ * - exitedAt: batch index where exit occurred
  *
- * Flat API (R-RES-21 to R-RES-24):
- * - data: Copy of final context.data for easy access
- * - history: Accumulated instruction logs
- * - cost: Cost tracking information
- * - user: User information from context
- * - meta: Metadata from context (tool, updatedAt)
+ * Result Hierarchy (marketing-friendly terminology):
+ * - ProgramResult (program-level): batches[], duration, data, cost, context, exitCode, value
+ * - BatchResult (batch-level): success, message, actions[], totalCost, duration
+ * - ActionLog (action-level): command, success, duration, cost, messages, output, value
  *
  * Requirements:
  * - R-GOTO-81: ProgramResult interface defined in domain/program-result.ts
@@ -20,8 +18,10 @@
  * - R-GOTO-83: Normal completion yields exitCode=0, exitedEarly=false
  * - R-GOTO-84: @flow/exit sets exitCode and exitedEarly=true
  * - R-GOTO-85: @flow/return sets value and exitCode=0
+ * - R-TERM-22: ProgramResult uses batches: BatchResult[] instead of history
  */
-import type { ExecutionContext, InstructionLog } from './execution-context.js'
+import type { ExecutionContext } from './execution-context.js'
+import type { BatchResult } from './batch-result.js'
 import type { SerializableObject } from '@massivoto/kit'
 
 /**
@@ -39,7 +39,8 @@ export interface CostInfo {
  * const result = await runProgram(`@utils/set input="done" output=status`)
  * // result.exitCode === 0
  * // result.exitedEarly === false
- * // result.context.data.status === "done"
+ * // result.data.status === "done"
+ * // result.batches[0].actions[0].command === "@utils/set"
  * ```
  *
  * @example Early exit with code
@@ -62,23 +63,33 @@ export interface CostInfo {
  */
 export interface ProgramResult {
   // ============================================================================
-  // FLAT API (R-RES-21 to R-RES-24) - Primary access for most use cases
+  // EXECUTION RESULTS - Batches organized by grouping
   // ============================================================================
 
   /**
-   * R-RES-21: Copy of final context.data for easy access.
+   * R-TERM-22: Execution organized by batch.
+   * Each batch represents a logical grouping (block, forEach iteration, top-level).
+   * Use result.batches[0].actions to access individual action logs.
+   */
+  batches: BatchResult[]
+
+  /**
+   * Total duration in milliseconds for the entire program.
+   */
+  duration: number
+
+  // ============================================================================
+  // FLAT API - Primary access for most use cases
+  // ============================================================================
+
+  /**
+   * Copy of final context.data for easy access.
    * Use result.data.user instead of result.context.data.user
    */
   data: SerializableObject
 
   /**
-   * R-RES-22: Accumulated instruction logs from execution.
-   * Use result.history instead of result.context.meta.history
-   */
-  history: InstructionLog[]
-
-  /**
-   * R-RES-23: Cost tracking information.
+   * Cost tracking information.
    * Use result.cost.current instead of result.context.cost.current
    */
   cost: CostInfo
@@ -99,7 +110,6 @@ export interface ProgramResult {
   meta: {
     tool?: string
     updatedAt: string
-    history: InstructionLog[] // Alias for backward compatibility during transition
   }
 
   /**
@@ -109,11 +119,11 @@ export interface ProgramResult {
   scopeChain: ExecutionContext['scopeChain']
 
   // ============================================================================
-  // ADVANCED ACCESS (R-RES-24) - For scopeChain, env, store access
+  // ADVANCED ACCESS - For scopeChain, env, store access
   // ============================================================================
 
   /**
-   * R-RES-24: The final execution context after program execution.
+   * The final execution context after program execution.
    * Use for advanced access to scopeChain, env, store, etc.
    */
   context: ExecutionContext
@@ -144,7 +154,7 @@ export interface ProgramResult {
   exitedEarly: boolean
 
   /**
-   * 0-based instruction index where @flow/exit or @flow/return was executed.
+   * 0-based index where @flow/exit or @flow/return was executed.
    * Only set when exitedEarly is true.
    */
   exitedAt?: number
@@ -154,24 +164,27 @@ export interface ProgramResult {
  * Create a ProgramResult for normal program completion.
  *
  * @param context - The final execution context
- * @param history - Accumulated instruction logs
+ * @param batches - Execution batches
  * @param cost - Cost tracking information
+ * @param duration - Total duration in milliseconds
  */
 export function createNormalCompletion(
   context: ExecutionContext,
-  history: InstructionLog[] = [],
+  batches: BatchResult[] = [],
   cost: CostInfo = { current: 0 },
+  duration: number = 0,
 ): ProgramResult {
   return {
+    // Execution results
+    batches,
+    duration,
     // Flat API
     data: { ...context.data },
-    history,
     cost,
     user: { ...context.user },
     meta: {
       tool: context.meta.tool,
       updatedAt: context.meta.updatedAt,
-      history, // backward compatibility alias
     },
     scopeChain: context.scopeChain,
     // Advanced access
@@ -188,27 +201,30 @@ export function createNormalCompletion(
  *
  * @param context - The execution context at exit
  * @param exitCode - The exit code (default 0)
- * @param exitedAt - Instruction index where exit occurred
- * @param history - Accumulated instruction logs
+ * @param exitedAt - Index where exit occurred
+ * @param batches - Execution batches
  * @param cost - Cost tracking information
+ * @param duration - Total duration in milliseconds
  */
 export function createEarlyExit(
   context: ExecutionContext,
   exitCode: number,
   exitedAt: number,
-  history: InstructionLog[] = [],
+  batches: BatchResult[] = [],
   cost: CostInfo = { current: 0 },
+  duration: number = 0,
 ): ProgramResult {
   return {
+    // Execution results
+    batches,
+    duration,
     // Flat API
     data: { ...context.data },
-    history,
     cost,
     user: { ...context.user },
     meta: {
       tool: context.meta.tool,
       updatedAt: context.meta.updatedAt,
-      history, // backward compatibility alias
     },
     scopeChain: context.scopeChain,
     // Advanced access
@@ -225,27 +241,30 @@ export function createEarlyExit(
  *
  * @param context - The execution context at return
  * @param value - The return value
- * @param exitedAt - Instruction index where return occurred
- * @param history - Accumulated instruction logs
+ * @param exitedAt - Index where return occurred
+ * @param batches - Execution batches
  * @param cost - Cost tracking information
+ * @param duration - Total duration in milliseconds
  */
 export function createReturn(
   context: ExecutionContext,
   value: unknown,
   exitedAt: number,
-  history: InstructionLog[] = [],
+  batches: BatchResult[] = [],
   cost: CostInfo = { current: 0 },
+  duration: number = 0,
 ): ProgramResult {
   return {
+    // Execution results
+    batches,
+    duration,
     // Flat API
     data: { ...context.data },
-    history,
     cost,
     user: { ...context.user },
     meta: {
       tool: context.meta.tool,
       updatedAt: context.meta.updatedAt,
-      history, // backward compatibility alias
     },
     scopeChain: context.scopeChain,
     // Advanced access

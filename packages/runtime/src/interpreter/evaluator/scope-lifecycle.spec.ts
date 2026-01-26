@@ -48,7 +48,7 @@ describe('Scope Lifecycle', () => {
       expect(result.data.user).toBe('Emma')
       expect(result.data.followers).toBe(1500)
       // Log should have resolved the variable
-      expect(result.history[3].messages).toContain('Logged: Emma')
+      expect(result.batches[0].actions[3].messages).toContain('Logged: Emma')
     })
 
     it('should not leak scope variables when block is skipped', async () => {

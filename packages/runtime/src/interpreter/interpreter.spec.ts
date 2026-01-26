@@ -172,7 +172,7 @@ describe('Cost Tracking', () => {
     })
   })
 
-  describe('R-COST-04: Interpreter stores cost in InstructionLog', () => {
+  describe('R-COST-04: Interpreter stores cost in ActionLog', () => {
     it('should store cost in log entry', async () => {
       registry.register('@mock/paid', new MockCostHandler(150))
 
@@ -202,8 +202,8 @@ describe('Interpreter Enhancements', () => {
     context = createEmptyExecutionContext('carlos-456')
   })
 
-  describe('R-INT-01: execute() returns complete InstructionLog with cost', () => {
-    it('should return complete InstructionLog for @utils/log', async () => {
+  describe('R-INT-01: execute() returns complete ActionLog with cost', () => {
+    it('should return complete ActionLog for @utils/log', async () => {
       const dsl = '@utils/log message="Hello Emma"'
       const result = instructionParser.parse(Stream.ofChars(dsl))
       const ast = result.value as InstructionNode
@@ -247,7 +247,7 @@ describe('Interpreter Enhancements', () => {
       const program = programParser.val(source) as ProgramNode
       const programResult = await interpreter.executeProgram(program, context)
 
-      expect(programResult.history).toHaveLength(3)
+      expect(programResult.batches[0].actions).toHaveLength(3)
       expect(programResult.data.user).toBe('Emma')
       expect(programResult.data.followers).toBe(1500)
     })
@@ -265,7 +265,7 @@ describe('Interpreter Enhancements', () => {
       const programResult = await interpreter.executeProgram(program, context)
 
       expect(programResult.cost.current).toBe(30)
-      expect(programResult.history).toHaveLength(3)
+      expect(programResult.batches[0].actions).toHaveLength(3)
     })
   })
 
@@ -287,7 +287,7 @@ describe('Interpreter Enhancements', () => {
       expect(programResult.data.content).toBe('Hello world!')
       expect(programResult.data.likes).toBe(42)
       // 1 before block + 2 inside block + 1 after block = 4 instructions
-      expect(programResult.history).toHaveLength(4)
+      expect(programResult.batches[0].actions).toHaveLength(4)
     })
 
     it('should handle nested blocks', async () => {
@@ -305,7 +305,7 @@ describe('Interpreter Enhancements', () => {
 
       expect(programResult.data.user).toBe('Emma')
       expect(programResult.data.count).toBe(100)
-      expect(programResult.history).toHaveLength(2)
+      expect(programResult.batches[0].actions).toHaveLength(2)
     })
   })
 })
@@ -394,8 +394,8 @@ describe('Acceptance Criteria', () => {
     })
   })
 
-  describe('AC-LOG-06: program execution logs all instructions', () => {
-    it('should have history.length equal to instruction count', async () => {
+  describe('AC-LOG-06: program execution logs all actions', () => {
+    it('should have actions.length equal to instruction count', async () => {
       const source = `
 @utils/set input="Emma" output=user
 @utils/set input="Carlos" output=friend
@@ -405,7 +405,7 @@ describe('Acceptance Criteria', () => {
       const program = programParser.val(source) as ProgramNode
       const programResult = await interpreter.executeProgram(program, context)
 
-      expect(programResult.history).toHaveLength(3)
+      expect(programResult.batches[0].actions).toHaveLength(3)
     })
   })
 
@@ -420,7 +420,7 @@ describe('Acceptance Criteria', () => {
       const programResult = await interpreter.executeProgram(program, context)
 
       // The log should have resolved 'user' to 'Emma'
-      expect(programResult.history[1].messages).toContain('Logged: Emma')
+      expect(programResult.batches[0].actions[1].messages).toContain('Logged: Emma')
     })
   })
 
@@ -588,7 +588,7 @@ describe('Output Targeting', () => {
 })
 
 describe('Output Targeting Integration', () => {
-  describe('history logging with scope output', () => {
+  describe('action logging with scope output', () => {
     let registry: CommandRegistry
     let interpreter: Interpreter
     let context: ExecutionContext

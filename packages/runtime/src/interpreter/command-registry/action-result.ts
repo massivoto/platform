@@ -1,7 +1,7 @@
 /**
  * ActionResult - the return type for command handler execution.
  *
- * Note: The interpreter handles InstructionLog creation.
+ * Note: The interpreter handles ActionLog creation.
  * Handlers just report success/failure, value, and cost.
  */
 

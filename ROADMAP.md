@@ -406,41 +406,55 @@ Focus on adoption and usability, no new runtime features.
 | **Runner**           | Infrastructure | Execution environment (Local, SaaS, On-Premise)            |
 | **Store**            | Infrastructure | State persistence backend (file, S3, database)             |
 
-### Terminology Clarification: Action vs Instruction vs Statement vs Command
+### Terminology Clarification (RESOLVED)
 
-**Current confusion:** The codebase uses "Statement", "Action", "Instruction", and "Command"
-inconsistently. This needs cleanup.
+**Decision date:** 2026-01-26
+**PRD:** [terminology-refactor.wip.prd.md](packages/runtime/src/terminology-refactor.wip.prd.md)
 
-**Target terminology (only these two):**
+#### Principle: Marketing-First, Parser is Closed
 
-| Term        | Layer     | Definition                                              |
-|-------------|-----------|--------------------------------------------------------|
-| **Action**  | OTO       | What the user writes: `@package/name args...`          |
-| **Command** | TypeScript | The handler class that executes an Action              |
+The Parser is a **closed module**. Internal types (`InstructionNode`, `StatementNode`) are implementation
+details that should not leak to public APIs. Public types use **marketing terms**.
 
-**Terms to eliminate:**
+#### Public API (Marketing Terms)
 
-| Current Term  | Replace With | Notes                            |
-|---------------|--------------|----------------------------------|
-| `Instruction` | `Action`     | `InstructionNode` → `ActionNode` |
+| Term | Type | Definition |
+|------|------|------------|
+| **Program** | `ProgramResult` | Complete `.oto` file execution result |
+| **Action** | `ActionResult`, `ActionLog` | What users write: `@pkg/name args...` (billable unit) |
+| **Batch** | `BatchResult` | Aggregation of Actions (Block, Template, any grouping) |
+| **Block** | - | `{ ... }` grouping (uses BatchResult) |
 
-**Open question:** Is a Block just a composite Action?
+#### Internal (Implementation Details)
 
-If yes, we don't need "Statement" at all - everything executable is an Action:
-- Single `@pkg/name` = Action
-- Block `{ ... }` = Action (composite)
+| Term | Type | Visibility |
+|------|------|------------|
+| Statement | `StatementNode`, `StatementResult` | Parser/Interpreter internal |
+| Instruction | `InstructionNode` | Parser internal |
+| Action (AST) | `ActionNode` | Parser internal (just the `@pkg/name` identifier) |
 
-This would eliminate the need for `StatementNode` entirely.
+#### Result Hierarchy
 
-**Result types:**
-- `ActionResult` - returned by Command handler (`handler.run()`)
-- `ProgramResult` - returned by program execution (`runProgram()`)
+```
+Program  →  Batch[]  →  Action[]
 
-**Refactoring tasks:**
-- [ ] Rename `InstructionNode` → `ActionNode`
-- [ ] Decide on `StatementNode` naming (keep or rename to `StepNode`?)
-- [ ] Rename `instruction-parser.ts` → `action-parser.ts`
-- [ ] Update all references in interpreter, evaluator, tests
+ProgramResult (program-level)
+  ├── batches: BatchResult[]
+  ├── duration: number            ← total program time (ms)
+  └── data, cost, context, exitCode...
+
+BatchResult (batch-level)
+  ├── success, message, actions: ActionLog[]
+  ├── totalCost, duration         ← batch metrics
+```
+
+#### Refactor Required
+
+| Change | Description |
+|--------|-------------|
+| `InstructionLog` → `ActionLog` | Align with marketing "Action" term |
+| NEW `BatchResult` | Aggregates ActionLogs with batch-level message |
+| Remove `ProgramResult.history` | Replaced by `batches: BatchResult[]` |
 
 ---
 
@@ -452,4 +466,5 @@ This would eliminate the need for `StatementNode` entirely.
 3. **Type system depth**: How strict should pipe type checking be in v1.0?
 4. **ProviderDriver naming**: Is "Driver" the right term? Alternatives:
    ProviderAdapter, ProviderHandler, AuthProvider?
-5. **Terminology cleanup**: When to rename `InstructionNode` → `ActionNode`? (breaking change)
+5. ~~**Terminology cleanup**: When to rename `InstructionNode` → `ActionNode`? (breaking change)~~
+   **Resolved:** Parser is a closed module. Keep internal types as-is. Only rename `InstructionLog` → `ActionLog` to align public API with marketing terms. See [terminology-refactor.wip.prd.md](packages/runtime/src/terminology-refactor.wip.prd.md)
