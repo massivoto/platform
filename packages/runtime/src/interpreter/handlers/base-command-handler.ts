@@ -20,7 +20,10 @@ export abstract class BaseCommandHandler<T> implements CommandHandler<T> {
     return result
   }
 
-  protected handleFailure(message: string, fatalError?: string): ActionResult<T> {
+  protected handleFailure(
+    message: string,
+    fatalError?: string,
+  ): ActionResult<T> {
     return {
       success: false,
       fatalError,

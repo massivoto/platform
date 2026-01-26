@@ -1288,6 +1288,7 @@ __metadata:
     "@modelcontextprotocol/sdk": "npm:^1.0.0"
     "@types/lodash.get": "npm:^4.4.9"
     "@types/lodash.set": "npm:^4.3.9"
+    commander: "npm:^14.0.2"
     lodash.get: "npm:^4.4.2"
     lodash.set: "npm:^4.3.2"
     prettier: "npm:^3.5.3"
@@ -4757,6 +4758,13 @@ __metadata:
   dependencies:
     delayed-stream: "npm:~1.0.0"
   checksum: 10c0/0dbb829577e1b1e839fa82b40c07ffaf7de8a09b935cadd355a73652ae70a88b4320db322f6634a4ad93424292fa80973ac6480986247f1734a1137debf271d5
+  languageName: node
+  linkType: hard
+
+"commander@npm:^14.0.2":
+  version: 14.0.2
+  resolution: "commander@npm:14.0.2"
+  checksum: 10c0/245abd1349dbad5414cb6517b7b5c584895c02c4f7836ff5395f301192b8566f9796c82d7bd6c92d07eba8775fe4df86602fca5d86d8d10bcc2aded1e21c2aeb
   languageName: node
   linkType: hard
 

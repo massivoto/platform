@@ -1,4 +1,12 @@
-import { C, F, GenLex, IGenLex, leanToken, SingleParser, TracingGenLex } from '@masala/parser'
+import {
+  C,
+  F,
+  GenLex,
+  IGenLex,
+  leanToken,
+  SingleParser,
+  TracingGenLex,
+} from '@masala/parser'
 import { createArgGrammar } from './arg-parser.js'
 import {
   ArgTokens,
@@ -71,7 +79,16 @@ export function createInstructionGrammar(
   tokens: InstructionTokens,
 ): SingleParser<InstructionNode> {
   const regularArg = createArgGrammar(tokens)
-  const { ACTION, OUTPUT_KEY, IF_KEY, FOREACH_KEY, LABEL_KEY, IDENTIFIER, DOT, STRING } = tokens
+  const {
+    ACTION,
+    OUTPUT_KEY,
+    IF_KEY,
+    FOREACH_KEY,
+    LABEL_KEY,
+    IDENTIFIER,
+    DOT,
+    STRING,
+  } = tokens
 
   // Expression parser for if= value (includes mapper expression support)
   const expression = createExpressionWithPipe(tokens)
@@ -128,11 +145,17 @@ export function createInstructionGrammar(
   const labelArg: SingleParser<LabelArgNode> = LABEL_KEY.drop()
     .then(STRING)
     .filter((tuple) => {
-      const stringNode = tuple.single() as { type: 'literal-string'; value: string }
+      const stringNode = tuple.single() as {
+        type: 'literal-string'
+        value: string
+      }
       return LABEL_PATTERN.test(stringNode.value)
     })
     .map((tuple) => {
-      const stringNode = tuple.single() as { type: 'literal-string'; value: string }
+      const stringNode = tuple.single() as {
+        type: 'literal-string'
+        value: string
+      }
       return {
         type: 'label-arg' as const,
         name: stringNode.value,
@@ -140,7 +163,10 @@ export function createInstructionGrammar(
     })
 
   // Combined reserved arg parser with backtracking
-  const reservedArg = F.try(outputArg).or(F.try(ifArg)).or(F.try(forEachArg)).or(labelArg)
+  const reservedArg = F.try(outputArg)
+    .or(F.try(ifArg))
+    .or(F.try(forEachArg))
+    .or(labelArg)
 
   // Any arg: try reserved first, then regular
   const anyArg = F.try(reservedArg).or(regularArg)

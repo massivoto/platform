@@ -319,7 +319,12 @@ export class Interpreter {
       }
       case 'continue':
       default:
-        return createNormalCompletion(result.context, batches, cost, programDuration)
+        return createNormalCompletion(
+          result.context,
+          batches,
+          cost,
+          programDuration,
+        )
     }
   }
 

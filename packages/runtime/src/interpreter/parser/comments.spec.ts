@@ -107,7 +107,8 @@ line 3 */@api/call endpoint="/users"`
     })
 
     it('should preserve URL with protocol in string', () => {
-      const input = '@api/call url="https://api.example.com/v1/users" // comment'
+      const input =
+        '@api/call url="https://api.example.com/v1/users" // comment'
       const result = stripComments(input)
       expect(result).toBe('@api/call url="https://api.example.com/v1/users" ')
     })

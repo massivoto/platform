@@ -82,10 +82,13 @@ export interface AppletTerminator {
  * This interface is kept for backwards compatibility and typing.
  */
 export interface AppletRegistry {
-  get(
-    key: string,
-  ): Promise<
-    { key: string; value: import('@massivoto/kit').AppletDefinition; bundleId: string } | undefined
+  get(key: string): Promise<
+    | {
+        key: string
+        value: import('@massivoto/kit').AppletDefinition
+        bundleId: string
+      }
+    | undefined
   >
   has(key: string): Promise<boolean>
   keys(): Promise<string[]>

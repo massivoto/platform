@@ -4,7 +4,12 @@ import {
   createEmptyExecutionContext,
   ExecutionContext,
 } from '../../domain/execution-context.js'
-import { lookup, createEmptyScopeChain, write, pushScope } from './scope-chain.js'
+import {
+  lookup,
+  createEmptyScopeChain,
+  write,
+  pushScope,
+} from './scope-chain.js'
 
 /**
  * Test file: scope-lifecycle.spec.ts
@@ -80,7 +85,10 @@ describe('Scope Lifecycle', () => {
       write('tweet', { id: 1, content: 'Hello!' }, forEachScope)
 
       // Verify iterator is in scope
-      expect(lookup('tweet', forEachScope)).toEqual({ id: 1, content: 'Hello!' })
+      expect(lookup('tweet', forEachScope)).toEqual({
+        id: 1,
+        content: 'Hello!',
+      })
       // And not in parent
       expect(lookup('tweet', parent)).toBeUndefined()
     })
@@ -261,7 +269,10 @@ describe('Nested Scope Chain Integration', () => {
       write('reply', { id: 100, text: 'Nice tweet!' }, replyScope)
 
       // From innermost, all three resolvable
-      expect(lookup('reply', replyScope)).toEqual({ id: 100, text: 'Nice tweet!' })
+      expect(lookup('reply', replyScope)).toEqual({
+        id: 100,
+        text: 'Nice tweet!',
+      })
       expect(lookup('tweet', replyScope)).toEqual({ id: 1, content: 'Hello!' })
       expect(lookup('user', replyScope)).toEqual({ name: 'Emma' })
     })

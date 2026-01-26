@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "oto": "./dist/bin/oto.js"
+  },
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
@@ -17,6 +20,7 @@
     "@masala/parser": "^2.0.0",
     "@massivoto/kit": "*",
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "commander": "^14.0.2",
     "lodash.get": "^4.4.2",
     "lodash.set": "^4.3.2",
     "zod": "^3.24.0"

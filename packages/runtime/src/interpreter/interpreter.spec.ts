@@ -11,7 +11,11 @@ import {
 import { buildInstructionParser } from './parser/instruction-parser.js'
 import { buildProgramParser } from './parser/program-parser.js'
 import { InstructionNode, ProgramNode } from './parser/ast.js'
-import { createEmptyScopeChain, write, lookup } from './evaluator/scope-chain.js'
+import {
+  createEmptyScopeChain,
+  write,
+  lookup,
+} from './evaluator/scope-chain.js'
 
 /**
  * Test file: interpreter.spec.ts
@@ -420,7 +424,9 @@ describe('Acceptance Criteria', () => {
       const programResult = await interpreter.executeProgram(program, context)
 
       // The log should have resolved 'user' to 'Emma'
-      expect(programResult.batches[0].actions[1].messages).toContain('Logged: Emma')
+      expect(programResult.batches[0].actions[1].messages).toContain(
+        'Logged: Emma',
+      )
     })
   })
 
@@ -528,9 +534,13 @@ describe('Output Targeting', () => {
       const statementResult = await interpreter.execute(ast, context)
 
       // Should be in current scope
-      expect(statementResult.context.scopeChain.current.newVar).toBe('child-value')
+      expect(statementResult.context.scopeChain.current.newVar).toBe(
+        'child-value',
+      )
       // Parent should be unchanged
-      expect(statementResult.context.scopeChain.parent?.current.newVar).toBeUndefined()
+      expect(
+        statementResult.context.scopeChain.parent?.current.newVar,
+      ).toBeUndefined()
     })
   })
 

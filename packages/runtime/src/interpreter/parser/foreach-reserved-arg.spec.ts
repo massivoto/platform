@@ -41,7 +41,9 @@ describe('ForEach Reserved Argument', () => {
     })
 
     it('parses forEach={users|filter:active} -> user (pipe expression iterable)', () => {
-      const parsing = parse('@block/begin forEach={users|filter:active} -> user')
+      const parsing = parse(
+        '@block/begin forEach={users|filter:active} -> user',
+      )
       expect(parsing.isAccepted()).toBe(true)
       const instr = parsing.value as InstructionNode
 

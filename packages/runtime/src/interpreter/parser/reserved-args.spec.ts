@@ -321,7 +321,10 @@ describe('Reserved Arguments', () => {
 
         expect(instr.label).toBe('checkpoint')
         expect(instr.output).toEqual({ type: 'identifier', value: 'result' })
-        expect(instr.condition).toEqual({ type: 'identifier', value: 'isActive' })
+        expect(instr.condition).toEqual({
+          type: 'identifier',
+          value: 'isActive',
+        })
         expect(instr.args.length).toBe(1)
       })
 

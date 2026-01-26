@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { validateLabels, LabelValidationError, buildLabelIndex } from './label-validation.js'
+import {
+  validateLabels,
+  LabelValidationError,
+  buildLabelIndex,
+} from './label-validation.js'
 import { buildProgramParser } from '../parser/program-parser.js'
 
 describe('Label Validation (AST Post-Processing)', () => {
