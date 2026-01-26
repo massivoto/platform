@@ -162,7 +162,11 @@ export interface ForEachArgNode {
 /**
  * Union of all reserved argument types.
  */
-export type ReservedArgNode = OutputArgNode | IfArgNode | ForEachArgNode | LabelArgNode
+export type ReservedArgNode =
+  | OutputArgNode
+  | IfArgNode
+  | ForEachArgNode
+  | LabelArgNode
 
 /**
  * ActionNode represents the @package/name identifier in OTO source.

@@ -2176,9 +2176,9 @@ describe('ExpressionEvaluator - Pipe Expressions', () => {
         input: { type: 'identifier', value: 'users' },
         segments: [{ pipeName: 'unknownPipe', args: [] }],
       }
-      await expect(
-        pipeEvaluator.evaluate(expr, usersContext),
-      ).rejects.toThrow(/unknown.*pipe.*unknownPipe/i)
+      await expect(pipeEvaluator.evaluate(expr, usersContext)).rejects.toThrow(
+        /unknown.*pipe.*unknownPipe/i,
+      )
     })
 
     // AC-PIPE-10: Given count = 5, when evaluating {count | filter:x:true},
@@ -2197,9 +2197,9 @@ describe('ExpressionEvaluator - Pipe Expressions', () => {
           },
         ],
       }
-      await expect(
-        pipeEvaluator.evaluate(expr, usersContext),
-      ).rejects.toThrow(/filter.*array/i)
+      await expect(pipeEvaluator.evaluate(expr, usersContext)).rejects.toThrow(
+        /filter.*array/i,
+      )
     })
 
     it('should throw error for map on non-array', async () => {
@@ -2213,9 +2213,9 @@ describe('ExpressionEvaluator - Pipe Expressions', () => {
           },
         ],
       }
-      await expect(
-        pipeEvaluator.evaluate(expr, usersContext),
-      ).rejects.toThrow(/map.*array/i)
+      await expect(pipeEvaluator.evaluate(expr, usersContext)).rejects.toThrow(
+        /map.*array/i,
+      )
     })
   })
 
@@ -2232,9 +2232,9 @@ describe('ExpressionEvaluator - Pipe Expressions', () => {
         input: { type: 'identifier', value: 'items' },
         segments: [{ pipeName: 'first', args: [] }],
       }
-      await expect(
-        oldEvaluator.evaluate(expr, usersContext),
-      ).rejects.toThrow(/pipe/i)
+      await expect(oldEvaluator.evaluate(expr, usersContext)).rejects.toThrow(
+        /pipe/i,
+      )
     })
   })
 })

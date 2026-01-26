@@ -347,11 +347,7 @@ describe('ScopeChain', () => {
         userScope = popScope(userScope)
       }
 
-      expect(results).toEqual([
-        'Emma: Hello!',
-        'Emma: World!',
-        'Carlos: Hola!',
-      ])
+      expect(results).toEqual(['Emma: Hello!', 'Emma: World!', 'Carlos: Hola!'])
     })
 
     it('should handle shadowing in nested forEach', () => {

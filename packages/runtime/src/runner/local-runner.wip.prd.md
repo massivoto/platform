@@ -30,14 +30,14 @@ This enables:
 |---------|--------|----------|
 | Context | Complete | - |
 | Scope | Complete | - |
-| Requirements: Result Types | Draft | 0/4 |
+| Requirements: Result Types | Complete | 4/4 |
 | Requirements: Core Runner | Draft | 0/6 |
 | Requirements: CLI | Draft | 0/10 |
 | Requirements: Output | Draft | 0/5 |
-| Requirements: Migration | Draft | 0/3 |
+| Requirements: Migration | Complete | 3/3 |
 | Acceptance Criteria | Draft | 0/19 |
 | Theme | Defined | - |
-| **Overall** | **DRAFT** | **0%** |
+| **Overall** | **DRAFT** | **25%** |
 
 ## Parent PRD
 
@@ -86,7 +86,7 @@ What we need:
 | 2026-01-21 | Result types | **ActionLog + BatchResult + ProgramResult** | Clear hierarchy: Program → Batch → Action |
 | 2026-01-21 | InstructionLog | **Remove (breaking)**                          | Replaced by ActionLog |
 | 2026-01-26 | Directory structure | **compiler → interpreter**                     | Terminology refactor: compiler/ renamed to interpreter/ for clarity |
-| 2026-01-26 | Terminology | **See terminology-refactor.wip.prd.md**        | Marketing-first: Program, Action, Batch |
+| 2026-01-26 | Terminology | **See terminology-refactor.done.prd.md**       | Marketing-first: Program, Action, Batch |
 
 ## Scope
 
@@ -113,13 +113,13 @@ What we need:
 
 **Last updated:** 2026-01-26
 **Test:** `npx vitest run packages/runtime/src/domain`
-**Progress:** 0/4 (0%)
-**Note:** See [terminology-refactor.wip.prd.md](./terminology-refactor.wip.prd.md) for type definitions.
+**Progress:** 4/4 (100%)
+**Implemented by:** [terminology-refactor.done.prd.md](../terminology-refactor.done.prd.md)
 
-- [ ] R-TYPE-01: Create `ActionLog` interface (command, success, timing, cost, messages)
-- [ ] R-TYPE-02: Create `BatchResult` interface (success, message, actions: ActionLog[], totalCost)
-- [ ] R-TYPE-03: Update `ProgramResult` to use `batches: BatchResult[]`
-- [ ] R-TYPE-04: `BatchResult.totalCost` equals sum of all `ActionLog.cost`
+- [x] R-TYPE-01: Create `ActionLog` interface (command, success, timing, cost, messages)
+- [x] R-TYPE-02: Create `BatchResult` interface (success, message, actions: ActionLog[], totalCost)
+- [x] R-TYPE-03: Update `ProgramResult` to use `batches: BatchResult[]`
+- [x] R-TYPE-04: `BatchResult.totalCost` equals sum of all `ActionLog.cost`
 
 ### Core Runner
 
@@ -165,13 +165,14 @@ What we need:
 
 ### Migration (Breaking Changes)
 
-**Last updated:** 2026-01-21
+**Last updated:** 2026-01-26
 **Test:** `npx vitest run packages/runtime`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
+**Implemented by:** [terminology-refactor.done.prd.md](../terminology-refactor.done.prd.md)
 
-- [ ] R-MIGRATE-01: Remove `InstructionLog` interface from `execution-context.ts`
-- [ ] R-MIGRATE-02: Remove `context.meta.history` field (replaced by `ProgramResult.commands`)
-- [ ] R-MIGRATE-03: Update all existing tests using `InstructionLog` or `meta.history` to use new types
+- [x] R-MIGRATE-01: Remove `InstructionLog` interface from `execution-context.ts`
+- [x] R-MIGRATE-02: Remove `context.meta.history` field (replaced by `ProgramResult.batches`)
+- [x] R-MIGRATE-03: Update all existing tests using `InstructionLog` or `meta.history` to use new types
 
 ## Dependencies
 
@@ -181,7 +182,7 @@ What we need:
   - Interpreter in `interpreter/interpreter.ts` (IMPLEMENTED) - execution (needs update for BatchResult)
   - Evaluator in `interpreter/evaluator/` (IMPLEMENTED) - statement evaluation
   - Scope chain in `interpreter/evaluator/scope-chain.ts` (IMPLEMENTED) - variable resolution
-  - [terminology-refactor.wip.prd.md](./terminology-refactor.wip.prd.md) - defines ActionLog, BatchResult
+  - [terminology-refactor.done.prd.md](../terminology-refactor.done.prd.md) - defines ActionLog, BatchResult (IMPLEMENTED)
 
 - **Breaks:**
   - `InstructionLog` consumers - must migrate to ActionLog
@@ -251,19 +252,21 @@ What we need:
 packages/runtime/
   src/
     runner/
-      local-runner.ts        # LocalRunner class
-      local-runner.spec.ts   # Unit tests
-      runner.types.ts        # Shared types
+      file-runner.ts         # FileRunner class
+      file-runner.spec.ts    # Unit tests
+      runner.types.ts        # Shared types (errors, options)
       index.ts               # Exports
-  bin/
-    oto.ts                   # CLI entry point
+    bin/
+      oto.ts                 # CLI entry point
+      oto.spec.ts            # CLI integration tests
 ```
 
 ### Types
 
 ```typescript
 // ============================================================================
-// Result Types - See terminology-refactor.wip.prd.md for full details
+// Result Types - ALREADY IMPLEMENTED in terminology-refactor.done.prd.md
+// These types exist in domain/action-log.ts, domain/batch-result.ts, domain/program-result.ts
 // ============================================================================
 
 /**
@@ -331,7 +334,7 @@ export interface RunOptions {
 
 ### Breaking Changes
 
-See [terminology-refactor.wip.prd.md](./terminology-refactor.wip.prd.md) for full details.
+See [terminology-refactor.done.prd.md](../terminology-refactor.done.prd.md) for full details. **Already implemented.**
 
 **Removed: `InstructionLog`** → replaced by `ActionLog`
 
