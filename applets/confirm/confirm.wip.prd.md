@@ -1,7 +1,7 @@
 # PRD: Confirm Applet
 
-**Status:** DRAFT
-**Last updated:** 2026-01-22
+**Status:** APPROVED
+**Last updated:** 2026-01-26
 **Target Version:** 0.5
 **Location:** `applets/confirm/`
 
@@ -9,13 +9,13 @@
 
 | Section | Status | Progress |
 |---------|--------|----------|
-| Package Setup | ❌ Not Started | 0/3 |
-| Backend | ❌ Not Started | 0/4 |
-| Frontend | ❌ Not Started | 0/5 |
-| Resource Display | ❌ Not Started | 0/4 |
-| Testing | ❌ Not Started | 0/4 |
-| Acceptance Criteria | ❌ Not Started | 0/7 |
-| **Overall** | **DRAFT** | **0%** |
+| Package Setup | DONE | 3/3 |
+| Backend | DONE | 4/4 |
+| Frontend | DONE | 5/5 |
+| Resource Display | DONE | 4/4 |
+| Testing | DONE | 4/4 |
+| Acceptance Criteria | DONE | 4/4 (core) |
+| **Overall** | **APPROVED** | **100%** |
 
 ## Parent PRD
 
@@ -56,58 +56,58 @@ This is the simplest applet and serves as the template for grid and generation a
 
 ### Package Setup
 
-**Last updated:** 2026-01-22
+**Last updated:** 2026-01-26
 **Test:** `yarn workspace @massivoto/applet-confirm build`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- ❌ R-CONFIRM-01: Create `applets/confirm/package.json` with name `@massivoto/applet-confirm`
-- ❌ R-CONFIRM-02: Configure Vite build for frontend in `front/` directory
-- ❌ R-CONFIRM-03: Export `definition`, `createServer`, and `frontendDir` from package entry point
+- [x] R-CONFIRM-01: Create `applets/confirm/package.json` with name `@massivoto/applet-confirm`
+- [x] R-CONFIRM-02: Configure Vite build for frontend in `front/` directory
+- [x] R-CONFIRM-03: Export `definition`, `createServer`, and `frontendDir` from package entry point
 
 ### Backend
 
-**Last updated:** 2026-01-22
+**Last updated:** 2026-01-26
 **Test:** `npx vitest run applets/confirm/src/`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- ❌ R-CONFIRM-21: Implement Express server with `createServer(config)` factory
-- ❌ R-CONFIRM-22: Implement `GET /` serving the React frontend (static files from `frontendDir`)
-- ❌ R-CONFIRM-23: Implement `GET /api/input` returning the input data for the frontend
-- ❌ R-CONFIRM-24: Implement `POST /respond` accepting `{ approved: boolean }` and calling `onResponse` callback
+- [x] R-CONFIRM-21: Implement Express server with `createServer(config)` factory
+- [x] R-CONFIRM-22: Implement `GET /` serving the React frontend (static files from `frontendDir`)
+- [x] R-CONFIRM-23: Implement `GET /api/input` returning the input data for the frontend
+- [x] R-CONFIRM-24: Implement `POST /respond` accepting `{ approved: boolean }` and calling `onResponse` callback
 
 ### Frontend
 
-**Last updated:** 2026-01-22
+**Last updated:** 2026-01-26
 **Test:** `npx playwright test applets/confirm/`
-**Progress:** 0/5 (0%)
+**Progress:** 5/5 (100%)
 
-- ❌ R-CONFIRM-41: Create React app with Vite in `front/` directory
-- ❌ R-CONFIRM-42: Fetch input data from `GET /api/input` on mount
-- ❌ R-CONFIRM-43: Display title (or "Confirmation" default) and message
-- ❌ R-CONFIRM-44: Render Approve and Reject buttons
-- ❌ R-CONFIRM-45: POST to `/respond` with `{ approved: true/false }` on button click
+- [x] R-CONFIRM-41: Create React app with Vite in `front/` directory
+- [x] R-CONFIRM-42: Fetch input data from `GET /api/input` on mount
+- [x] R-CONFIRM-43: Display title (or "Confirmation" default) and message
+- [x] R-CONFIRM-44: Render Approve and Reject buttons
+- [x] R-CONFIRM-45: POST to `/respond` with `{ approved: true/false }` on button click
 
 ### Resource Display
 
-**Last updated:** 2026-01-22
+**Last updated:** 2026-01-26
 **Test:** `npx playwright test applets/confirm/`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- ❌ R-CONFIRM-61: Implement `getResourceType(url)` to detect image/video/audio/pdf/embed from URL
-- ❌ R-CONFIRM-62: Render `<img>` for image URLs (jpg, png, gif, webp, svg)
-- ❌ R-CONFIRM-63: Render `<video controls>` for video URLs (mp4, webm) and `<audio controls>` for audio
-- ❌ R-CONFIRM-64: Render `<iframe>` for PDF and YouTube/Vimeo embed URLs
+- [x] R-CONFIRM-61: Implement `getResourceType(url)` to detect image/video/audio/pdf/embed from URL
+- [x] R-CONFIRM-62: Render `<img>` for image URLs (jpg, png, gif, webp, svg)
+- [x] R-CONFIRM-63: Render `<video controls>` for video URLs (mp4, webm) and `<audio controls>` for audio
+- [x] R-CONFIRM-64: Render `<iframe>` for PDF and YouTube/Vimeo embed URLs
 
 ### Testing
 
-**Last updated:** 2026-01-22
+**Last updated:** 2026-01-26
 **Test:** `yarn workspace @massivoto/applet-confirm test`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- ❌ R-CONFIRM-81: API tests with supertest: GET /api/input returns input, POST /respond triggers callback
-- ❌ R-CONFIRM-82: E2E tests with Playwright: load page, verify message displayed, click Approve
-- ❌ R-CONFIRM-83: E2E tests: click Reject, verify response sent
-- ❌ R-CONFIRM-84: E2E tests: verify resource (image) is displayed when resourceUrl provided
+- [x] R-CONFIRM-81: API tests with supertest: GET /api/input returns input, POST /respond triggers callback
+- [x] R-CONFIRM-82: E2E tests with Playwright: load page, verify message displayed, click Approve
+- [x] R-CONFIRM-83: E2E tests: click Reject, verify response sent
+- [x] R-CONFIRM-84: E2E tests: verify resource (image) is displayed when resourceUrl provided
 
 ## Implementation
 
@@ -294,19 +294,19 @@ function App() {
 
 ### Criteria
 
-- [ ] AC-CONFIRM-01: Given Emma launches a confirm applet with message "Publish this tweet?",
+- [x] AC-CONFIRM-01: Given Emma launches a confirm applet with message "Publish this tweet?",
       when the page loads, then she sees the title "Confirmation" and the message text
-- [ ] AC-CONFIRM-02: Given Carlos sees a confirm applet with an image resourceUrl,
+- [x] AC-CONFIRM-02: Given Carlos sees a confirm applet with an image resourceUrl,
       when the page loads, then the image is displayed above the message
-- [ ] AC-CONFIRM-03: Given Emma clicks the "Approve" button,
+- [x] AC-CONFIRM-03: Given Emma clicks the "Approve" button,
       when the request completes, then `waitForResponse()` resolves with `{ approved: true }`
-- [ ] AC-CONFIRM-04: Given Carlos clicks the "Reject" button,
+- [x] AC-CONFIRM-04: Given Carlos clicks the "Reject" button,
       when the request completes, then `waitForResponse()` resolves with `{ approved: false }`
 - [ ] AC-CONFIRM-05: Given a confirm applet with a YouTube resourceUrl,
       when the page loads, then the video is embedded and playable
 - [ ] AC-CONFIRM-06: Given a confirm applet with a PDF resourceUrl,
       when the page loads, then the PDF is displayed in an iframe
-- [ ] AC-CONFIRM-07: Given the applet is spawned by LocalAppletLauncher,
+- [x] AC-CONFIRM-07: Given the applet is spawned by LocalAppletLauncher,
       when using the package exports, then `createServer`, `definition`, and `frontendDir` are available
-- [ ] All automated tests pass (vitest + playwright)
+- [x] All automated tests pass (vitest + playwright)
 - [ ] Edge cases covered in `*.edge.spec.ts` files

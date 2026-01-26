@@ -22,14 +22,9 @@ The goal is to have a working local runner to validate the product concept.
   `expression-grammar.md`. Braced expressions should be first-class citizens
   in the expression grammar documentation, not a hidden feature.
 
-### Syntax Strictness
-
-- [x] **No spaces around `=`**: `key=value` only, reject `key = value` and
-  `key= value`
 
 ### Parser Enhancements
 
-- [ ] **Goto/Label**: control flow jumps for complex workflows
 - [ ] **Error format**: Errors sent need to be absolutely readable by a LLM
 
 ### Evaluator
@@ -136,6 +131,9 @@ Also every applet have a non-ui input that is sufficient
 
 - [ ] **Rest api** : send to the api backend the POST query with user inputs
 - [ ] **Command cli** : a Commander cli is able to send inputs
+
+Applet package.json file should enable a run ; also maybe it should produce a bin that is callable from the command line.
+And also produce a docker container. This can be generic for all applets.
 
 ## Common Registry Interface & Reload
 
@@ -387,6 +385,12 @@ Focus on adoption and usability, no new runtime features.
 
 - [ ] **REPL mode**: interactive execution for debugging
 
+### Syntax Strictness
+
+- [x] **No spaces around `=`**: `key=value` only, reject `key = value` and
+  `key= value`
+
+
 ---
 
 ## Terminology
@@ -406,55 +410,6 @@ Focus on adoption and usability, no new runtime features.
 | **Runner**           | Infrastructure | Execution environment (Local, SaaS, On-Premise)            |
 | **Store**            | Infrastructure | State persistence backend (file, S3, database)             |
 
-### Terminology Clarification (RESOLVED)
-
-**Decision date:** 2026-01-26
-**PRD:** [terminology-refactor.wip.prd.md](packages/runtime/src/terminology-refactor.wip.prd.md)
-
-#### Principle: Marketing-First, Parser is Closed
-
-The Parser is a **closed module**. Internal types (`InstructionNode`, `StatementNode`) are implementation
-details that should not leak to public APIs. Public types use **marketing terms**.
-
-#### Public API (Marketing Terms)
-
-| Term | Type | Definition |
-|------|------|------------|
-| **Program** | `ProgramResult` | Complete `.oto` file execution result |
-| **Action** | `ActionResult`, `ActionLog` | What users write: `@pkg/name args...` (billable unit) |
-| **Batch** | `BatchResult` | Aggregation of Actions (Block, Template, any grouping) |
-| **Block** | - | `{ ... }` grouping (uses BatchResult) |
-
-#### Internal (Implementation Details)
-
-| Term | Type | Visibility |
-|------|------|------------|
-| Statement | `StatementNode`, `StatementResult` | Parser/Interpreter internal |
-| Instruction | `InstructionNode` | Parser internal |
-| Action (AST) | `ActionNode` | Parser internal (just the `@pkg/name` identifier) |
-
-#### Result Hierarchy
-
-```
-Program  →  Batch[]  →  Action[]
-
-ProgramResult (program-level)
-  ├── batches: BatchResult[]
-  ├── duration: number            ← total program time (ms)
-  └── data, cost, context, exitCode...
-
-BatchResult (batch-level)
-  ├── success, message, actions: ActionLog[]
-  ├── totalCost, duration         ← batch metrics
-```
-
-#### Refactor Required
-
-| Change | Description |
-|--------|-------------|
-| `InstructionLog` → `ActionLog` | Align with marketing "Action" term |
-| NEW `BatchResult` | Aggregates ActionLogs with batch-level message |
-| Remove `ProgramResult.history` | Replaced by `batches: BatchResult[]` |
 
 ---
 

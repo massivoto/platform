@@ -1,0 +1,22 @@
+# docker-compose.yml for local development
+# Generated for @massivoto/applet-confirm
+version: '3.8'
+
+services:
+  applet-confirm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - APPLET_INPUT_MESSAGE=${APPLET_INPUT_MESSAGE:-Please confirm}
+      - APPLET_INPUT_TITLE=${APPLET_INPUT_TITLE:-Confirmation}
+      - APPLET_INPUT_RESOURCE_URL=${APPLET_INPUT_RESOURCE_URL:-}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3

@@ -1,6 +1,9 @@
-export * from './network'
-export * from './testing'
-export * from './errors'
-export * from './time'
-export * from './registry'
-export * from './applets'
+export * from './network/index.js'
+export * from './errors/index.js'
+export * from './time/index.js'
+export * from './registry/index.js'
+export * from './applets/index.js'
+
+// Note: Testing utilities (./testing) are not exported from main entry point
+// They import vitest which is a devDependency and not available at runtime.
+// Import directly from '@massivoto/kit/testing' if needed in test files.

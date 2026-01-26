@@ -28,3 +28,6 @@ export { AppletRegistry } from './applet-registry.js'
 
 // Bundles
 export { CoreAppletsBundle } from './core-applets-bundle.js'
+
+// Docker utilities
+export * from './docker/index.js'
