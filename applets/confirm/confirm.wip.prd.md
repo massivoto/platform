@@ -14,8 +14,11 @@
 | Frontend | DONE | 5/5 |
 | Resource Display | DONE | 4/4 |
 | Testing | DONE | 4/4 |
-| Acceptance Criteria | DONE | 4/4 (core) |
-| **Overall** | **APPROVED** | **100%** |
+| Runtime Integration | NOT STARTED | 0/6 |
+| ExecutionContext Changes | NOT STARTED | 0/4 |
+| End-to-End Integration | NOT STARTED | 0/5 |
+| Acceptance Criteria | PARTIAL | 7/12 |
+| **Overall** | **APPROVED** | **70%** |
 
 ## Parent PRD
 
@@ -36,6 +39,10 @@ This is the simplest applet and serves as the template for grid and generation a
 | Date | Option | Decision | Rationale |
 |------|--------|----------|-----------|
 | 2026-01-22 | Resource display | **Auto-detect from URL** | `resourceUrl?: string` with auto-detection for images/video/PDF/embeds. No external library needed, 100% browser native. |
+| 2026-01-26 | Output format | **Boolean** | Handler returns `true`/`false` to output variable. Simple, programmatic. |
+| 2026-01-26 | Browser launch | **User opens manually** | Program logs URL, user opens browser. Works for AWS deployment where runner is remote. Testable with Playwright. |
+| 2026-01-26 | AppletLauncher injection | **`context.appletLauncher`** | Explicit field on ExecutionContext. Type-safe, discoverable. Will refactor to DI in v1.0. |
+| 2026-01-26 | Program status tracking | **`context.status` + `context.userLogs`** | Track program state and user-facing logs in ExecutionContext for v0.5. |
 
 ## Scope
 
@@ -45,12 +52,16 @@ This is the simplest applet and serves as the template for grid and generation a
 - Resource display (image, video, PDF, YouTube/Vimeo embed)
 - Package exports for LocalAppletLauncher integration
 - API tests (supertest) and E2E tests (Playwright)
+- **`@human/confirm` command handler** (runtime integration)
+- **ExecutionContext changes** (`userLogs`, `status`, `appletLauncher`)
+- **End-to-end integration tests** with LocalRunner + Playwright
 
 **Out of scope:**
 - Authentication (applets are local-only for v0.5)
 - Styling customization (default theme only)
 - Internationalization
 - Mobile-specific layouts
+- Auto-opening browser (user opens URL manually)
 
 ## Requirements
 
@@ -108,6 +119,50 @@ This is the simplest applet and serves as the template for grid and generation a
 - [x] R-CONFIRM-82: E2E tests with Playwright: load page, verify message displayed, click Approve
 - [x] R-CONFIRM-83: E2E tests: click Reject, verify response sent
 - [x] R-CONFIRM-84: E2E tests: verify resource (image) is displayed when resourceUrl provided
+
+### Runtime Integration
+
+**Last updated:** 2026-01-26
+**Test:** `npx vitest run packages/runtime/src/interpreter/core-handlers/human/`
+**Progress:** 0/6 (0%)
+
+- [ ] R-CONFIRM-101: Create `@human/confirm` command handler in `packages/runtime/src/interpreter/core-handlers/human/confirm.handler.ts`
+- [ ] R-CONFIRM-102: Handler validates required `message` argument, optional `title` and `resourceUrl`
+- [ ] R-CONFIRM-103: Handler retrieves `appletLauncher` from `context.appletLauncher`, throws if not configured
+- [ ] R-CONFIRM-104: Handler calls `appletLauncher.launch('confirm', input, context)` and logs the instance URL
+- [ ] R-CONFIRM-105: Handler sets `context.status = 'waitingHumanValidation'` before waiting, restores to `'running'` after
+- [ ] R-CONFIRM-106: Handler calls `instance.waitForResponse()`, extracts `approved: boolean`, returns as `value` for output variable
+
+### ExecutionContext Changes
+
+**Last updated:** 2026-01-26
+**Test:** `npx vitest run packages/runtime/src/domain/`
+**Progress:** 0/4 (0%)
+
+These changes are prerequisites for runtime integration.
+
+- [ ] R-CONFIRM-121: Add `userLogs: string[]` field to `ExecutionContext` interface
+- [ ] R-CONFIRM-122: Add `status: 'running' | 'waitingHumanValidation' | 'finished' | 'error'` field to `ExecutionContext`
+- [ ] R-CONFIRM-123: Add `appletLauncher?: AppletLauncher` field to `ExecutionContext` interface
+- [ ] R-CONFIRM-124: Update `@utils/log` handler to append message to `context.userLogs[]` (in addition to console.log)
+
+### End-to-End Integration
+
+**Last updated:** 2026-01-26
+**Test:** `npx playwright test packages/runtime/src/runner/e2e/`
+**Progress:** 0/5 (0%)
+
+These tests validate the full flow from ROADMAP acceptance criteria.
+
+**Prerequisites:** Before implementing E2E tests, ensure these handlers pass their unit tests:
+- `packages/runtime/src/interpreter/core-handlers/utils/set.spec.ts`
+- `packages/runtime/src/interpreter/core-handlers/utils/log.handler.spec.ts`
+
+- [ ] R-CONFIRM-141: Create E2E test file `packages/runtime/src/runner/e2e/confirm-applet.e2e.spec.ts`
+- [ ] R-CONFIRM-142: Test executes OTO script: `@utils/set input="The fox jumps lazy" output=message` followed by `@human/confirm message="Do you confirm tweet?"` followed by `@utils/log message={"user said: "+confirmation}`
+- [ ] R-CONFIRM-143: Test uses Playwright to open the applet URL and click "Approve", verifies `context.userLogs` contains "user said: true"
+- [ ] R-CONFIRM-144: Test uses Playwright to click "Reject", verifies `context.userLogs` contains "user said: false"
+- [ ] R-CONFIRM-145: Test verifies LocalRunner logs the applet URL to stdout/stderr for user to open
 
 ## Implementation
 
@@ -264,6 +319,198 @@ function App() {
 }
 ```
 
+### ExecutionContext Changes
+
+```typescript
+// packages/runtime/src/domain/execution-context.ts
+
+export interface ExecutionContext {
+  env: Record<string, string>
+  data: SerializableObject
+  scopeChain: ScopeChain
+  extra: any
+  meta: {
+    tool?: string
+    updatedAt: ReadableDate
+  }
+  user: {
+    id: string
+    extra: SerializableObject
+  }
+  store: SerializableStorePointer
+  storeProvider?: StoreProvider
+  prompts: string[]
+
+  // NEW: Runtime services (v0.5)
+  appletLauncher?: AppletLauncher
+
+  // NEW: Program tracking
+  userLogs: string[]
+  status: 'running' | 'waitingHumanValidation' | 'finished' | 'error'
+}
+```
+
+### @human/confirm Command Handler
+
+```typescript
+// packages/runtime/src/interpreter/core-handlers/human/confirm.handler.ts
+
+import { ActionResult } from '../../handlers/action-result.js'
+import { CommandHandler } from '../../handlers/command-registry.js'
+import { ExecutionContext } from '../../../domain/index.js'
+
+export class ConfirmHandler implements CommandHandler<boolean> {
+  readonly id = '@human/confirm'
+  readonly type = 'command' as const
+
+  async init(): Promise<void> {}
+  async dispose(): Promise<void> {}
+
+  async run(
+    args: Record<string, any>,
+    context: ExecutionContext,
+  ): Promise<ActionResult<boolean>> {
+    const { message, title, resourceUrl } = args
+
+    // Validate required argument
+    if (!message) {
+      return {
+        success: false,
+        fatalError: 'Message is required',
+        messages: ['Missing required argument: message'],
+        cost: 0,
+      }
+    }
+
+    // Check for appletLauncher
+    if (!context.appletLauncher) {
+      return {
+        success: false,
+        fatalError: 'AppletLauncher not configured',
+        messages: ['Cannot launch confirm applet: appletLauncher not available in context'],
+        cost: 0,
+      }
+    }
+
+    // Launch the applet
+    const input = { message, title, resourceUrl }
+    const instance = await context.appletLauncher.launch('confirm', input, context)
+
+    // Log URL for user to open
+    console.log(`[APPLET] Waiting for human validation at: ${instance.url}`)
+
+    // Update status
+    const previousStatus = context.status
+    context.status = 'waitingHumanValidation'
+
+    try {
+      // Wait for user response
+      const response = await instance.waitForResponse<{ approved: boolean }>()
+
+      // Restore status
+      context.status = previousStatus ?? 'running'
+
+      return {
+        success: true,
+        value: response.approved,  // boolean: true or false
+        messages: [`User responded: ${response.approved ? 'Approved' : 'Rejected'}`],
+        cost: 0,
+      }
+    } catch (error) {
+      context.status = 'error'
+      return {
+        success: false,
+        fatalError: error instanceof Error ? error.message : 'Unknown error',
+        messages: ['Applet response failed'],
+        cost: 0,
+      }
+    } finally {
+      // Clean up
+      await instance.terminator.terminate()
+    }
+  }
+}
+```
+
+### Updated @utils/log Handler
+
+```typescript
+// packages/runtime/src/interpreter/core-handlers/utils/log.handler.ts
+// Updated to write to context.userLogs
+
+async run(
+  args: Record<string, any>,
+  context: ExecutionContext,
+): Promise<ActionResult<void>> {
+  const message = args.message
+  if (message === undefined || message === null) {
+    return {
+      success: false,
+      fatalError: 'Message is required',
+      messages: ['Missing required argument: message'],
+      cost: 0,
+    }
+  }
+  const messageStr = String(message)
+
+  // Log to console (existing behavior)
+  console.log(`[LOG] ${messageStr}`)
+
+  // NEW: Append to userLogs
+  if (context.userLogs) {
+    context.userLogs.push(messageStr)
+  }
+
+  return {
+    success: true,
+    messages: [`Logged: ${messageStr}`],
+    cost: 0,
+  }
+}
+```
+
+### E2E Test Example
+
+```typescript
+// packages/runtime/src/runner/e2e/confirm-applet.e2e.spec.ts
+
+import { test, expect } from '@playwright/test'
+import { FileRunner } from '../file-runner.js'
+import { LocalAppletLauncher } from '../../applets/local/local-applet-launcher.js'
+import { fromPartialContext } from '../../domain/index.js'
+
+test.describe('Confirm Applet E2E', () => {
+  test('user approves confirmation and result is logged', async ({ page }) => {
+    // Create runner with applet launcher
+    const runner = new FileRunner({
+      appletLauncher: new LocalAppletLauncher({ registry: coreAppletsRegistry }),
+    })
+
+    // Create context with userLogs initialized
+    const context = fromPartialContext({
+      userLogs: [],
+      status: 'running',
+    })
+
+    // Start execution in background (will pause at @human/confirm)
+    const resultPromise = runner.runFile('test-fixtures/confirm-test.oto', { context })
+
+    // Wait for applet URL to be logged (poll or event)
+    const appletUrl = await waitForAppletUrl()
+
+    // Use Playwright to interact with applet
+    await page.goto(appletUrl)
+    await page.click('button:has-text("Approve")')
+
+    // Wait for execution to complete
+    const result = await resultPromise
+
+    // Verify userLogs contains expected message
+    expect(result.context.userLogs).toContainEqual(expect.stringContaining('user said: true'))
+  })
+})
+```
+
 ## Dependencies
 
 - **Depends on:**
@@ -271,10 +518,15 @@ function App() {
   - `express` (backend)
   - `vite` + `react` (frontend)
   - `zod` (schema validation)
+  - `@utils/set` handler - must pass tests before E2E integration
+  - `@utils/log` handler - must pass tests before E2E integration
+  - `LocalAppletLauncher` - for spawning applet instances
+  - `FileRunner` - for executing OTO files in E2E tests
 
 - **Blocks:**
   - Grid applet (will follow same pattern)
   - Generation applet
+  - Full v0.5 local execution workflow
 
 ## Open Questions
 
@@ -292,7 +544,7 @@ function App() {
 > Test scenarios use content approval workflows where human reviewers validate
 > AI-generated social media posts before publishing.
 
-### Criteria
+### Criteria (Applet Component)
 
 - [x] AC-CONFIRM-01: Given Emma launches a confirm applet with message "Publish this tweet?",
       when the page loads, then she sees the title "Confirmation" and the message text
@@ -308,5 +560,34 @@ function App() {
       when the page loads, then the PDF is displayed in an iframe
 - [x] AC-CONFIRM-07: Given the applet is spawned by LocalAppletLauncher,
       when using the package exports, then `createServer`, `definition`, and `frontendDir` are available
+
+### Criteria (End-to-End - from ROADMAP v0.5)
+
+These acceptance criteria come directly from ROADMAP.md "Applets confirm to work" section.
+
+**Test OTO Script:**
+```oto
+@utils/set input="The fox jumps lazy" output=message
+@human/confirm message="Do you confirm tweet? <br/> 'The fox jumps lazy'" output=confirmation
+@utils/log message={"user said: "+confirmation}
+```
+
+- [ ] AC-CONFIRM-E2E-01: Given the LocalRunner executes the above OTO script,
+      when the `@human/confirm` command is reached,
+      then the runner logs the applet URL and sets `context.status = 'waitingHumanValidation'`
+- [ ] AC-CONFIRM-E2E-02: Given Emma opens the applet URL in her browser and clicks "Approve",
+      when the response is received,
+      then `confirmation` is set to `true` and execution continues
+- [ ] AC-CONFIRM-E2E-03: Given Carlos opens the applet URL and clicks "Reject",
+      when the response is received,
+      then `confirmation` is set to `false` and execution continues
+- [ ] AC-CONFIRM-E2E-04: Given the script completes after user approval,
+      then `context.userLogs` contains an entry with "user said: true"
+- [ ] AC-CONFIRM-E2E-05: Given the script completes after user rejection,
+      then `context.userLogs` contains an entry with "user said: false"
+
+### General
+
 - [x] All automated tests pass (vitest + playwright)
 - [ ] Edge cases covered in `*.edge.spec.ts` files
+- [ ] E2E tests are automatable with Playwright (no manual browser interaction required)
