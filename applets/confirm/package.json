@@ -23,6 +23,7 @@
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
+    "demo": "vite-node demo.ts",
     "prettier": "prettier --write \"src/**/*.ts\" \"front/src/**/*.tsx\""
   },
   "dependencies": {
