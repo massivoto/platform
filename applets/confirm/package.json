@@ -24,7 +24,11 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "demo": "vite-node demo.ts",
-    "prettier": "prettier --write \"src/**/*.ts\" \"front/src/**/*.tsx\""
+    "prettier": "prettier --write \"src/**/*.ts\" \"front/src/**/*.tsx\"",
+    "docker:build": "docker build -t massivoto/applet-confirm:latest -f Dockerfile ../..",
+    "docker:run": "docker run -p 3000:3000 --rm massivoto/applet-confirm:latest",
+    "docker:push": "docker push massivoto/applet-confirm:latest",
+    "docker:compose": "docker-compose up"
   },
   "dependencies": {
     "@massivoto/kit": "*",
