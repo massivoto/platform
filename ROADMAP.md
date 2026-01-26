@@ -318,8 +318,14 @@ may not be needed. Will be evaluated from 0.5.
 
 For v1.0, applets run in Docker containers on AWS instead of localhost.
 
+- [ ] **Docker packaging infrastructure**: base Dockerfile template, compose support, health checks (see `applet-docker.wip.prd.md`) - FOUNDATION COMPLETE
+  - [x] AppletDockerConfig interface defined
+  - [x] Dockerfile generator function with node:22-alpine base
+  - [x] docker-compose.yml generator with env var support
+  - [x] Health check middleware returning status, applet ID, uptime
+  - [x] Entry point script with SIGTERM graceful shutdown
+  - [x] Per-applet Docker support in confirm applet (reference implementation)
 - [ ] **CloudAppletLauncher**: implements AppletLauncher interface for AWS ECS
-- [ ] **Docker packaging**: each applet builds to a Docker image
 - [ ] **ECS task spawning**: launch container per applet instance
 - [ ] **Proxy routing**: route user requests to correct container by session ID
 - [ ] **Auto-termination**: container cleanup after response or timeout
