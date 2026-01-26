@@ -14,6 +14,7 @@
 import express, { type Express, type Request, type Response } from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { createHealthMiddleware } from '@massivoto/kit'
 
 /**
  * Input data for the confirm applet.
@@ -65,6 +66,9 @@ export function createServer(config: CreateServerConfig): Express {
   let hasResponded = false
 
   app.use(express.json())
+
+  // R-DOCKER-31: Health check endpoint for container orchestration
+  app.get('/health', createHealthMiddleware('confirm'))
 
   // R-CONFIRM-22: Serve frontend static files
   app.use(express.static(frontendDir))
