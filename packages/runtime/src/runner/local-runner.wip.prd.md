@@ -1,7 +1,7 @@
 # PRD: LocalRunner - File-based OTO Execution
 
 **Status:** DRAFT
-**Last updated:** 2026-01-21
+**Last updated:** 2026-01-26
 
 > - DRAFT: Coding should not start, requirements being defined
 > - APPROVED: Code can start, requirements stable
@@ -30,7 +30,7 @@ This enables:
 |---------|--------|----------|
 | Context | Complete | - |
 | Scope | Complete | - |
-| Requirements: Result Types | Draft | 0/5 |
+| Requirements: Result Types | Draft | 0/4 |
 | Requirements: Core Runner | Draft | 0/6 |
 | Requirements: CLI | Draft | 0/10 |
 | Requirements: Output | Draft | 0/5 |
@@ -57,8 +57,10 @@ The ROADMAP v0.5 defines three LocalRunner features:
 This PRD focuses on **file-based execution only**. Store and REPL are deferred.
 
 We already have:
-- `runProgram(source, context?, registry?)` in `program-runner.ts`
-- Parser, interpreter, evaluator fully implemented
+- `runProgram(source, context?, registry?)` in `interpreter/program-runner.ts`
+- Parser in `interpreter/parser/`
+- Interpreter in `interpreter/interpreter.ts`
+- Evaluator in `interpreter/evaluator/`
 - Scope chain and variable resolution
 - Execution logging with cost tracking
 
@@ -81,8 +83,10 @@ What we need:
 | 2026-01-21 | File extension | **Required oto.md or *.oto.md**                | Branding feature |
 | 2026-01-21 | Output flag name | **--save**                                     | Avoids conflict with OTO reserved word `output` |
 | 2026-01-21 | Default output | **ExecutionContext to stdout**                 | CLI as context transformer, enables chaining |
-| 2026-01-21 | Result types | **CommandLog + CommandResult + ProgramResult** | Clear hierarchy: Program has Commands, Command has Logs |
-| 2026-01-21 | InstructionLog | **Remove (breaking)**                          | Replaced by CommandLog (message) + CommandResult (metrics) |
+| 2026-01-21 | Result types | **ActionLog + BatchResult + ProgramResult** | Clear hierarchy: Program → Batch → Action |
+| 2026-01-21 | InstructionLog | **Remove (breaking)**                          | Replaced by ActionLog |
+| 2026-01-26 | Directory structure | **compiler → interpreter**                     | Terminology refactor: compiler/ renamed to interpreter/ for clarity |
+| 2026-01-26 | Terminology | **See terminology-refactor.wip.prd.md**        | Marketing-first: Program, Action, Batch |
 
 ## Scope
 
@@ -107,15 +111,15 @@ What we need:
 
 ### Result Types
 
-**Last updated:** 2026-01-21
-**Test:** `npx vitest run packages/runtime/src/domain/result-types.spec.ts`
-**Progress:** 0/5 (0%)
+**Last updated:** 2026-01-26
+**Test:** `npx vitest run packages/runtime/src/domain`
+**Progress:** 0/4 (0%)
+**Note:** See [terminology-refactor.wip.prd.md](./terminology-refactor.wip.prd.md) for type definitions.
 
-- [ ] R-TYPE-01: Create `CommandLog` interface with `level` ('DEBUG' | 'INFO' | 'ERROR') and `message` (string)
-- [ ] R-TYPE-02: Create `CommandResult` interface with command, success, logs[], start, end, duration, cost, output?, value?
-- [ ] R-TYPE-03: Create `ProgramResult` interface with success, commands[], context, totalCost
-- [ ] R-TYPE-04: `ProgramResult.success` is true only if all `CommandResult.success` are true
-- [ ] R-TYPE-05: `ProgramResult.totalCost` equals sum of all `CommandResult.cost`
+- [ ] R-TYPE-01: Create `ActionLog` interface (command, success, timing, cost, messages)
+- [ ] R-TYPE-02: Create `BatchResult` interface (success, message, actions: ActionLog[], totalCost)
+- [ ] R-TYPE-03: Update `ProgramResult` to use `batches: BatchResult[]`
+- [ ] R-TYPE-04: `BatchResult.totalCost` equals sum of all `ActionLog.cost`
 
 ### Core Runner
 
@@ -172,14 +176,16 @@ What we need:
 ## Dependencies
 
 - **Depends on:**
-  - `runProgram()` (IMPLEMENTED) - core execution (needs update for new return type)
-  - Parser (IMPLEMENTED) - file parsing
-  - Interpreter (IMPLEMENTED) - execution (needs update for CommandResult)
-  - Scope chain (IMPLEMENTED) - variable resolution
+  - `runProgram()` in `interpreter/program-runner.ts` (IMPLEMENTED) - core execution (needs update for BatchResult)
+  - Parser in `interpreter/parser/` (IMPLEMENTED) - file parsing
+  - Interpreter in `interpreter/interpreter.ts` (IMPLEMENTED) - execution (needs update for BatchResult)
+  - Evaluator in `interpreter/evaluator/` (IMPLEMENTED) - statement evaluation
+  - Scope chain in `interpreter/evaluator/scope-chain.ts` (IMPLEMENTED) - variable resolution
+  - [terminology-refactor.wip.prd.md](./terminology-refactor.wip.prd.md) - defines ActionLog, BatchResult
 
 - **Breaks:**
-  - `InstructionLog` consumers - must migrate to CommandLog/CommandResult
-  - `context.meta.history` consumers - must use ProgramResult.commands
+  - `InstructionLog` consumers - must migrate to ActionLog
+  - `context.meta.history` consumers - must use ProgramResult.batches
   - Execution logging PRD - needs revision for new types
 
 - **Blocks:**
@@ -199,7 +205,7 @@ What we need:
 
 > **Theme:** Social Media Automation
 >
-> Reused from: [dsl-0.5-parser.prd.md](../../interpreter/parser/dsl-0.5-parser.prd.md)
+> Reused from: [dsl-0.5-parser.done.prd.md](../interpreter/parser/dsl-0.5-parser.done.prd.md)
 
 ### Criteria
 
@@ -257,43 +263,49 @@ packages/runtime/
 
 ```typescript
 // ============================================================================
-// Result Types (NEW)
+// Result Types - See terminology-refactor.wip.prd.md for full details
 // ============================================================================
 
 /**
- * One log message during command execution.
- * TRACE level deferred to v1.0 (observability).
+ * Per-action execution log (public, marketing-aligned).
  */
-export interface CommandLog {
-  level: 'DEBUG' | 'INFO' | 'ERROR'
-  message: string
-  // span?: SpanContext  // v1.0 observability
+export interface ActionLog {
+  command: string         // e.g., '@utils/set'
+  success: boolean
+  fatalError?: string
+  start: ReadableDate
+  end: ReadableDate
+  duration: number        // milliseconds
+  messages: string[]
+  cost: number            // credits consumed
+  output?: string         // variable name if output= used
+  value?: any             // stored value (debugging)
 }
 
 /**
- * Result of executing one Command.
- * A Command may produce multiple logs (especially in forEach).
+ * Aggregation of Actions (Block, Template, any grouping).
  */
-export interface CommandResult {
-  command: string           // e.g. '@utils/set'
-  success: boolean          // command completed without fatal error
-  logs: CommandLog[]        // messages during execution
-  start: ReadableDate
-  end: ReadableDate
-  duration: number          // total milliseconds
-  cost: number              // credits consumed
-  output?: string           // variable name if output= was used
-  value?: any               // value stored (for debugging)
+export interface BatchResult {
+  success: boolean        // all actions succeeded?
+  message: string         // batch-level log: "Block 'init' completed"
+  actions: ActionLog[]    // per-action execution logs
+  totalCost: number       // sum of action costs
+  duration: number        // total milliseconds for batch
 }
 
 /**
  * Result of executing a full Program.
+ * Distinct from BatchResult - has program-level concerns.
  */
 export interface ProgramResult {
-  success: boolean          // all commands succeeded
-  commands: CommandResult[] // ordered execution results
-  context: ExecutionContext // final state
-  totalCost: number         // sum of all command costs
+  batches: BatchResult[]        // execution organized by batch
+  duration: number              // total milliseconds for program
+  data: SerializableObject      // final context.data
+  cost: CostInfo                // total cost tracking
+  context: ExecutionContext     // full context for advanced access
+  exitCode: number
+  exitedEarly: boolean
+  value?: unknown               // from @flow/return
 }
 
 // ============================================================================
@@ -319,28 +331,17 @@ export interface RunOptions {
 
 ### Breaking Changes
 
-**Removed: `InstructionLog`** (was in `execution-context.ts`)
-```typescript
-// BEFORE - REMOVED
-interface InstructionLog {
-  command: string
-  success: boolean
-  messages: string[]      // ← now CommandLog[] with level
-  cost: number            // ← moved to CommandResult
-  duration: number        // ← moved to CommandResult
-  output?: string         // ← moved to CommandResult
-  value?: any             // ← moved to CommandResult
-}
-```
+See [terminology-refactor.wip.prd.md](./terminology-refactor.wip.prd.md) for full details.
 
-**Removed: `context.meta.history`**
-```typescript
-// BEFORE - REMOVED
-context.meta.history: InstructionLog[]
+**Removed: `InstructionLog`** → replaced by `ActionLog`
 
-// AFTER - use ProgramResult.commands
+**Removed: `context.meta.history`** → replaced by `ProgramResult.batches`
+
+```typescript
+// AFTER - use ProgramResult.batches
 const result = await runner.runFile('script.oto')
-result.commands  // CommandResult[]
+result.batches      // BatchResult[]
+result.batches[0].actions  // ActionLog[]
 ```
 
 ### LocalRunner Class

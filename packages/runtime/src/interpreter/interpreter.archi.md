@@ -1,6 +1,6 @@
 # Architecture: Interpreter
 
-**Last updated:** 2026-01-23
+**Last updated:** 2026-01-26
 
 ## Parent
 
@@ -12,7 +12,52 @@
 
 ## Overview
 
-The Interpreter module executes parsed DSL programs by resolving commands from a registry, evaluating expressions with scope-aware variable resolution, and managing execution flow. It supports sequential instruction execution, conditional blocks (if=), iteration blocks (forEach=), and flow control commands (goto, exit, return). The module maintains immutability by cloning context on each instruction, tracks execution cost, and logs every instruction to a history trace.
+The Interpreter module executes parsed DSL programs by resolving commands from a registry, evaluating expressions with scope-aware variable resolution, and managing execution flow. It supports sequential instruction execution, conditional blocks (if=), iteration blocks (forEach=), and flow control commands (goto, exit, return). The module maintains immutability by cloning context on each instruction, tracks execution cost, and logs every Action to a history trace.
+
+## Terminology
+
+The Parser is a **closed module**. Internal types are implementation details. Public APIs use **marketing terms**.
+
+### Public API (Marketing Terms)
+
+| Term | Type | Definition |
+|------|------|------------|
+| **Program** | `ProgramResult` | Complete `.oto` file execution result |
+| **Action** | `ActionResult`, `ActionLog` | What users write: `@pkg/name args...` (billable unit) |
+| **Batch** | `BatchResult` | Aggregation of Actions (Block, Template, any grouping) |
+| **Block** | - | `{ ... }` grouping (uses BatchResult) |
+
+### Internal (Implementation Details)
+
+| Term | Type | Notes |
+|------|------|-------|
+| Statement | `StatementNode`, `StatementResult` | Union type: Instruction or Block |
+| Instruction | `InstructionNode` | Parser AST: Action + args + reserved args |
+| Action (AST) | `ActionNode` | Parser AST: just the `@pkg/name` identifier |
+
+### Result Hierarchy
+
+```
+Program  →  Batch[]  →  Action[]
+
+ProgramResult (program-level)
+  ├── batches: BatchResult[]
+  ├── duration: number            ← total program time (ms)
+  └── data, cost, context, exitCode, value...
+
+BatchResult (batch-level)
+  ├── success: boolean
+  ├── message: string             ← "Block 'init' completed"
+  ├── actions: ActionLog[]
+  ├── totalCost: number
+  └── duration: number            ← total batch time (ms)
+
+ActionLog (action-level)
+  └── command, success, cost, duration, messages...
+
+Handler returns:     ActionResult (per command execution)
+Interpreter uses:    StatementResult (internal aggregation)
+```
 
 ## Diagram
 
@@ -133,8 +178,8 @@ The Interpreter module executes parsed DSL programs by resolving commands from a
 │  5. UPDATE CONTEXT                                                              │
 │  ┌───────────────────────────────────────────────────────────────────────────┐  │
 │  │  - Clone context (immutability)                                           │  │
-│  │  - Accumulate cost: context.cost.current += result.cost                   │  │
-│  │  - Push InstructionLog to context.meta.history                            │  │
+│  │  - Accumulate cost (returned in StatementResult)                          │  │
+│  │  - Build ActionLog (returned in StatementResult)                          │  │
 │  └───────────────────────────────────────────────────────────────────────────┘  │
 │                                       │                                          │
 │                                       ▼                                          │

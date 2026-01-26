@@ -1,9 +1,6 @@
 import { nowTs, toReadableDate } from '@massivoto/kit'
 import lodashSet from 'lodash.set'
-import {
-  cloneExecutionContext,
-  InstructionLog,
-} from '../domain/execution-context.js'
+import { cloneExecutionContext } from '../domain/execution-context.js'
 import {
   InstructionNode,
   ProgramNode,
@@ -17,6 +14,8 @@ import {
   ExecutionContext,
   ProgramResult,
   CostInfo,
+  ActionLog,
+  BatchResult,
   createNormalCompletion,
   createEarlyExit,
   createReturn,
@@ -55,15 +54,15 @@ export type EnhancedLabelIndex = Map<string, LabelLocation>
 
 /**
  * Result of executing a single statement.
- * Includes the updated context, flow control signal, and instruction log.
+ * Includes the updated context, flow control signal, and action log.
  *
- * R-INT-41: History is no longer stored in context, but returned separately.
+ * R-INT-41: Actions are no longer stored in context, but returned separately.
  * R-INT-42: Cost is no longer stored in context, but returned separately.
  */
-export interface StatementResult {
+interface StatementResult {
   context: ExecutionContext
   flow: FlowControl
-  log?: InstructionLog // The instruction log for this execution (if instruction)
+  log?: ActionLog // The action log for this execution (if instruction)
   cost: number // Cost of this execution
 }
 
@@ -102,12 +101,12 @@ export function parseOutputTarget(output: string): OutputTarget {
 
 /**
  * Result of executing a statement list.
- * Includes updated context, flow control, accumulated history and cost.
+ * Includes updated context, flow control, accumulated actions and cost.
  */
-export interface StatementListResult {
+interface StatementListResult {
   context: ExecutionContext
   flow: FlowControl
-  history: InstructionLog[]
+  actions: ActionLog[]
   cost: number
 }
 
@@ -155,7 +154,7 @@ export class Interpreter {
   /**
    * Execute a single instruction and return both the updated context and flow control signal.
    *
-   * R-INT-41: History is not stored in context, but returned as log in StatementResult.
+   * R-INT-41: Actions are not stored in context, but returned as log in StatementResult.
    * R-INT-42: Cost is not stored in context, but returned in StatementResult.
    */
   async execute(
@@ -202,8 +201,8 @@ export class Interpreter {
       }
     }
 
-    // Build InstructionLog (returned separately, not stored in context)
-    const log: InstructionLog = {
+    // Build ActionLog (returned separately, not stored in context)
+    const log: ActionLog = {
       command: id,
       success: outcome.success,
       start: toReadableDate(start),
@@ -252,14 +251,14 @@ export class Interpreter {
    * R-BLK-41: Uses executeStatementList() for statement-based execution.
    * R-GOTO-22: Handles instruction pointer jumps for @flow/goto
    * R-GOTO-25: Preserves execution context on jumps
-   * R-INT-41: Accumulates history in local array
-   * R-INT-42: Tracks cost.current locally
-   * R-INT-43: Builds final ProgramResult with flat structure
+   * R-TERM-22: Builds ProgramResult with batches: BatchResult[]
    */
   async executeProgram(
     program: ProgramNode,
     context: ExecutionContext,
   ): Promise<ProgramResult> {
+    const programStart = nowTs()
+
     // R-BLK-02: Build enhanced label index
     const labelIndex = this.buildEnhancedLabelIndex(program)
 
@@ -272,12 +271,25 @@ export class Interpreter {
       0,
     )
 
+    const programEnd = nowTs()
+    const programDuration = programEnd - programStart
+
     // Build cost info
     const cost: CostInfo = { current: result.cost }
 
-    // exitedAt is the 0-based index of the last executed instruction
-    // Since history contains all executed instructions, exitedAt = history.length - 1
-    const exitedAt = result.history.length > 0 ? result.history.length - 1 : 0
+    // Build a single BatchResult for the top-level program execution
+    const batch: BatchResult = {
+      success: result.flow.type !== 'exit' || (result.flow as any).code === 0,
+      message: 'Program execution',
+      actions: result.actions,
+      totalCost: result.cost,
+      duration: programDuration,
+    }
+
+    const batches: BatchResult[] = [batch]
+
+    // exitedAt is the 0-based index of the last executed action
+    const exitedAt = result.actions.length > 0 ? result.actions.length - 1 : 0
 
     // Handle final flow control
     switch (result.flow.type) {
@@ -286,8 +298,9 @@ export class Interpreter {
           result.context,
           result.flow.code,
           exitedAt,
-          result.history,
+          batches,
           cost,
+          programDuration,
         )
       }
       case 'return': {
@@ -295,8 +308,9 @@ export class Interpreter {
           result.context,
           result.flow.value,
           exitedAt,
-          result.history,
+          batches,
           cost,
+          programDuration,
         )
       }
       case 'goto': {
@@ -305,7 +319,7 @@ export class Interpreter {
       }
       case 'continue':
       default:
-        return createNormalCompletion(result.context, result.history, cost)
+        return createNormalCompletion(result.context, batches, cost, programDuration)
     }
   }
 
@@ -325,7 +339,7 @@ export class Interpreter {
     currentPath: number[],
     startIndex: number = 0,
   ): Promise<StatementListResult> {
-    const history: InstructionLog[] = []
+    const actions: ActionLog[] = []
     let totalCost = 0
     let currentContext = context
     let i = startIndex
@@ -351,7 +365,7 @@ export class Interpreter {
         currentContext = result.context
 
         if (result.log) {
-          history.push(result.log)
+          actions.push(result.log)
         }
         totalCost += result.cost
 
@@ -374,7 +388,7 @@ export class Interpreter {
             return {
               context: currentContext,
               flow: result.flow,
-              history,
+              actions,
               cost: totalCost,
             }
           }
@@ -385,7 +399,7 @@ export class Interpreter {
           return {
             context: currentContext,
             flow: result.flow,
-            history,
+            actions,
             cost: totalCost,
           }
         }
@@ -399,7 +413,7 @@ export class Interpreter {
         )
 
         currentContext = blockResult.context
-        history.push(...blockResult.history)
+        actions.push(...blockResult.actions)
         totalCost += blockResult.cost
 
         // Handle flow control from block
@@ -420,7 +434,7 @@ export class Interpreter {
             return {
               context: currentContext,
               flow: blockResult.flow,
-              history,
+              actions,
               cost: totalCost,
             }
           }
@@ -431,7 +445,7 @@ export class Interpreter {
           return {
             context: currentContext,
             flow: blockResult.flow,
-            history,
+            actions,
             cost: totalCost,
           }
         }
@@ -444,7 +458,7 @@ export class Interpreter {
     return {
       context: currentContext,
       flow: { type: 'continue' },
-      history,
+      actions,
       cost: totalCost,
     }
   }
@@ -519,7 +533,7 @@ export class Interpreter {
         return {
           context,
           flow: { type: 'continue' },
-          history: [],
+          actions: [],
           cost: 0,
         }
       }
@@ -556,7 +570,7 @@ export class Interpreter {
     labelIndex: EnhancedLabelIndex,
     blockPath: number[],
   ): Promise<StatementListResult> {
-    const history: InstructionLog[] = []
+    const actions: ActionLog[] = []
     let totalCost = 0
 
     // Evaluate the iterable expression
@@ -573,7 +587,7 @@ export class Interpreter {
       return {
         context,
         flow: { type: 'continue' },
-        history: [],
+        actions: [],
         cost: 0,
       }
     }
@@ -611,7 +625,7 @@ export class Interpreter {
       )
 
       currentContext = result.context
-      history.push(...result.history)
+      actions.push(...result.actions)
       totalCost += result.cost
 
       // Pop the scope to discard iteration-specific variables
@@ -622,7 +636,7 @@ export class Interpreter {
         return {
           context: currentContext,
           flow: result.flow,
-          history,
+          actions,
           cost: totalCost,
         }
       }
@@ -631,7 +645,7 @@ export class Interpreter {
     return {
       context: currentContext,
       flow: { type: 'continue' },
-      history,
+      actions,
       cost: totalCost,
     }
   }

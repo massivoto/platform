@@ -138,9 +138,9 @@ describe('ProgramResult', () => {
       `
       const result = await runProgram(source)
 
-      expect(result.history.length).toBe(2)
-      expect(result.history[0].command).toBe('@utils/set')
-      expect(result.history[1].command).toBe('@utils/set')
+      expect(result.batches[0].actions.length).toBe(2)
+      expect(result.batches[0].actions[0].command).toBe('@utils/set')
+      expect(result.batches[0].actions[1].command).toBe('@utils/set')
     })
 
     it('result.context.data contains all variables', async () => {

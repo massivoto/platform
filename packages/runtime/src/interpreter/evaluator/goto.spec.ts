@@ -116,10 +116,10 @@ describe('Goto Interpreter', () => {
       const result = await runProgram(source)
 
       // Should have 3 history entries: set a, goto, set c
-      expect(result.history.length).toBe(3)
-      expect(result.history[0].command).toBe('@utils/set')
-      expect(result.history[1].command).toBe('@flow/goto')
-      expect(result.history[2].command).toBe('@utils/set')
+      expect(result.batches[0].actions.length).toBe(3)
+      expect(result.batches[0].actions[0].command).toBe('@utils/set')
+      expect(result.batches[0].actions[1].command).toBe('@flow/goto')
+      expect(result.batches[0].actions[2].command).toBe('@utils/set')
     })
   })
 

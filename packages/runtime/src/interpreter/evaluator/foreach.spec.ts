@@ -18,7 +18,7 @@ describe('ForEach Execution', () => {
       const result = await runProgram(source, context)
 
       // Check that both names were logged
-      const logs = result.history
+      const logs = result.batches[0].actions
         .filter((h) => h.command === '@utils/log')
         .map((h) => h.messages)
         .flat()
@@ -67,7 +67,7 @@ describe('ForEach Execution', () => {
       const result = await runProgram(source, context)
 
       // No log instructions should have been executed
-      const logs = result.history.filter((h) => h.command === '@utils/log')
+      const logs = result.batches[0].actions.filter((h) => h.command === '@utils/log')
       expect(logs).toHaveLength(0)
     })
   })
