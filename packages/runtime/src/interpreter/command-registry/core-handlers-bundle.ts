@@ -18,6 +18,8 @@ import type { ExecutionContext } from '../../domain/index.js'
 import { GotoHandler } from '../core-handlers/flow/goto.handler.js'
 import { ExitHandler } from '../core-handlers/flow/exit.handler.js'
 import { ReturnHandler } from '../core-handlers/flow/return.handler.js'
+import { ConfirmHandler } from '../core-handlers/human/confirm.handler.js'
+import { TextHandler, ImageHandler } from '../core-handlers/ai/index.js'
 
 // =============================================================================
 // Core Handlers with RegistryItem interface
@@ -26,7 +28,7 @@ import { ReturnHandler } from '../core-handlers/flow/return.handler.js'
 /**
  * LogHandler - @utils/log
  *
- * Logs a message to the console.
+ * Logs a message to the console and appends to context.userLogs.
  *
  * @example
  * ```dsl
@@ -45,7 +47,14 @@ class LogHandler extends BaseCommandHandler<void> {
     if (!message) {
       throw new Error('Message is required')
     }
+    // Log to console
     console.log(`Log: ${message}`)
+
+    // R-CONFIRM-124: Append to userLogs
+    if (context.userLogs) {
+      context.userLogs.push(message)
+    }
+
     return this.handleSuccess('Logged successfully', undefined)
   }
 }
@@ -110,6 +119,11 @@ export class CoreHandlersBundle implements RegistryBundle<CommandHandler<any>> {
       new GotoHandler(),
       new ExitHandler(),
       new ReturnHandler(),
+      // Human validation handlers (R-CONFIRM-101)
+      new ConfirmHandler(),
+      // AI generation handlers (R-AI-03)
+      new TextHandler(),
+      new ImageHandler(),
     ]
 
     // Register each handler by its id

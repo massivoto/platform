@@ -1,13 +1,15 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
   createEmptyExecutionContext,
   cloneExecutionContext,
   fromPartialContext,
+  ExecutionStatus,
 } from './execution-context.js'
 import {
   createEmptyScopeChain,
   pushScope,
 } from '../interpreter/evaluator/scope-chain.js'
+import type { AppletLauncher, AppletInstance } from '../applets/types.js'
 
 /**
  * Test file: execution-context.spec.ts
@@ -160,6 +162,172 @@ describe('ExecutionContext ScopeChain', () => {
 
       expect(context.scopeChain.current.inner).toBe('inner-value')
       expect(context.scopeChain.parent?.current.outer).toBe('outer-value')
+    })
+  })
+})
+
+/**
+ * Tests for new ExecutionContext fields (R-CONFIRM-121 to R-CONFIRM-123)
+ * Theme: Social Media Automation (Emma, Carlos, tweet, followers)
+ *
+ * These fields support the @human/confirm handler and program status tracking.
+ */
+describe('ExecutionContext Runtime Fields', () => {
+  describe('R-CONFIRM-121: userLogs field', () => {
+    it('should have userLogs field initialized to empty array', () => {
+      const context = createEmptyExecutionContext('emma-123')
+
+      expect(context.userLogs).toBeDefined()
+      expect(context.userLogs).toEqual([])
+    })
+
+    it('should allow appending to userLogs', () => {
+      const context = createEmptyExecutionContext('emma-123')
+
+      context.userLogs.push('Tweet posted by Emma')
+      context.userLogs.push('Carlos liked the tweet')
+
+      expect(context.userLogs).toHaveLength(2)
+      expect(context.userLogs[0]).toBe('Tweet posted by Emma')
+      expect(context.userLogs[1]).toBe('Carlos liked the tweet')
+    })
+
+    it('should clone userLogs independently', () => {
+      const original = createEmptyExecutionContext('emma-123')
+      original.userLogs.push('Original log entry')
+
+      const cloned = cloneExecutionContext(original)
+      cloned.userLogs.push('Cloned log entry')
+
+      expect(original.userLogs).toHaveLength(1)
+      expect(cloned.userLogs).toHaveLength(2)
+    })
+
+    it('should preserve userLogs in fromPartialContext', () => {
+      const context = fromPartialContext({
+        userLogs: ['Previous log', 'Another log'],
+      })
+
+      expect(context.userLogs).toEqual(['Previous log', 'Another log'])
+    })
+
+    it('should initialize userLogs to empty when not provided in partial', () => {
+      const context = fromPartialContext({
+        data: { tweet: 'Hello world' },
+      })
+
+      expect(context.userLogs).toEqual([])
+    })
+  })
+
+  describe('R-CONFIRM-122: status field', () => {
+    it('should have status field initialized to running', () => {
+      const context = createEmptyExecutionContext('emma-123')
+
+      expect(context.status).toBe('running')
+    })
+
+    it('should allow setting status to waitingHumanValidation', () => {
+      const context = createEmptyExecutionContext('emma-123')
+
+      context.status = 'waitingHumanValidation'
+
+      expect(context.status).toBe('waitingHumanValidation')
+    })
+
+    it('should allow setting status to finished', () => {
+      const context = createEmptyExecutionContext('emma-123')
+
+      context.status = 'finished'
+
+      expect(context.status).toBe('finished')
+    })
+
+    it('should allow setting status to error', () => {
+      const context = createEmptyExecutionContext('emma-123')
+
+      context.status = 'error'
+
+      expect(context.status).toBe('error')
+    })
+
+    it('should clone status independently', () => {
+      const original = createEmptyExecutionContext('emma-123')
+      original.status = 'waitingHumanValidation'
+
+      const cloned = cloneExecutionContext(original)
+      cloned.status = 'finished'
+
+      expect(original.status).toBe('waitingHumanValidation')
+      expect(cloned.status).toBe('finished')
+    })
+
+    it('should preserve status in fromPartialContext', () => {
+      const context = fromPartialContext({
+        status: 'waitingHumanValidation',
+      })
+
+      expect(context.status).toBe('waitingHumanValidation')
+    })
+
+    it('should initialize status to running when not provided in partial', () => {
+      const context = fromPartialContext({
+        data: { tweet: 'Hello world' },
+      })
+
+      expect(context.status).toBe('running')
+    })
+  })
+
+  describe('R-CONFIRM-123: appletLauncher field', () => {
+    it('should have appletLauncher field as undefined by default', () => {
+      const context = createEmptyExecutionContext('emma-123')
+
+      expect(context.appletLauncher).toBeUndefined()
+    })
+
+    it('should allow setting appletLauncher', () => {
+      const context = createEmptyExecutionContext('emma-123')
+
+      const mockLauncher: AppletLauncher = {
+        launch: vi.fn().mockResolvedValue({
+          id: 'instance-1',
+          url: 'http://localhost:3000',
+          appletId: 'confirm',
+          terminator: { terminate: vi.fn(), isTerminated: false },
+          waitForResponse: vi.fn(),
+        } as AppletInstance),
+      }
+
+      context.appletLauncher = mockLauncher
+
+      expect(context.appletLauncher).toBe(mockLauncher)
+    })
+
+    it('should preserve appletLauncher reference in clone (not deep copied)', () => {
+      const original = createEmptyExecutionContext('emma-123')
+
+      const mockLauncher: AppletLauncher = {
+        launch: vi.fn(),
+      }
+      original.appletLauncher = mockLauncher
+
+      const cloned = cloneExecutionContext(original)
+
+      // AppletLauncher is a stateful service, should be same reference
+      expect(cloned.appletLauncher).toBe(mockLauncher)
+    })
+
+    it('should preserve appletLauncher in fromPartialContext', () => {
+      const mockLauncher: AppletLauncher = {
+        launch: vi.fn(),
+      }
+
+      const context = fromPartialContext({
+        appletLauncher: mockLauncher,
+      })
+
+      expect(context.appletLauncher).toBe(mockLauncher)
     })
   })
 })

@@ -11,7 +11,7 @@ export class LogHandler implements CommandHandler<void> {
 
   async run(
     args: Record<string, any>,
-    _context: ExecutionContext,
+    context: ExecutionContext,
   ): Promise<ActionResult<void>> {
     const message = args.message
     if (message === undefined || message === null) {
@@ -23,7 +23,15 @@ export class LogHandler implements CommandHandler<void> {
       }
     }
     const messageStr = String(message)
+
+    // Log to console (existing behavior)
     console.log(`[LOG] ${messageStr}`)
+
+    // R-CONFIRM-124: Append to userLogs
+    if (context.userLogs) {
+      context.userLogs.push(messageStr)
+    }
+
     return {
       success: true,
       messages: [`Logged: ${messageStr}`],
