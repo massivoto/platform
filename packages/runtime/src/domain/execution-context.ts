@@ -10,6 +10,17 @@ import {
   createEmptyScopeChain,
   cloneScopeChain,
 } from '../interpreter/evaluator/scope-chain.js'
+import type { AppletLauncher } from '../applets/types.js'
+
+/**
+ * Execution status for tracking program state.
+ * R-CONFIRM-122
+ */
+export type ExecutionStatus =
+  | 'running'
+  | 'waitingHumanValidation'
+  | 'finished'
+  | 'error'
 
 export interface ExecutionContext {
   env: Record<string, string> // will not be saved nor shared
@@ -27,6 +38,15 @@ export interface ExecutionContext {
   store: SerializableStorePointer
   storeProvider?: StoreProvider // Optional async store provider for store.x lookups
   prompts: string[]
+
+  // R-CONFIRM-121: User-facing logs for program output
+  userLogs: string[]
+
+  // R-CONFIRM-122: Program execution status
+  status: ExecutionStatus
+
+  // R-CONFIRM-123: Applet launcher for human validation (v0.5)
+  appletLauncher?: AppletLauncher
 }
 
 export function createEmptyExecutionContext(
@@ -48,6 +68,8 @@ export function createEmptyExecutionContext(
     },
     store: fakeStorePointer(),
     prompts: [],
+    userLogs: [],
+    status: 'running',
   }
 }
 
@@ -70,6 +92,9 @@ export function cloneExecutionContext(
     store: structuredClone(context.store),
     storeProvider: context.storeProvider, // StoreProvider is not cloned (stateful service)
     prompts: [...context.prompts],
+    userLogs: [...context.userLogs],
+    status: context.status,
+    appletLauncher: context.appletLauncher, // AppletLauncher is not cloned (stateful service)
   }
 }
 
@@ -100,5 +125,8 @@ export function fromPartialContext(
     store: structuredClone(partialContext.store || emptyContext.store),
     storeProvider: partialContext.storeProvider, // StoreProvider is not cloned (stateful service)
     prompts: [...(partialContext.prompts || emptyContext.prompts)],
+    userLogs: [...(partialContext.userLogs || emptyContext.userLogs)],
+    status: partialContext.status || emptyContext.status,
+    appletLauncher: partialContext.appletLauncher, // AppletLauncher is not cloned (stateful service)
   }
 }

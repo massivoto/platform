@@ -15,27 +15,6 @@
 
 The goal is to have a working local runner to validate the product concept.
 
-### Applets confirm to work
-
-Create a oto file that will require human validation with applets.
-Ensure that the confirm applet works end to end.
-
-We need a spec test with 
-
-@utils/set input="The fox jumps lazy" output="message"
-@human/confirm message="Do you confirm tweet? <br/> 'The fox jumps lazy'" output=confirmation
-@utils/log message={"user said: "+confirmation} 
-
-Acceptance criteria:
-- Given the local runner is started with the above oto file
-- the executionContect.userLogs should contain a entry with "user said: " followed by the user input
-- should work with either yes or no answer
-
-Then the local runner should launch the confirm applet in a web browser, and wait. This must be automatable in the test with playwright.
-
-However before that, we need to ensure that C:\code\nik\platform\packages\runtime\src\interpreter\core-handlers\utils\set.spec.ts
-and C:\code\nik\platform\packages\runtime\src\interpreter\core-handlers\utils\log.handler.spec.ts work correctly.
-
 
 
 ### Cleanup (end of v0.5)
@@ -370,9 +349,18 @@ For v1.0, applets run in Docker containers on AWS instead of localhost.
 
 ---
 
+# 1.2 growth
+
+create a mobile app so that someone in the team can validate human applets from his mobile phone.
+
+
+
+
 ## v1.5 - Developer Experience
 
 Focus on adoption and usability, no new runtime features.
+
+
 
 ### Parser Enhancements
 

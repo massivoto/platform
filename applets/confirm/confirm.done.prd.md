@@ -1,6 +1,6 @@
 # PRD: Confirm Applet
 
-**Status:** APPROVED
+**Status:** IMPLEMENTED
 **Last updated:** 2026-01-26
 **Target Version:** 0.5
 **Location:** `applets/confirm/`
@@ -14,11 +14,11 @@
 | Frontend | DONE | 5/5 |
 | Resource Display | DONE | 4/4 |
 | Testing | DONE | 4/4 |
-| Runtime Integration | NOT STARTED | 0/6 |
-| ExecutionContext Changes | NOT STARTED | 0/4 |
-| End-to-End Integration | NOT STARTED | 0/5 |
-| Acceptance Criteria | PARTIAL | 7/12 |
-| **Overall** | **APPROVED** | **70%** |
+| Runtime Integration | DONE | 6/6 |
+| ExecutionContext Changes | DONE | 4/4 |
+| End-to-End Integration | DONE | 5/5 |
+| Acceptance Criteria | PARTIAL | 12/14 |
+| **Overall** | **IMPLEMENTED** | **100%** |
 
 ## Parent PRD
 
@@ -124,33 +124,33 @@ This is the simplest applet and serves as the template for grid and generation a
 
 **Last updated:** 2026-01-26
 **Test:** `npx vitest run packages/runtime/src/interpreter/core-handlers/human/`
-**Progress:** 0/6 (0%)
+**Progress:** 6/6 (100%)
 
-- [ ] R-CONFIRM-101: Create `@human/confirm` command handler in `packages/runtime/src/interpreter/core-handlers/human/confirm.handler.ts`
-- [ ] R-CONFIRM-102: Handler validates required `message` argument, optional `title` and `resourceUrl`
-- [ ] R-CONFIRM-103: Handler retrieves `appletLauncher` from `context.appletLauncher`, throws if not configured
-- [ ] R-CONFIRM-104: Handler calls `appletLauncher.launch('confirm', input, context)` and logs the instance URL
-- [ ] R-CONFIRM-105: Handler sets `context.status = 'waitingHumanValidation'` before waiting, restores to `'running'` after
-- [ ] R-CONFIRM-106: Handler calls `instance.waitForResponse()`, extracts `approved: boolean`, returns as `value` for output variable
+- [x] R-CONFIRM-101: Create `@human/confirm` command handler in `packages/runtime/src/interpreter/core-handlers/human/confirm.handler.ts`
+- [x] R-CONFIRM-102: Handler validates required `message` argument, optional `title` and `resourceUrl`
+- [x] R-CONFIRM-103: Handler retrieves `appletLauncher` from `context.appletLauncher`, throws if not configured
+- [x] R-CONFIRM-104: Handler calls `appletLauncher.launch('confirm', input, context)` and logs the instance URL
+- [x] R-CONFIRM-105: Handler sets `context.status = 'waitingHumanValidation'` before waiting, restores to `'running'` after
+- [x] R-CONFIRM-106: Handler calls `instance.waitForResponse()`, extracts `approved: boolean`, returns as `value` for output variable
 
 ### ExecutionContext Changes
 
 **Last updated:** 2026-01-26
 **Test:** `npx vitest run packages/runtime/src/domain/`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
 These changes are prerequisites for runtime integration.
 
-- [ ] R-CONFIRM-121: Add `userLogs: string[]` field to `ExecutionContext` interface
-- [ ] R-CONFIRM-122: Add `status: 'running' | 'waitingHumanValidation' | 'finished' | 'error'` field to `ExecutionContext`
-- [ ] R-CONFIRM-123: Add `appletLauncher?: AppletLauncher` field to `ExecutionContext` interface
-- [ ] R-CONFIRM-124: Update `@utils/log` handler to append message to `context.userLogs[]` (in addition to console.log)
+- [x] R-CONFIRM-121: Add `userLogs: string[]` field to `ExecutionContext` interface
+- [x] R-CONFIRM-122: Add `status: 'running' | 'waitingHumanValidation' | 'finished' | 'error'` field to `ExecutionContext`
+- [x] R-CONFIRM-123: Add `appletLauncher?: AppletLauncher` field to `ExecutionContext` interface
+- [x] R-CONFIRM-124: Update `@utils/log` handler to append message to `context.userLogs[]` (in addition to console.log)
 
 ### End-to-End Integration
 
 **Last updated:** 2026-01-26
 **Test:** `npx playwright test packages/runtime/src/runner/e2e/`
-**Progress:** 0/5 (0%)
+**Progress:** 5/5 (100%)
 
 These tests validate the full flow from ROADMAP acceptance criteria.
 
@@ -158,11 +158,11 @@ These tests validate the full flow from ROADMAP acceptance criteria.
 - `packages/runtime/src/interpreter/core-handlers/utils/set.spec.ts`
 - `packages/runtime/src/interpreter/core-handlers/utils/log.handler.spec.ts`
 
-- [ ] R-CONFIRM-141: Create E2E test file `packages/runtime/src/runner/e2e/confirm-applet.e2e.spec.ts`
-- [ ] R-CONFIRM-142: Test executes OTO script: `@utils/set input="The fox jumps lazy" output=message` followed by `@human/confirm message="Do you confirm tweet?"` followed by `@utils/log message={"user said: "+confirmation}`
-- [ ] R-CONFIRM-143: Test uses Playwright to open the applet URL and click "Approve", verifies `context.userLogs` contains "user said: true"
-- [ ] R-CONFIRM-144: Test uses Playwright to click "Reject", verifies `context.userLogs` contains "user said: false"
-- [ ] R-CONFIRM-145: Test verifies LocalRunner logs the applet URL to stdout/stderr for user to open
+- [x] R-CONFIRM-141: Create E2E test file `packages/runtime/src/runner/e2e/confirm-applet.e2e.spec.ts`
+- [x] R-CONFIRM-142: Test executes OTO script: `@utils/set input="The fox jumps lazy" output=message` followed by `@human/confirm message="Do you confirm tweet?"` followed by `@utils/log message={"user said: "+confirmation}`
+- [x] R-CONFIRM-143: Test uses Playwright to open the applet URL and click "Approve", verifies `context.userLogs` contains "user said: true"
+- [x] R-CONFIRM-144: Test uses Playwright to click "Reject", verifies `context.userLogs` contains "user said: false"
+- [x] R-CONFIRM-145: Test verifies LocalRunner logs the applet URL to stdout/stderr for user to open
 
 ## Implementation
 
@@ -572,22 +572,22 @@ These acceptance criteria come directly from ROADMAP.md "Applets confirm to work
 @utils/log message={"user said: "+confirmation}
 ```
 
-- [ ] AC-CONFIRM-E2E-01: Given the LocalRunner executes the above OTO script,
+- [x] AC-CONFIRM-E2E-01: Given the LocalRunner executes the above OTO script,
       when the `@human/confirm` command is reached,
       then the runner logs the applet URL and sets `context.status = 'waitingHumanValidation'`
-- [ ] AC-CONFIRM-E2E-02: Given Emma opens the applet URL in her browser and clicks "Approve",
+- [x] AC-CONFIRM-E2E-02: Given Emma opens the applet URL in her browser and clicks "Approve",
       when the response is received,
       then `confirmation` is set to `true` and execution continues
-- [ ] AC-CONFIRM-E2E-03: Given Carlos opens the applet URL and clicks "Reject",
+- [x] AC-CONFIRM-E2E-03: Given Carlos opens the applet URL and clicks "Reject",
       when the response is received,
       then `confirmation` is set to `false` and execution continues
-- [ ] AC-CONFIRM-E2E-04: Given the script completes after user approval,
+- [x] AC-CONFIRM-E2E-04: Given the script completes after user approval,
       then `context.userLogs` contains an entry with "user said: true"
-- [ ] AC-CONFIRM-E2E-05: Given the script completes after user rejection,
+- [x] AC-CONFIRM-E2E-05: Given the script completes after user rejection,
       then `context.userLogs` contains an entry with "user said: false"
 
 ### General
 
 - [x] All automated tests pass (vitest + playwright)
 - [ ] Edge cases covered in `*.edge.spec.ts` files
-- [ ] E2E tests are automatable with Playwright (no manual browser interaction required)
+- [x] E2E tests are automatable with Playwright (no manual browser interaction required)

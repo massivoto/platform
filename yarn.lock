@@ -1122,7 +1122,6 @@ __metadata:
   resolution: "@massivoto/applet-confirm@workspace:applets/confirm"
   dependencies:
     "@massivoto/kit": "npm:*"
-    "@playwright/test": "npm:^1.58.0"
     "@types/express": "npm:^4.17.21"
     "@types/node": "npm:^22.16.5"
     "@types/react": "npm:^18.3.23"
@@ -1287,6 +1286,7 @@ __metadata:
     "@masala/parser": "npm:^2.0.0"
     "@massivoto/kit": "npm:*"
     "@modelcontextprotocol/sdk": "npm:^1.0.0"
+    "@playwright/test": "npm:^1.58.0"
     "@types/lodash.get": "npm:^4.4.9"
     "@types/lodash.set": "npm:^4.3.9"
     commander: "npm:^14.0.2"
