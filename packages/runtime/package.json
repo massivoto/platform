@@ -26,6 +26,7 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.0",
     "@types/lodash.get": "^4.4.9",
     "@types/lodash.set": "^4.3.9",
     "prettier": "^3.5.3",

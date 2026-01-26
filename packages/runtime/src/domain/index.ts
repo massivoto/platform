@@ -1,4 +1,4 @@
-export type { ExecutionContext } from './execution-context.js'
+export type { ExecutionContext, ExecutionStatus } from './execution-context.js'
 export {
   createEmptyExecutionContext,
   fromPartialContext,
