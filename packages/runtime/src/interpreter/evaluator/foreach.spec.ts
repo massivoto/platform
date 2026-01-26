@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { runProgram } from '../program-runner.js'
 import { createEmptyExecutionContext } from '../../domain/index.js'
-import { CommandHandler, CommandRegistry } from '../handlers/command-registry.js'
+import {
+  CommandHandler,
+  CommandRegistry,
+} from '../handlers/command-registry.js'
 import { Interpreter } from '../interpreter.js'
 import { buildProgramParser } from '../parser/program-parser.js'
 
@@ -67,7 +70,9 @@ describe('ForEach Execution', () => {
       const result = await runProgram(source, context)
 
       // No log instructions should have been executed
-      const logs = result.batches[0].actions.filter((h) => h.command === '@utils/log')
+      const logs = result.batches[0].actions.filter(
+        (h) => h.command === '@utils/log',
+      )
       expect(logs).toHaveLength(0)
     })
   })

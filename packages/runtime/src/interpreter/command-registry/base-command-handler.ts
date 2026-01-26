@@ -78,7 +78,11 @@ export abstract class BaseCommandHandler<T> implements CommandHandler<T> {
    * @param value - Result value (optional)
    * @param cost - Cost in credits (default 0)
    */
-  protected handleSuccess(message: string, value?: T, cost: number = 0): ActionResult<T> {
+  protected handleSuccess(
+    message: string,
+    value?: T,
+    cost: number = 0,
+  ): ActionResult<T> {
     return {
       success: true,
       value,

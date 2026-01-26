@@ -6,7 +6,11 @@
  * - R-GOTO-62: Detect @flow/goto target="x" where no label="x" exists
  * - R-GOTO-63: Build label index for interpreter optimization
  */
-import type { ProgramNode, InstructionNode, StatementNode } from '../parser/ast.js'
+import type {
+  ProgramNode,
+  InstructionNode,
+  StatementNode,
+} from '../parser/ast.js'
 
 /**
  * Error type for label validation failures.
@@ -113,7 +117,9 @@ function findGotoInstructions(instructions: InstructionNode[]): GotoInfo {
       instruction.action.name === 'goto'
     ) {
       // Find the target argument
-      const targetArg = instruction.args.find((arg) => arg.name.value === 'target')
+      const targetArg = instruction.args.find(
+        (arg) => arg.name.value === 'target',
+      )
       if (targetArg && targetArg.value.type === 'literal-string') {
         validTargets.push({ target: targetArg.value.value, index: i })
       } else {
