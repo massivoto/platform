@@ -18,7 +18,7 @@ import type { ExecutionContext } from '../../domain/index.js'
 import { GotoHandler } from '../core-handlers/flow/goto.handler.js'
 import { ExitHandler } from '../core-handlers/flow/exit.handler.js'
 import { ReturnHandler } from '../core-handlers/flow/return.handler.js'
-import { ConfirmHandler } from '../core-handlers/human/confirm.handler.js'
+import { ConfirmHandler, GridHandler } from '../core-handlers/human/index.js'
 import { TextHandler, ImageHandler } from '../core-handlers/ai/index.js'
 
 // =============================================================================
@@ -119,8 +119,9 @@ export class CoreHandlersBundle implements RegistryBundle<CommandHandler<any>> {
       new GotoHandler(),
       new ExitHandler(),
       new ReturnHandler(),
-      // Human validation handlers (R-CONFIRM-101)
+      // Human validation handlers (R-CONFIRM-101, R-GRID-81)
       new ConfirmHandler(),
+      new GridHandler(),
       // AI generation handlers (R-AI-03)
       new TextHandler(),
       new ImageHandler(),

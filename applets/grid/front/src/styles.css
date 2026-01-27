@@ -1,0 +1,223 @@
+/**
+ * Styles for Grid Applet
+ *
+ * Simple, clean styling for the grid selection UI.
+ * No external dependencies - vanilla CSS.
+ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+#root {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.grid-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.grid-container h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+}
+
+.grid-container h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Grid layout */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Single grid item */
+.grid-item {
+  background: #fafafa;
+  border: 2px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.grid-item:hover {
+  border-color: #0066cc;
+  background-color: #f5f9ff;
+}
+
+.grid-item:focus {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+.grid-item.selected {
+  border-color: #0066cc;
+  background-color: #e6f0ff;
+  box-shadow: 0 0 0 1px #0066cc;
+}
+
+/* Checkbox */
+.checkbox-wrapper {
+  margin-bottom: 0.75rem;
+}
+
+.checkbox-wrapper input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #0066cc;
+}
+
+/* Resource display */
+.resource-container {
+  margin-bottom: 0.75rem;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.resource-container img {
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.resource-container video,
+.resource-container audio {
+  width: 100%;
+  display: block;
+}
+
+/* Item text */
+.item-text {
+  font-size: 0.9375rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+  word-wrap: break-word;
+}
+
+/* Metadata */
+.metadata {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  color: #666;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.metadata dt {
+  font-weight: 500;
+  color: #888;
+}
+
+.metadata dd {
+  color: #555;
+}
+
+/* Actions bar */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.selection-count {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #0066cc;
+  color: white;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #0055aa;
+  transform: translateY(-1px);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #666;
+}
+
+/* Submitted state */
+.submitted {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.submitted h2 {
+  color: #28a745;
+}
+
+.submitted p {
+  color: #666;
+}
+
+/* Error state */
+.error-message {
+  color: #dc3545;
+  padding: 1rem;
+  background: #fff5f5;
+  border-radius: 6px;
+}
