@@ -112,6 +112,8 @@ const renderProviderButton = (provider: Provider, userId: string) => {
 }
 
 export const Dashboard = () => {
+  const { user } = useUser()
+  const userId = user?.email ?? DEV_USER_ID
 
   return (
     <div className="page-container">

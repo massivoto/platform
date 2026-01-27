@@ -27,7 +27,7 @@ function parseAuthMode(value: string | undefined): AuthMode {
 }
 
 export function loadEnv(): EnvConfig {
-  const port = Number(process.env.PORT ?? 3001)
+  const port = Number(process.env.PORT ?? 3700)
   if (Number.isNaN(port)) {
     throw new Error('PORT must be a number')
   }
@@ -49,10 +49,10 @@ export function loadEnv(): EnvConfig {
     authMode,
     githubClientId: requireOrMock('GITHUB_CLIENT_ID', 'mock-github-client-id'),
     githubClientSecret: requireOrMock('GITHUB_CLIENT_SECRET', 'mock-github-client-secret'),
-    githubRedirectUri: requireOrMock('GITHUB_REDIRECT_URI', 'http://localhost:3001/oauth/github/callback'),
+    githubRedirectUri: requireOrMock('GITHUB_REDIRECT_URI', 'http://localhost:3700/oauth/github/callback'),
     googleClientId: requireOrMock('GOOGLE_CLIENT_ID', 'mock-google-client-id'),
     googleClientSecret: requireOrMock('GOOGLE_CLIENT_SECRET', 'mock-google-client-secret'),
-    googleRedirectUri: requireOrMock('GOOGLE_REDIRECT_URI', 'http://localhost:3001/oauth/google/callback'),
+    googleRedirectUri: requireOrMock('GOOGLE_REDIRECT_URI', 'http://localhost:3700/oauth/google/callback'),
     isProduction: process.env.NODE_ENV === 'production',
   }
 }
