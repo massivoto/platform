@@ -1,6 +1,6 @@
 # PRD: Grid Applet
 
-**Status:** DRAFT
+**Status:** DONE
 **Last updated:** 2026-01-27
 **Target Version:** 0.5
 **Location:** `applets/grid/`
@@ -9,13 +9,13 @@
 
 | Section | Status | Progress |
 |---------|--------|----------|
-| Package Setup | Not Started | 0/3 |
-| Data Types | Not Started | 0/4 |
-| Backend | Not Started | 0/5 |
-| Frontend | Not Started | 0/6 |
-| Testing | Not Started | 0/4 |
-| Runtime Integration | Not Started | 0/4 |
-| **Overall** | **DRAFT** | **0%** |
+| Package Setup | Done | 3/3 |
+| Data Types | Done | 4/4 |
+| Backend | Done | 5/5 |
+| Frontend | Done | 6/6 |
+| Testing | Done | 4/4 |
+| Runtime Integration | Done | 4/4 |
+| **Overall** | **DONE** | **100%** |
 
 ## Parent PRD
 
@@ -68,69 +68,69 @@ The grid applet is **pure selection** - it does not generate content. Content ge
 
 **Last updated:** 2026-01-27
 **Test:** `yarn workspace @massivoto/applet-grid build`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- [ ] R-GRID-01: Create `applets/grid/package.json` with name `@massivoto/applet-grid`
-- [ ] R-GRID-02: Configure Vite build for frontend in `front/` directory
-- [ ] R-GRID-03: Export `definition`, `createServer`, and `frontendDir` from package entry point
+- [x] R-GRID-01: Create `applets/grid/package.json` with name `@massivoto/applet-grid`
+- [x] R-GRID-02: Configure Vite build for frontend in `front/` directory
+- [x] R-GRID-03: Export `definition`, `createServer`, and `frontendDir` from package entry point
 
 ### Data Types
 
 **Last updated:** 2026-01-27
 **Test:** `npx vitest run applets/grid/src/`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- [ ] R-GRID-11: Define `GridItem` type with required `id: string` and `text: string`
-- [ ] R-GRID-12: Add optional `resource?: { url: string; type?: 'image' | 'video' | 'audio' }` to GridItem
-- [ ] R-GRID-13: Add optional `metadata?: Record<string, string>` to GridItem for key/value display
-- [ ] R-GRID-14: Define `gridInputSchema` (items: GridItem[], title?: string) and `gridOutputSchema` (selected: GridItem[])
+- [x] R-GRID-11: Define `GridItem` type with required `id: string` and `text: string`
+- [x] R-GRID-12: Add optional `resource?: { url: string; type?: 'image' | 'video' | 'audio' }` to GridItem
+- [x] R-GRID-13: Add optional `metadata?: Record<string, string>` to GridItem for key/value display
+- [x] R-GRID-14: Define `gridInputSchema` (items: GridItem[], title?: string) and `gridOutputSchema` (selected: GridItem[])
 
 ### Backend
 
 **Last updated:** 2026-01-27
 **Test:** `npx vitest run applets/grid/src/`
-**Progress:** 0/5 (0%)
+**Progress:** 5/5 (100%)
 
-- [ ] R-GRID-21: Implement Express server with `createServer(config)` factory
-- [ ] R-GRID-22: Implement `GET /` serving the React frontend (static files from `frontendDir`)
-- [ ] R-GRID-23: Implement `GET /api/input` returning input data (items array, title)
-- [ ] R-GRID-24: Implement `POST /respond` accepting `{ selected: string[] }` (array of selected item IDs)
-- [ ] R-GRID-25: Server maps selected IDs back to full GridItem objects before calling `onResponse`
+- [x] R-GRID-21: Implement Express server with `createServer(config)` factory
+- [x] R-GRID-22: Implement `GET /` serving the React frontend (static files from `frontendDir`)
+- [x] R-GRID-23: Implement `GET /api/input` returning input data (items array, title)
+- [x] R-GRID-24: Implement `POST /respond` accepting `{ selected: string[] }` (array of selected item IDs)
+- [x] R-GRID-25: Server maps selected IDs back to full GridItem objects before calling `onResponse`
 
 ### Frontend
 
 **Last updated:** 2026-01-27
 **Test:** `npx playwright test applets/grid/`
-**Progress:** 0/6 (0%)
+**Progress:** 6/6 (100%)
 
-- [ ] R-GRID-41: Create React app with Vite in `front/` directory
-- [ ] R-GRID-42: Fetch input data from `GET /api/input` on mount
-- [ ] R-GRID-43: Display title (or "Select Items" default) at top
-- [ ] R-GRID-44: Render items in a responsive grid with checkbox for each item
-- [ ] R-GRID-45: Display item text, resource (using ResourceDisplay component), and metadata key/values
-- [ ] R-GRID-46: Render Submit button that POSTs selected item IDs to `/respond`
+- [x] R-GRID-41: Create React app with Vite in `front/` directory
+- [x] R-GRID-42: Fetch input data from `GET /api/input` on mount
+- [x] R-GRID-43: Display title (or "Select Items" default) at top
+- [x] R-GRID-44: Render items in a responsive grid with checkbox for each item
+- [x] R-GRID-45: Display item text, resource (using ResourceDisplay component), and metadata key/values
+- [x] R-GRID-46: Render Submit button that POSTs selected item IDs to `/respond`
 
 ### Testing
 
 **Last updated:** 2026-01-27
 **Test:** `yarn workspace @massivoto/applet-grid test`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- [ ] R-GRID-61: API tests with supertest: GET /api/input returns items array
-- [ ] R-GRID-62: API tests: POST /respond with selected IDs triggers callback with full items
-- [ ] R-GRID-63: E2E tests with Playwright: load page, verify items displayed, select 2 items, submit
-- [ ] R-GRID-64: E2E tests: verify response contains full GridItem objects (not just IDs)
+- [x] R-GRID-61: API tests with supertest: GET /api/input returns items array
+- [x] R-GRID-62: API tests: POST /respond with selected IDs triggers callback with full items
+- [x] R-GRID-63: E2E tests with Playwright: load page, verify items displayed, select 2 items, submit
+- [x] R-GRID-64: E2E tests: verify response contains full GridItem objects (not just IDs)
 
 ### Runtime Integration
 
 **Last updated:** 2026-01-27
 **Test:** `npx vitest run packages/runtime/src/interpreter/core-handlers/human/`
-**Progress:** 0/4 (0%)
+**Progress:** 4/4 (100%)
 
-- [ ] R-GRID-81: Create `@human/grid` command handler in `packages/runtime/src/interpreter/core-handlers/human/grid.handler.ts`
-- [ ] R-GRID-82: Handler validates required `items` argument (array), optional `title`
-- [ ] R-GRID-83: Handler launches grid applet, sets `context.status = 'waitingHumanValidation'`, waits for response
-- [ ] R-GRID-84: Handler returns `selected: GridItem[]` array as `value` for output variable
+- [x] R-GRID-81: Create `@human/grid` command handler in `packages/runtime/src/interpreter/core-handlers/human/grid.handler.ts`
+- [x] R-GRID-82: Handler validates required `items` argument (array), optional `title`
+- [x] R-GRID-83: Handler launches grid applet, sets `context.status = 'waitingHumanValidation'`, waits for response
+- [x] R-GRID-84: Handler returns `selected: GridItem[]` array as `value` for output variable
 
 ## Implementation
 
