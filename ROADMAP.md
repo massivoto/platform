@@ -36,11 +36,18 @@ When the user validate, the next action of massivoto runtime will receive the ar
 
 ### Cleanup (end of v0.5)
 
-- [ ] **Document braced expressions**: `{expr}` was added to
-  `full-expression-parser.ts` for `if={condition}` but is not documented in
-  `expression-grammar.md`. Braced expressions should be first-class citizens
-  in the expression grammar documentation, not a hidden feature.
+- [x] **Document braced expressions**: `{expr}` documented in
+  `expression-grammar.md` with syntax, examples, and mapper semantics (v1.5).
 
+
+## Separation
+
+The massivoto organization must have:
+- platform monorepo: fully open source, Apache 2.0 license
+    - will contain the parser, AST, domain types, interfaces, local runner shell
+    - will contain basic commands and pipes that are not strategic to keep universal language
+- interpreter repository: BSL 1.1 license, contains interpreter and core
+- saas monorepo: for the start maybe a fork of the platform with additional handlers and apps, contains the saas deployment code
 
 ### Parser Enhancements
 
@@ -50,10 +57,11 @@ When the user validate, the next action of massivoto runtime will receive the ar
 - if we have none of these patterns, the whole file is considered as an oto program.
 - if one parser fails, we will try the other anyway.
 
-### Evaluator
 
-- [ ] **Pipe evaluation**: execute pipe chains with data transformation
-- [ ] **Error format**: Errors sent need to be absolutely readable by a LLM
+### First useful commands
+
+Important: the 
+
 
 ### AST Processing Pipeline
 
@@ -157,6 +165,10 @@ Also every applet have a non-ui input that is sufficient
 
 Applet package.json file should enable a run ; also maybe it should produce a bin that is callable from the command line.
 And also produce a docker container. This can be generic for all applets.
+
+This must be dockerized, with a uniform base that is easy to extend for new applets, for example
+with just a react component that is mounted in a standard layout and a expressJS backend. The data will be provided 
+by the execution context and there must be a termination mecanism; React thing is simple, backend and lifecycle is not
 
 ## Common Registry Interface & Reload
 
@@ -341,7 +353,7 @@ may not be needed. Will be evaluated from 0.5.
 
 For v1.0, applets run in Docker containers on AWS instead of localhost.
 
-- [ ] **Docker packaging infrastructure**: base Dockerfile template, compose support, health checks (see `applet-docker.wip.prd.md`) - FOUNDATION COMPLETE
+- [x] **Docker packaging infrastructure**: base Dockerfile template, compose support, health checks (see `applet-docker.done.prd.md`) - COMPLETE
   - [x] AppletDockerConfig interface defined
   - [x] Dockerfile generator function with node:22-alpine base
   - [x] docker-compose.yml generator with env var support
@@ -381,6 +393,32 @@ create a mobile app so that someone in the team can validate human applets from 
 
 Focus on adoption and usability, no new runtime features.
 
+### Expression Evaluation
+
+- [ ] **Mapper evaluation**: implement `mapper` case in ExpressionEvaluator
+  - Object source: `{user -> name}` returns property value
+  - Array source: `{users -> name}` returns mapped array of values
+  - Mapper as primitive: `a->b` is strictly equivalent to `{a:b}` object literal
+    and `Mapper[]` in JS (to be discussed)
+- [ ] **Mapper in output position**: support `output=names -> name` syntax
+- [ ] **Expression boundary enforcement**: optionally reject `arg=a + b` (require braces)
+
+### Evaluator
+
+- [ ] **Pipe evaluation**: execute pipe chains with data transformation
+- [ ] **Error format**: Errors sent need to be absolutely readable by a LLM
+
+Concern on pipe and expression evaluation:
+
+it('should NOT parse an almost pipe expression', () => {
+const stream = Stream.ofChars('{value}')
+const parsing = pipeGrammar.parse(stream)
+
+    expect(parsing.isAccepted()).toBe(false)
+})
+
+this is not a pipe, but {value} is a braced expression. The parser must be able to distinguish these two cases.
+and evaluate the expression correctly.
 
 
 ### Parser Enhancements
