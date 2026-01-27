@@ -1,6 +1,6 @@
 # Architecture: Applets (Human Validation Checkpoints)
 
-**Last updated:** 2026-01-21
+**Last updated:** 2026-01-27
 
 ## Parent
 
@@ -8,7 +8,7 @@
 
 ## Children
 
-- None (standard applets live in `/applets/` workspace)
+- [confirm applet](../../../../applets/confirm/) - Reference implementation
 
 ## Overview
 
@@ -134,9 +134,14 @@ Applets are temporary web applications deployed mid-workflow to collect human in
 - Local dev: inject `LocalAppletLauncher`
 - Production: inject `CloudAppletLauncher`
 - Tests: inject mock or `LocalAppletLauncher` with `MinimalTestServerFactory`
-| `applet-confirm` | applets/confirm/ | Standard applet: text + approve/reject |
-| `applet-grid` | applets/grid/ | Standard applet: array selection with checkboxes |
-| `applet-generation` | applets/generation/ | Standard applet: generated/editable text per item |
+
+### Standard Applets
+
+| Applet | Location | Status |
+|--------|----------|--------|
+| `applet-confirm` | applets/confirm/ | Implemented - text + approve/reject |
+| `applet-grid` | applets/grid/ | Not yet - array selection with checkboxes |
+| `applet-generation` | applets/generation/ | Not yet - generated/editable text per item |
 
 ## Interfaces
 
@@ -208,6 +213,92 @@ Each applet package exports:
 │  frontendDir: string              // path to built React assets         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
+
+## Reference Implementation: confirm applet
+
+The `applets/confirm/` package serves as the reference implementation pattern for all applets.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    @massivoto/applet-confirm                                 │
+│                    (applets/confirm/)                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  src/                                                                       │
+│  ├── index.ts          ← Package entry point (exports below)                │
+│  ├── definition.ts     ← AppletDefinition + Zod schemas                     │
+│  ├── server.ts         ← createServer() factory + frontendDir               │
+│  ├── resource-type.ts  ← Utility: detect image/video/pdf/embed              │
+│  └── docker-entry.ts   ← Standalone entry for Docker container              │
+│                                                                             │
+│  front/                                                                     │
+│  └── src/                                                                   │
+│      ├── App.tsx       ← React UI: title, message, approve/reject           │
+│      └── ResourceDisplay.tsx ← Media display component                      │
+│                                                                             │
+│  dist/                                                                      │
+│  ├── *.js, *.d.ts      ← Compiled backend                                   │
+│  └── front/            ← Built React assets (served by Express)             │
+│                                                                             │
+│  Dockerfile            ← Container image definition                         │
+│  docker-compose.yml    ← Local development with env vars                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Exports from index.ts:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  definition: AppletDefinition     // Complete definition with schemas       │
+│  confirmInputSchema: ZodSchema    // For external validation                │
+│  confirmOutputSchema: ZodSchema   // For external validation                │
+│  createServer(config): Express    // Server factory for launcher            │
+│  frontendDir: string              // Path to built React assets             │
+│  getResourceType(url): ResourceType  // URL to media type                   │
+│  toEmbedUrl(url): string          // Convert YouTube/Vimeo to embed         │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Kit vs Applet Responsibility
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         RESPONSIBILITY SPLIT                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  @massivoto/kit                        @massivoto/applet-confirm            │
+│  ┌─────────────────────────┐           ┌─────────────────────────┐         │
+│  │  AppletDefinition       │           │  definition             │         │
+│  │  (interface)            │◄──────────│  (implements interface) │         │
+│  └─────────────────────────┘           │  + actual schemas       │         │
+│                                        │  + packageName          │         │
+│  ┌─────────────────────────┐           │  + timeoutMs            │         │
+│  │  AppletRegistry         │           └─────────────────────────┘         │
+│  │  (stores definitions)   │                                               │
+│  └─────────────────────────┘           ┌─────────────────────────┐         │
+│                                        │  createServer()         │         │
+│  ┌─────────────────────────┐           │  (Express factory)      │         │
+│  │  CoreAppletsBundle      │           │  - /health endpoint     │         │
+│  │  (skeleton defs)        │─ ─ ─ ─ ─ ─│  - /api/input GET       │         │
+│  │  ⚠ Duplicates schemas  │   import? │  - /respond POST        │         │
+│  └─────────────────────────┘           │  - static frontend      │         │
+│                                        └─────────────────────────┘         │
+│  ┌─────────────────────────┐                                               │
+│  │  Docker utilities       │           ┌─────────────────────────┐         │
+│  │  generateDockerfile()   │──────────►│  Dockerfile             │         │
+│  │  generateCompose()      │   used by │  docker-compose.yml     │         │
+│  │  createHealthMiddleware │           │  docker-entry.ts        │         │
+│  └─────────────────────────┘           └─────────────────────────┘         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Known Issue: Schema Duplication
+
+The `CoreAppletsBundle` in kit duplicates the Zod schemas that also exist in each applet package. This is intentional for now:
+
+- **Kit CoreAppletsBundle**: Provides skeleton definitions so the registry can validate input/output even without importing the full applet package
+- **Applet packages**: Export the authoritative schemas for use by the launcher and tests
+
+Future improvement: CoreAppletsBundle could dynamically import schemas from applet packages rather than duplicating them.
 
 ## Data Flow
 
