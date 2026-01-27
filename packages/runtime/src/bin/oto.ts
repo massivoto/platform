@@ -38,7 +38,7 @@ import {
   InvalidExtensionError,
   ContextFileError,
 } from '../runner/runner.types.js'
-import type { ExecutionContext, ProgramResult } from '../domain/index.js'
+import type { ExecutionContext, ProgramResult } from '@massivoto/kit'
 
 /**
  * Parse --var arguments into a key-value object.

@@ -24,16 +24,23 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
-import { fromPartialContext, ProgramResult } from '../domain/index.js'
-import { runProgram } from '../interpreter/program-runner.js'
-import { buildProgramParser } from '../interpreter/parser/program-parser.js'
 import {
-  RunnerOptions,
-  RunOptions,
+  createEmptyExecutionContext,
+  fromPartialContext,
+  ProgramResult,
+} from '@massivoto/kit'
+import {
   CheckResult,
   FileNotFoundError,
   InvalidExtensionError,
+  RunnerOptions,
+  RunOptions,
 } from './runner.types.js'
+import {
+  buildProgramParser,
+  createStandardCommandRegistry,
+} from '@massivoto/interpreter'
+import { runLocalProgram } from './local-runner.js'
 
 /**
  * Valid file extensions for OTO programs.
@@ -107,11 +114,16 @@ export class FileRunner {
     // R-LOCAL-05: Build execution context from options
     const context = runOptions.context
       ? fromPartialContext(runOptions.context)
-      : undefined
+      : createEmptyExecutionContext('file-runner')
 
+    let commandRegistry = this.options.registry
+
+    if (!commandRegistry) {
+      commandRegistry = await createStandardCommandRegistry()
+    }
     // Execute the program
     // R-LOCAL-06: Returns ProgramResult
-    const result = await runProgram(source, context, this.options.registry)
+    const result = await runLocalProgram(source, context, commandRegistry)
 
     return result
   }

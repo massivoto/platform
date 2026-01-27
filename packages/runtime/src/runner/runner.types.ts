@@ -7,8 +7,7 @@
  * - R-LOCAL-04: InvalidExtensionError
  * - R-LOCAL-05: RunOptions for context injection
  */
-import type { ExecutionContext } from '../domain/index.js'
-import type { CommandRegistry } from '../interpreter/handlers/command-registry.js'
+import type { CommandRegistry, ExecutionContext } from '@massivoto/kit'
 
 /**
  * Options for creating a FileRunner instance.

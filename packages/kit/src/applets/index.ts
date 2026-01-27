@@ -21,7 +21,12 @@
  */
 
 // Types
-export type { AppletDefinition } from './types.js'
+export type {
+  AppletDefinition,
+  AppletInstance,
+  AppletTerminator,
+  AppletLauncher,
+} from './types.js'
 
 // Registry
 export { AppletRegistry } from './applet-registry.js'

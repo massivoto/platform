@@ -5,21 +5,18 @@
  * All tests use MinimalTestServerFactory - no real applet packages.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import {
-  LocalAppletLauncher,
-  type LocalAppletLauncherConfig,
-} from './local-applet-launcher.js'
+import { LocalAppletLauncher } from './local-applet-launcher.js'
 import { MinimalTestServerFactory } from './server-factories/minimal-test-factory.js'
 import { PortAllocator } from './port-allocator.js'
 import { AppletNotFoundError, AppletTimeoutError } from '../errors.js'
-import { createEmptyExecutionContext } from '../../domain/execution-context.js'
-import type {
-  AppletRegistry,
+import {
   AppletDefinition,
   AppletInstance,
-} from '../types.js'
+  AppletRegistry,
+  createEmptyExecutionContext,
+} from '@massivoto/kit'
 
 /**
  * Create a mock registry for testing.
@@ -41,7 +38,7 @@ function createMockRegistry(
     async keys() {
       return Array.from(map.keys())
     },
-  }
+  } as unknown as AppletRegistry
 }
 
 describe('LocalAppletLauncher', () => {

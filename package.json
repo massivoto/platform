@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "yarn:install": "yarn install",
+    "install": "yarn install",
     "clean": "npx rimraf packages/*/dist && rimraf node_modules",
     "clean:claude": "npx rimraf tmpclaude-*",
     "clean:install": "yarn clean && yarn install",

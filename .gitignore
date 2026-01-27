@@ -10,6 +10,8 @@ masala-parser
 # For dev environment
 bundle.js
 *.map
+packages/**/*.js
+packages/**/*.d.ts
 
 # Logs
 logs
@@ -34,6 +36,7 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+*.iml
 .DS_Store
 *.suo
 *.ntvs*

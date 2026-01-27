@@ -1,3 +1,4 @@
+import type { HealthResponse } from './applet-docker.types.js'
 /**
  * Health Middleware for Applets
  *
@@ -5,8 +6,7 @@
  * R-DOCKER-32: Health endpoint returns { status: "healthy", applet: "<id>", uptime: <seconds> }
  */
 
-import type { RequestHandler } from 'express'
-import type { HealthResponse } from './applet-docker.types.js'
+type RequestHandler = any
 
 /**
  * Creates an Express middleware that responds with health status.
@@ -28,7 +28,7 @@ export function createHealthMiddleware(
   appletId: string,
   startTime: number = Date.now(),
 ): RequestHandler {
-  return (_req, res) => {
+  return (_req: any, res: any) => {
     const uptime = Math.floor((Date.now() - startTime) / 1000)
     const response: HealthResponse = {
       status: 'healthy',

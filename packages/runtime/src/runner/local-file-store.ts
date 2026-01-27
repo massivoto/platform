@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'fs/promises'
 import lodashGet from 'lodash.get'
 import lodashSet from 'lodash.set'
-import { SerializableStorePointer, StoreProvider } from '../domain/store.js'
+import { SerializableStorePointer, StoreProvider } from '@massivoto/kit'
 
 export class LocalFileStore implements StoreProvider {
   constructor(private filePath: string) {}

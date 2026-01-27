@@ -1,4 +1,4 @@
-import { SerializableStorePointer } from '../domain/store.js'
+import { SerializableStorePointer } from '@massivoto/kit'
 
 /**
  * function createStoreFromPointer(pointer: SerializableStorePointer): StoreProvider {
