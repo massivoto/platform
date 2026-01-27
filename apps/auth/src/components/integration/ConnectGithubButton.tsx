@@ -17,13 +17,12 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useIntegrations } from '@/hooks/useIntegrations'
 import { Provider } from '@/lib/providers/provider.types'
+import { config } from '@/config'
 
 interface Props {
   provider: Provider
   userId: string
 }
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'
 
 export function ConnectGitHub({ provider, userId }: Props) {
   const {
@@ -33,7 +32,7 @@ export function ConnectGitHub({ provider, userId }: Props) {
     connect,
     disconnect,
   } = useIntegrations({
-    backendUrl: BACKEND_URL,
+    backendUrl: config.backendUrl,
     userId,
   })
 
