@@ -15,6 +15,12 @@
 
 The goal is to have a working local runner to validate the product concept.
 
+## separation
+
+We need to cherry pick:
+684701a1cd82a4aa5d0911647978284ed6db097d 
+6febff62b509f0fb7b0d6bbc62813d17928d6ba4
+
 ## grid support
 
 we have the same mecanism of spawning that the confirm applet but we need more data.
