@@ -15,6 +15,23 @@
 
 The goal is to have a working local runner to validate the product concept.
 
+## grid support
+
+we have the same mecanism of spawning that the confirm applet but we need more data.
+
+typically we will have a serializable array of Item. the item will have:
+- text
+- resource (image, video, audio)
+- extra metadata (key/value)
+- Generator
+  - prompt for generation resource
+  - type of generated resource
+  - model to use for generation
+
+Then like the confirm applet, we will have a grid applet that will display the items in a grid with checkboxes. The user will be able to select multiple items and validate,
+they will be stiored in an `output` array of selected items.
+
+When the user validate, the next action of massivoto runtime will receive the array of selected items.
 
 
 ### Cleanup (end of v0.5)
@@ -28,6 +45,10 @@ The goal is to have a working local runner to validate the product concept.
 ### Parser Enhancements
 
 - [ ] **Error format**: Errors sent need to be absolutely readable by a LLM
+- option system and full markdown text for surrounding documentation
+- if a .oto.md has md patterns such as `# ` or ` ```oto`  , the parser should be able to extract them and provide the AST.
+- if we have none of these patterns, the whole file is considered as an oto program.
+- if one parser fails, we will try the other anyway.
 
 ### Evaluator
 
