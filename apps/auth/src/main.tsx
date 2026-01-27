@@ -4,10 +4,21 @@ import './index.css'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { UserProvider } from './context/userContext.tsx'
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+
+// Wrap with GoogleOAuthProvider only if client ID is configured
+const AppWithProviders = () => (
+  <UserProvider>
+    <App />
+  </UserProvider>
+)
+
 createRoot(document.getElementById('root')!).render(
-  <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-    <UserProvider>
-      <App />
-    </UserProvider>
-  </GoogleOAuthProvider>,
+  googleClientId ? (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <AppWithProviders />
+    </GoogleOAuthProvider>
+  ) : (
+    <AppWithProviders />
+  ),
 )

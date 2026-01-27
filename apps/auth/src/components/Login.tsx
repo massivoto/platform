@@ -3,19 +3,19 @@
  *
  * Redirects to auth-backend for Google OAuth, then parses callback.
  * User info is fetched from the stored token via backend API.
+ *
+ * Note: If VITE_USER_ID is set in .env, login is not required.
  */
 import { useEffect, useState } from 'react'
 import { parseOAuthHash } from '@massivoto/auth-domain'
 import { toast } from 'sonner'
+import type { AppUser } from '@/context/userContext'
 
-export interface GoogleUser {
-  name: string
-  email: string
-  picture?: string
-}
+// Re-export for backwards compatibility
+export type GoogleUser = AppUser
 
 interface LoginProps {
-  onLogin: (user: GoogleUser) => void
+  onLogin: (user: AppUser) => void
 }
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'

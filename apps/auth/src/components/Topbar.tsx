@@ -88,11 +88,17 @@ export const Topbar = ({ title = '' }: TopbarProps) => {
                       onClick={() => setShowDropdown(!showDropdown)}
                       className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                     >
-                      <img
-                        src={user.picture}
-                        alt={user.name}
-                        className="w-9 h-9 rounded-full border-2 border-gray-200"
-                      />
+                      {user.picture ? (
+                        <img
+                          src={user.picture}
+                          alt={user.name}
+                          className="w-9 h-9 rounded-full border-2 border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full border-2 border-gray-200 bg-gray-100 flex items-center justify-center text-gray-600 font-medium">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </button>
 
                     {showDropdown && (
