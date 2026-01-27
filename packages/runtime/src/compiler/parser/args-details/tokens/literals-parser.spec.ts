@@ -118,34 +118,49 @@ describe('String escape sequences', () => {
     const stream = Stream.ofChars('"say \\"hello\\""')
     const parsing = grammar.parse(stream)
     expect(parsing.isAccepted()).toBe(true)
-    expect(parsing.value).toEqual({ type: 'literal-string', value: 'say "hello"' })
+    expect(parsing.value).toEqual({
+      type: 'literal-string',
+      value: 'say "hello"',
+    })
   })
 
   it('should parse escaped backslash', () => {
     const stream = Stream.ofChars('"C:\\\\Users\\\\name"')
     const parsing = grammar.parse(stream)
     expect(parsing.isAccepted()).toBe(true)
-    expect(parsing.value).toEqual({ type: 'literal-string', value: 'C:\\Users\\name' })
+    expect(parsing.value).toEqual({
+      type: 'literal-string',
+      value: 'C:\\Users\\name',
+    })
   })
 
   it('should parse escaped newline', () => {
     const stream = Stream.ofChars('"line1\\nline2"')
     const parsing = grammar.parse(stream)
     expect(parsing.isAccepted()).toBe(true)
-    expect(parsing.value).toEqual({ type: 'literal-string', value: 'line1\nline2' })
+    expect(parsing.value).toEqual({
+      type: 'literal-string',
+      value: 'line1\nline2',
+    })
   })
 
   it('should parse escaped tab', () => {
     const stream = Stream.ofChars('"col1\\tcol2"')
     const parsing = grammar.parse(stream)
     expect(parsing.isAccepted()).toBe(true)
-    expect(parsing.value).toEqual({ type: 'literal-string', value: 'col1\tcol2' })
+    expect(parsing.value).toEqual({
+      type: 'literal-string',
+      value: 'col1\tcol2',
+    })
   })
 
   it('should parse mixed escapes', () => {
     const stream = Stream.ofChars('"line1\\nline2\\t\\"quoted\\""')
     const parsing = grammar.parse(stream)
     expect(parsing.isAccepted()).toBe(true)
-    expect(parsing.value).toEqual({ type: 'literal-string', value: 'line1\nline2\t"quoted"' })
+    expect(parsing.value).toEqual({
+      type: 'literal-string',
+      value: 'line1\nline2\t"quoted"',
+    })
   })
 })

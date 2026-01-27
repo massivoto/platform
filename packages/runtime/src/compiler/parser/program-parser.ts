@@ -38,14 +38,19 @@ export interface ProgramParser {
  * Check if an instruction is @block/begin
  */
 function isBlockBegin(instruction: InstructionNode): boolean {
-  return instruction.action.package === 'block' && instruction.action.name === 'begin'
+  return (
+    instruction.action.package === 'block' &&
+    instruction.action.name === 'begin'
+  )
 }
 
 /**
  * Check if an instruction is @block/end
  */
 function isBlockEnd(instruction: InstructionNode): boolean {
-  return instruction.action.package === 'block' && instruction.action.name === 'end'
+  return (
+    instruction.action.package === 'block' && instruction.action.name === 'end'
+  )
 }
 
 /**
@@ -97,7 +102,10 @@ interface BlockContext {
 export function buildProgramParser(): ProgramParser {
   const instructionParser = buildInstructionParser()
 
-  function parseStatements(lines: string[], startIndex: number = 0): StatementNode[] {
+  function parseStatements(
+    lines: string[],
+    startIndex: number = 0,
+  ): StatementNode[] {
     const statements: StatementNode[] = []
     const blockStack: BlockContext[] = []
 
@@ -135,7 +143,9 @@ export function buildProgramParser(): ProgramParser {
       } else if (isBlockEnd(instruction)) {
         // Close the current block
         if (blockStack.length === 0) {
-          throw new Error(`Unexpected @block/end at line ${i + 1} (no matching @block/begin)`)
+          throw new Error(
+            `Unexpected @block/end at line ${i + 1} (no matching @block/begin)`,
+          )
         }
 
         const blockContext = blockStack.pop()!
@@ -165,7 +175,9 @@ export function buildProgramParser(): ProgramParser {
     // Check for unclosed blocks
     if (blockStack.length > 0) {
       const unclosed = blockStack[blockStack.length - 1]
-      throw new Error(`Unclosed block (missing @block/end) - block started at line ${unclosed.startLine}`)
+      throw new Error(
+        `Unclosed block (missing @block/end) - block started at line ${unclosed.startLine}`,
+      )
     }
 
     return statements

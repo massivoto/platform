@@ -27,7 +27,9 @@ describe('Reserved Arguments', () => {
       expect(instr.output).toBeDefined()
       expect(instr.output).toEqual({ type: 'identifier', value: 'result' })
       // Regular args should not contain output
-      expect(instr.args.find((a: any) => a.name.value === 'output')).toBeUndefined()
+      expect(
+        instr.args.find((a: any) => a.name.value === 'output'),
+      ).toBeUndefined()
     })
 
     it('parses output at beginning of args', () => {
@@ -70,11 +72,16 @@ describe('Reserved Arguments', () => {
       const instr = parsing.value
 
       expect(instr.condition).toBeDefined()
-      expect(instr.condition).toEqual({ type: 'identifier', value: 'isVerified' })
+      expect(instr.condition).toEqual({
+        type: 'identifier',
+        value: 'isVerified',
+      })
     })
 
     it('parses if={binary expression}', () => {
-      const parsing = parse('@twitter/post message="hello" if={followers > 100}')
+      const parsing = parse(
+        '@twitter/post message="hello" if={followers > 100}',
+      )
 
       expect(parsing.isAccepted()).toBe(true)
       const instr = parsing.value
@@ -102,8 +109,14 @@ describe('Reserved Arguments', () => {
 
       expect(instr.condition?.type).toBe('binary')
       expect((instr.condition as any).operator).toBe('>=')
-      expect((instr.condition as any).left).toEqual({ type: 'identifier', value: 'count' })
-      expect((instr.condition as any).right).toEqual({ type: 'literal-number', value: 10 })
+      expect((instr.condition as any).left).toEqual({
+        type: 'identifier',
+        value: 'count',
+      })
+      expect((instr.condition as any).right).toEqual({
+        type: 'literal-number',
+        value: 10,
+      })
     })
 
     it('parses if with boolean literal', () => {
@@ -135,13 +148,18 @@ describe('Reserved Arguments', () => {
       // This is different from 'if = cond' where space breaks the token
       const parsing = parse('@twitter/post if= isActive')
       expect(parsing.isAccepted()).toBe(true)
-      expect(parsing.value.condition).toEqual({ type: 'identifier', value: 'isActive' })
+      expect(parsing.value.condition).toEqual({
+        type: 'identifier',
+        value: 'isActive',
+      })
     })
   })
 
   describe('combined reserved args', () => {
     it('parses both output and if on same instruction', () => {
-      const parsing = parse('@twitter/post message="hello" if=isActive output=result')
+      const parsing = parse(
+        '@twitter/post message="hello" if=isActive output=result',
+      )
 
       expect(parsing.isAccepted()).toBe(true)
       const instr = parsing.value
@@ -153,7 +171,9 @@ describe('Reserved Arguments', () => {
     })
 
     it('parses reserved args in any order', () => {
-      const parsing = parse('@twitter/post output=result if=isActive message="hello"')
+      const parsing = parse(
+        '@twitter/post output=result if=isActive message="hello"',
+      )
 
       expect(parsing.isAccepted()).toBe(true)
       const instr = parsing.value
