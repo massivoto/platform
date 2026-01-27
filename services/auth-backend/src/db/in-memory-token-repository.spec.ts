@@ -13,7 +13,7 @@ describe('InMemoryTokenRepository', () => {
     access_token: 'test-access-token',
     token_type: 'Bearer',
     refresh_token: 'test-refresh-token',
-    expires_in: 3600,
+    expires_in: 3700,
     scope: 'email profile',
   }
 

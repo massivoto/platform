@@ -99,14 +99,14 @@ describe('OAuth Integration Tests', () => {
         .expect(302)
 
       // Step 2: Follow redirect to /mock/authorize
-      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3001')
+      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3700')
       const authorizeRes = await agent
         .get(authorizeUrl.pathname + authorizeUrl.search)
         .redirects(0)
         .expect(302)
 
       // Step 3: Follow redirect to /callback
-      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3001')
+      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3700')
       expect(callbackUrl.pathname).toBe('/oauth/github/callback')
       expect(callbackUrl.searchParams.get('code')).toMatch(/^mock_code_/)
       expect(callbackUrl.searchParams.get('state')).toBeDefined()
@@ -132,12 +132,12 @@ describe('OAuth Integration Tests', () => {
         .get('/oauth/github/start?user_id=test-user')
         .redirects(0)
 
-      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3001')
+      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3700')
       const authorizeRes = await agent
         .get(authorizeUrl.pathname + authorizeUrl.search)
         .redirects(0)
 
-      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3001')
+      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3700')
       await agent
         .get(callbackUrl.pathname + callbackUrl.search)
         .redirects(0)
@@ -160,14 +160,14 @@ describe('OAuth Integration Tests', () => {
         .get('/oauth/github/start?user_id=test-user&scenario=denied')
         .redirects(0)
 
-      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3001')
+      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3700')
       const authorizeRes = await agent
         .get(authorizeUrl.pathname + authorizeUrl.search)
         .redirects(0)
         .expect(302)
 
       // Mock authorize redirects with error params
-      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3001')
+      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3700')
       expect(callbackUrl.searchParams.get('error')).toBe('access_denied')
 
       // No token should be saved
@@ -185,14 +185,14 @@ describe('OAuth Integration Tests', () => {
         .get('/oauth/github/start?user_id=test-user&scenario=error')
         .redirects(0)
 
-      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3001')
+      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3700')
       const authorizeRes = await agent
         .get(authorizeUrl.pathname + authorizeUrl.search)
         .redirects(0)
         .expect(302)
 
       // Mock authorize redirects with error params
-      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3001')
+      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3700')
       expect(callbackUrl.searchParams.get('error')).toBe('server_error')
 
       // No token should be saved
@@ -210,12 +210,12 @@ describe('OAuth Integration Tests', () => {
         .get('/oauth/github/start?user_id=test-user&scenario=expired')
         .redirects(0)
 
-      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3001')
+      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3700')
       const authorizeRes = await agent
         .get(authorizeUrl.pathname + authorizeUrl.search)
         .redirects(0)
 
-      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3001')
+      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3700')
       const callbackRes = await agent
         .get(callbackUrl.pathname + callbackUrl.search)
         .redirects(0)
@@ -272,12 +272,12 @@ describe('OAuth Integration Tests', () => {
         .redirects(0)
         .expect(302)
 
-      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3001')
+      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3700')
       const authorizeRes = await agent
         .get(authorizeUrl.pathname + authorizeUrl.search)
         .redirects(0)
 
-      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3001')
+      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3700')
       const callbackRes = await agent
         .get(callbackUrl.pathname + callbackUrl.search)
         .redirects(0)
@@ -300,12 +300,12 @@ describe('OAuth Integration Tests', () => {
         .redirects(0)
         .expect(302)
 
-      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3001')
+      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3700')
       const authorizeRes = await agent
         .get(authorizeUrl.pathname + authorizeUrl.search)
         .redirects(0)
 
-      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3001')
+      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3700')
       const callbackRes = await agent
         .get(callbackUrl.pathname + callbackUrl.search)
         .redirects(0)
@@ -328,12 +328,12 @@ describe('OAuth Integration Tests', () => {
         .redirects(0)
         .expect(302)
 
-      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3001')
+      const authorizeUrl = new URL(startRes.headers.location, 'http://localhost:3700')
       const authorizeRes = await agent
         .get(authorizeUrl.pathname + authorizeUrl.search)
         .redirects(0)
 
-      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3001')
+      const callbackUrl = new URL(authorizeRes.headers.location, 'http://localhost:3700')
       const callbackRes = await agent
         .get(callbackUrl.pathname + callbackUrl.search)
         .redirects(0)
