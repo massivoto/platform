@@ -76,7 +76,11 @@ export function createInstructionGrammar(
 
   const instruction = ACTION.then(anyArg.optrep()).map((t) => {
     const action = t.first()
-    const allArgs = t.array().slice(1) as (ArgumentNode | OutputArgNode | IfArgNode)[]
+    const allArgs = t.array().slice(1) as (
+      | ArgumentNode
+      | OutputArgNode
+      | IfArgNode
+    )[]
 
     // Separate reserved args from regular args
     const regularArgs: ArgumentNode[] = []
