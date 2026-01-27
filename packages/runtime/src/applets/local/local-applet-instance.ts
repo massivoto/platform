@@ -6,8 +6,8 @@
 
 import type * as http from 'node:http'
 import type { ZodSchema } from 'zod'
-import type { AppletInstance } from '../types.js'
-import type { ExecutionContext } from '../../domain/execution-context.js'
+import type { AppletInstance } from '@massivoto/kit'
+import type { ExecutionContext } from '@massivoto/kit'
 import { AppletTimeoutError, AppletValidationError } from '../errors.js'
 import {
   LocalAppletTerminator,

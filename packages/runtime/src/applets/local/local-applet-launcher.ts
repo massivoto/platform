@@ -10,8 +10,8 @@ import type {
   AppletInstance,
   AppletDefinition,
   AppletRegistry,
-} from '../types.js'
-import type { ExecutionContext } from '../../domain/execution-context.js'
+} from '@massivoto/kit'
+import type { ExecutionContext } from '@massivoto/kit'
 import { AppletNotFoundError, AppletValidationError } from '../errors.js'
 import { LocalAppletInstance } from './local-applet-instance.js'
 import { PortAllocator } from './port-allocator.js'

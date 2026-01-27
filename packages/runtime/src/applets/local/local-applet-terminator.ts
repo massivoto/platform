@@ -5,9 +5,9 @@
  * Stops the server, releases the port, and rejects pending promises.
  */
 
-import type { AppletTerminator } from '../types.js'
 import { AppletTerminatedError } from '../errors.js'
 import type { PortAllocator } from './port-allocator.js'
+import { AppletTerminator } from '@massivoto/kit'
 
 /**
  * Internal interface that LocalAppletInstance must implement

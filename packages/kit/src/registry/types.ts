@@ -8,6 +8,7 @@
 /**
  * Base interface for all registry items.
  * All items stored in a registry must implement this interface.
+ * Usually identified by @package/name in Massivoto, but could be a simple string ID.
  */
 export interface RegistryItem {
   /** Unique identifier: "@utils/log", "github", "confirm" */
@@ -57,9 +58,16 @@ export interface RegistryBundle<V extends RegistryItem> {
 export interface Registry<V extends RegistryItem> {
   /**
    * Get an entry by key.
+   * TODO AI : should probably return undefined instead of throwing if not found
    * @throws RegistryNotLoadedError if reload() was never called
    */
   get(key: string): Promise<RegistryEntry<V> | undefined>
+
+  /**
+   * Get an entry by key.
+   * @throws RegistryNotLoadedError if reload() was never called
+   */
+  resolve(key: string): Promise<V>
 
   /**
    * Check if a key exists in the registry.
@@ -92,6 +100,8 @@ export interface ComposableRegistry<
    * Bundles are loaded in order when reload() is called.
    */
   addBundle(bundle: RegistryBundle<V>): void
+
+  addRegistryItem(id: string, item: V): Promise<void>
 
   /**
    * Reload all bundles.

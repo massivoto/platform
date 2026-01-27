@@ -1,4 +1,4 @@
-import { SerializableStorePointer, StoreProvider } from '../domain/store.js'
+import { SerializableStorePointer, StoreProvider } from '@massivoto/kit'
 import { LocalFileStore } from './local-file-store.js'
 
 function createStoreFromPointer(ptr: SerializableStorePointer): StoreProvider {

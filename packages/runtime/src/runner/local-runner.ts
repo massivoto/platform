@@ -1,36 +1,119 @@
-import { Interpreter } from '../interpreter/index.js'
-import { ExecutionContext } from '../domain/index.js'
-import { SerializableStorePointer, StoreProvider } from '../domain/store.js'
-import { LocalFileStore } from './local-file-store.js'
-import { Runner } from './runner.js'
+/**
+ * Local Runner - Factory for creating runners with dependency injection.
+ *
+ * R-SEP-21: createRunner(interpreter: Interpreter): Runner
+ *
+ * The runner accepts an Interpreter implementation at runtime,
+ * enabling the BSL-licensed CoreInterpreter to be injected
+ * without the runtime package depending on it directly.
+ *
+ * @example
+ * ```typescript
+ * import { createRunner, ExecutionContext, ProgramResult } from '@massivoto/runtime'
+ * import { CoreInterpreter, CoreCommandRegistry } from '@massivoto/interpreter'
+ *
+ * // Set up interpreter with registry
+ * const registry = new CoreCommandRegistry()
+ * const interpreter = new CoreInterpreter(registry)
+ *
+ * // Create runner with DI
+ * const runner = createRunner(interpreter)
+ *
+ * // Execute programs
+ * const result = await runner.runProgram(program, context)
+ * ```
+ *
+ * @license Apache-2.0
+ */
+import {
+  CoreInterpreter,
+  parseProgram,
+  ProgramNode,
+} from '@massivoto/interpreter'
+import type {
+  CommandRegistry,
+  Interpreter,
+  ProgramResult,
+} from '@massivoto/kit'
+import { createEmptyExecutionContext, ExecutionContext } from '@massivoto/kit'
 
-export class LocalRunner implements Runner {
-  initialized = false
-  private storeProvider: StoreProvider | undefined
+/**
+ * Runner interface for program execution.
+ *
+ * The runner is the main entry point for executing OTO programs.
+ * It accepts an Interpreter via dependency injection.
+ */
+export interface Runner {
+  /**
+   * Parse and execute source code with optional context.
+   *
+   * @param source - OTO source code
+   * @param context - Optional partial context (merged with defaults)
+   * @returns Promise resolving to ProgramResult
+   */
+  runSource(
+    source: string,
+    context?: Partial<ExecutionContext>,
+  ): Promise<ProgramResult>
+}
 
-  constructor(
-    private context: ExecutionContext,
-    private interpreter: Interpreter,
-  ) {}
+/**
+ * Create a Runner with the provided Interpreter implementation.
+ *
+ * R-SEP-21: Factory function for dependency injection.
+ *
+ * @param interpreter - The Interpreter implementation to use
+ * @returns A Runner instance
+ *
+ * @example
+ * ```typescript
+ * // In application code:
+ * import { createRunner } from '@massivoto/runtime'
+ * import { CoreInterpreter } from '@massivoto/interpreter'
+ *
+ * const runner = createRunner(new CoreInterpreter(registry, evaluator))
+ * const result = await runner.runSource('@utils/set input="hello" output=greeting')
+ * console.log(result.data.greeting) // 'hello'
+ * ```
+ */
+export function createRunner(interpreter: Interpreter): Runner {
+  return new LocalRunner(interpreter)
+}
 
-  async initialize(): Promise<void> {
-    this.storeProvider = await this.createStoreFromPointer(this.context.store)
-    this.initialized = true
+/**
+ * Local Runner implementation using injected Interpreter.
+ * @internal
+ */
+class LocalRunner implements Runner {
+  constructor(private readonly interpreter: Interpreter) {}
+
+  async runSource(
+    source: string,
+    partialContext?: Partial<ExecutionContext>,
+  ): Promise<ProgramResult> {
+    // Parse source to AST
+    const program: ProgramNode = parseProgram(source)
+
+    // Build full context from partial
+    const context = partialContext
+      ? {
+          ...createEmptyExecutionContext(partialContext.user?.id || 'local'),
+          ...partialContext,
+          data: { ...partialContext.data },
+          env: { ...partialContext.env },
+        }
+      : createEmptyExecutionContext('local')
+
+    return this.interpreter.executeProgram(program, context)
   }
+}
 
-  async createStoreFromPointer(
-    pointer: SerializableStorePointer,
-  ): Promise<StoreProvider> {
-    return new LocalFileStore('local-store.to-delete.json')
-  }
-
-  async runStep() {
-    if (!this.storeProvider) {
-      throw new Error('StoreProvider is not initialized')
-    }
-    // Here you would implement the logic to run a step using the interpreter
-    // and the store, for example:
-    // const result = await this.exec.execute(instruction, this.context)
-    // return result
-  }
+export function runLocalProgram(
+  source: string,
+  partialContext: Partial<ExecutionContext>,
+  registry: CommandRegistry,
+): Promise<ProgramResult> {
+  const coreInterpreter = new CoreInterpreter(registry)
+  const runner = createRunner(coreInterpreter)
+  return runner.runSource(source, partialContext)
 }

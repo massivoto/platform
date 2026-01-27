@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
     "prebuild": "npm run clean",
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "prettier": "^3.7.4",
+    "rimraf": "^6.1.2",
     "typescript": "^5.9.3",
     "vite-node": "^3.2.4",
     "vitest": "^3.2.4"
