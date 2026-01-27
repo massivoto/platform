@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom/vitest'
+import '@testing-library/jest-dom'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { startTestServer, stopTestServer, resetHandlers, setLatency } from '@/mocks/http/server'
 

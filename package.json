@@ -9,9 +9,9 @@
     "clean:install": "yarn clean && yarn install",
     "build": "tsc --build",
     "build:kit": "yarn workspace @massivoto/kit build",
-    "build:engine": "yarn workspace @massivoto/engine build",
+    "build:runtime": "yarn workspace @massivoto/runtime build",
     "dev": "yarn workspaces foreach -A run dev",
-    "test": "yarn workspaces foreach run test",
+    "test": "yarn workspaces foreach -A run test",
     "type-check": "tsc --noEmit"
   },
   "workspaces": [
