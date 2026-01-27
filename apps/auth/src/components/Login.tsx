@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 import { parseOAuthHash } from '@massivoto/auth-domain'
 import { toast } from 'sonner'
 import type { AppUser } from '@/context/userContext'
+import { config } from '@/config'
 
 // Re-export for backwards compatibility
 export type GoogleUser = AppUser
@@ -17,8 +18,6 @@ export type GoogleUser = AppUser
 interface LoginProps {
   onLogin: (user: AppUser) => void
 }
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'
 // For platform auth, we use a special "platform" user ID
 const PLATFORM_USER_ID = 'platform-auth'
 
@@ -67,7 +66,7 @@ export default function Login({ onLogin }: LoginProps) {
   const handleLogin = () => {
     setLoading(true)
     const redirectUri = encodeURIComponent(window.location.href.split('#')[0])
-    window.location.href = `${BACKEND_URL}/oauth/google/start?user_id=${PLATFORM_USER_ID}&redirect_uri=${redirectUri}`
+    window.location.href = `${config.backendUrl}/oauth/google/start?user_id=${PLATFORM_USER_ID}&redirect_uri=${redirectUri}`
   }
 
   return (

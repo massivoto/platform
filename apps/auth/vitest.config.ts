@@ -16,5 +16,8 @@ export default defineConfig({
     setupFiles: ['./src/tests/setup.ts'],
     css: true,
     passWithNoTests: true,
+    env: {
+      VITE_BACKEND_URL: 'http://test.local',
+    },
   },
 })

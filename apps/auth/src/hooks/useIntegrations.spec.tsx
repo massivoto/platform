@@ -22,7 +22,8 @@ const mockLocation = {
 }
 
 describe('useIntegrations', () => {
-  const backendUrl = 'http://localhost:4000'
+  // Test fixture URL - mock server intercepts all requests regardless of URL
+  const backendUrl = 'http://fake.test'
   const userId = 'user-123'
 
   // In-memory store for tests
