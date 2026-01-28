@@ -1,4 +1,4 @@
-import { Serializable } from '@massivoto/kit'
+import { Serializable } from '../network'
 
 export type InstructionState =
   | 'waiting'

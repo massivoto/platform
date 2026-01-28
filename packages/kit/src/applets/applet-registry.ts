@@ -12,9 +12,9 @@ import {
   BaseComposableRegistry,
   RegistryBundle,
   RegistryEntry,
-} from '../registry/index.js'
+} from '../registry'
 import type { AppletDefinition } from './types.js'
-
+import { AppletRegistry as IAppletRegistry } from './types.js'
 /**
  * AppletRegistry - manages applet definitions with bundle composition.
  *
@@ -35,7 +35,7 @@ import type { AppletDefinition } from './types.js'
  * }
  * ```
  */
-export class AppletRegistry {
+export class AppletRegistry implements IAppletRegistry {
   private readonly inner: BaseComposableRegistry<AppletDefinition>
 
   constructor() {

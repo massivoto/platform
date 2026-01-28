@@ -1,4 +1,4 @@
-import { Instruction } from './instruction.js'
+import { Instruction } from './instruction'
 
 export interface Flow {
   id: string

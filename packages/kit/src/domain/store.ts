@@ -1,5 +1,4 @@
-import { Serializable } from '@massivoto/kit'
-import { SerializableObject } from '@massivoto/kit/dist'
+import { SerializableObject } from '../network'
 
 /**
  * Interface allowing the Store to read and write data.

@@ -1,4 +1,4 @@
-import type { ReadableDate } from '@massivoto/kit'
+import { ReadableDate } from '../time'
 
 /**
  * ActionLog - Execution log for a single Action.

@@ -7,7 +7,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createHealthMiddleware } from './health-middleware.js'
-import type { Request, Response } from 'express'
+
+type Request = any
+type Response = any
 
 describe('createHealthMiddleware', () => {
   let mockRequest: Partial<Request>
