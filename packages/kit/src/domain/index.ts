@@ -17,3 +17,6 @@ export {
 
 export type { SerializableStorePointer, StoreProvider } from './store.js'
 export { fakeStorePointer } from './store.js'
+
+export * from './execution-context'
+export * from './scope'

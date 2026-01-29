@@ -1,8 +1,8 @@
-import { ScopeChain } from './scope'
-import { SerializableStorePointer, StoreProvider } from './store'
-import { AppletLauncher } from '../applets'
-import { SerializableObject } from '../network'
-import { ReadableDate } from '../time'
+import { ScopeChain } from '../scope'
+import { SerializableStorePointer, StoreProvider } from '../store'
+import { AppletLauncher } from '../../applets'
+import { SerializableObject } from '../../network'
+import { ReadableDate } from '../../time'
 
 /**
  * Execution status for tracking program state.
