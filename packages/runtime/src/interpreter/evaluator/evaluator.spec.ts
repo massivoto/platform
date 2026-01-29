@@ -1694,6 +1694,7 @@ describe('ExpressionEvaluator - Store Access', () => {
 
 import { PipeExpressionNode } from '../parser/args-details/pipe-parser/pipe-parser.js'
 import { PipeRegistry, CorePipesBundle } from '../pipe-registry/index.js'
+import { fromPartialContext } from '../context/core-context.js'
 
 describe('ExpressionEvaluator - Pipe Expressions', () => {
   // Create evaluator with pipe registry

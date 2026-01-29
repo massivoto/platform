@@ -7,10 +7,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { z } from 'zod'
-import {
-  LocalAppletLauncher,
-  type LocalAppletLauncherConfig,
-} from './local-applet-launcher.js'
+import { LocalAppletLauncher } from './local-applet-launcher.js'
 import { MinimalTestServerFactory } from './server-factories/minimal-test-factory.js'
 import { PortAllocator } from './port-allocator.js'
 import { AppletNotFoundError, AppletTimeoutError } from '../errors.js'
@@ -18,7 +15,8 @@ import type {
   AppletRegistry,
   AppletDefinition,
   AppletInstance,
-} from '../types.js'
+} from '@massivoto/kit'
+import { createEmptyExecutionContext } from '../../interpreter/context/core-context.js'
 
 /**
  * Create a mock registry for testing.
@@ -40,7 +38,7 @@ function createMockRegistry(
     async keys() {
       return Array.from(map.keys())
     },
-  }
+  } as unknown as AppletRegistry
 }
 
 describe('LocalAppletLauncher', () => {

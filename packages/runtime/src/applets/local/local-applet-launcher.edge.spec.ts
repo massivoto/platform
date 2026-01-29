@@ -11,11 +11,12 @@ import { LocalAppletLauncher } from './local-applet-launcher.js'
 import { MinimalTestServerFactory } from './server-factories/minimal-test-factory.js'
 import { PortAllocator } from './port-allocator.js'
 import { AppletValidationError } from '../errors.js'
-import type {
+import {
   AppletRegistry,
   AppletDefinition,
   AppletInstance,
-} from '../types.js'
+} from '@massivoto/kit'
+import { createEmptyExecutionContext } from '../../interpreter/context/core-context.js'
 
 /**
  * Create a mock registry for testing.
@@ -37,7 +38,7 @@ function createMockRegistry(
     async keys() {
       return Array.from(map.keys())
     },
-  }
+  } as unknown as AppletRegistry
 }
 
 describe('LocalAppletLauncher edge cases', () => {

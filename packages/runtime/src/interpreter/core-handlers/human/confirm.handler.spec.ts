@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ConfirmHandler } from './confirm.handler.js'
-import { createEmptyExecutionContext } from '../../../../../kit/src/domain/execution-context.js'
 import type {
   AppletLauncher,
   AppletInstance,
   AppletTerminator,
-} from '../../../applets/types.js'
+} from '@massivoto/kit'
+import { createEmptyExecutionContext } from '../../context/core-context.js'
 
 /**
  * Test file: confirm.handler.spec.ts

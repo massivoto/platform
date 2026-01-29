@@ -382,3 +382,20 @@ In the future, packages can have paths and can be versioned :
 Une organisation va par défaut avoir accès à son registry, donc peut juste
 
     @crawl/data  // crawl fait partie du registry de l'organisation
+
+
+## Spawning servers 
+
+We can spawn servers with route, leverage expressJs or others api
+
+@spawn/start type="ws" id="serverId"
+
+// req is injected to the request scope
+@server/route path="/myroute" goto="handlerMyroute" output="req"
+@server/route path="/otherroute" goto="handlerOtherroute" output="req"
+
+@spawn/end 
+
+// trigger is another option than label, mais ne s'execute pas sans appel externe
+@sheet/set trigger="handlerMyroute" column=2 row=12  value="Hello World"
+

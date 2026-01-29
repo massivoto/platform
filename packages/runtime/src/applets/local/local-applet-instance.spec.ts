@@ -11,6 +11,7 @@ import { LocalAppletInstance } from './local-applet-instance.js'
 import { PortAllocator } from './port-allocator.js'
 import { MinimalTestServerFactory } from './server-factories/minimal-test-factory.js'
 import { AppletTimeoutError, AppletTerminatedError } from '../errors.js'
+import { createEmptyExecutionContext } from '../../interpreter/context/core-context.js'
 
 describe('LocalAppletInstance', () => {
   let portAllocator: PortAllocator

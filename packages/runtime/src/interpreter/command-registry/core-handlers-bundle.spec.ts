@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest'
 import { CoreHandlersBundle } from './core-handlers-bundle.js'
 import { CommandHandler } from './types.js'
-import { createEmptyExecutionContext } from '@massivoto/kit'
+import { createEmptyExecutionContext } from '../context/core-context.js'
 
 describe('CoreHandlersBundle', () => {
   describe('R-CMD-41: Implements RegistryBundle<CommandHandler>', () => {

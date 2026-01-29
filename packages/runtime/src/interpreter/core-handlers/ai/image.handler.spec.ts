@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ImageHandler } from './image.handler.js'
-import { createEmptyExecutionContext } from ''@massivoto/kit'
 import type { AiProvider, ImageResult } from './types.js'
+import { createEmptyExecutionContext } from '../../context/core-context.js'
 
 /**
  * Test file: image.handler.spec.ts

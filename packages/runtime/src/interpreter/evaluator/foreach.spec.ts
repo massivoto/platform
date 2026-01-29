@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { runProgram } from '../program-runner.js'
-import { createEmptyExecutionContext } from '@massivoto/kit'
 import {
   CommandHandler,
   CommandRegistry,
 } from '../handlers/command-registry.js'
 import { Interpreter } from '../interpreter.js'
 import { buildProgramParser } from '../parser/program-parser.js'
+import { createEmptyExecutionContext } from '../context/core-context.js'
 
 describe('ForEach Execution', () => {
   describe('R-FE-101 & R-FE-102: executeForEach implementation', () => {

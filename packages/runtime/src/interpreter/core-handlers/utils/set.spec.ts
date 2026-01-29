@@ -5,6 +5,8 @@ import { ExecutionContext } from '@massivoto/kit'
 import { Interpreter } from '../../interpreter.js'
 import { InstructionNode } from '../../parser/ast.js'
 import { buildInstructionParser } from '../../parser/instruction-parser.js'
+import { fromPartialContext } from '../../context/core-context.js'
+import { registerStandardCommandHandlers } from '../../handlers/index.js'
 
 describe('Interpreter with parsed instruction', () => {
   const registry = registerStandardCommandHandlers()

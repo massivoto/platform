@@ -10,6 +10,8 @@ masala-parser
 # For dev environment
 bundle.js
 *.map
+packages/**/*.js
+packages/**/*.d.ts
 
 # Logs
 logs

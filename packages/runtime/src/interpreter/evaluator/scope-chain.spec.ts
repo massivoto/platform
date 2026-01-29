@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
+import { ScopeChain } from '@massivoto/kit'
+
 import {
-  ScopeChain,
   createEmptyScopeChain,
   pushScope,
   popScope,

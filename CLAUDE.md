@@ -12,7 +12,7 @@ Monorepo for the Massivoto automation platform.
 
 - TypeScript (strict mode)
 - Yarn workspaces
-- Vite for frontend builds
+- Vite for frontend builds[commit.md](../../../../Users/n.zozol/.claude/commands/commit.md)
 - ESM modules throughout
 
 We don't care of backward compatibility. Move fast and break things.
@@ -25,14 +25,8 @@ We don't care of backward compatibility. Move fast and break things.
 - Keep solutions simple - avoid over-engineering
 
 ### Git Commits
-- Format: `type(scope): description`
-- Types: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`
-- Scope: the domain or package affected (e.g., `auth-domain`, `auth`, `auth-backend`)
-- Description: imperative mood, lowercase, no period
-- Examples:
-  - `feat(auth-domain): add token refresh logic`
-  - `fix(auth): handle expired token redirect`
-  - `chore(deps): update zod to v3.24`
+
+Don't commit without asking. Commit in french, using /commit command.
 
 ### Packages
 - Shared code goes in `packages/`

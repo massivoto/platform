@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { TextHandler } from './text.handler.js'
 import type { AiProvider, TextResult } from './types.js'
+import { createEmptyExecutionContext } from '../../context/core-context'
 
 /**
  * Test file: text.handler.spec.ts

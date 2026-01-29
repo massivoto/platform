@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GridHandler } from './grid.handler.js'
-import type {
-  AppletLauncher,
+import {
   AppletInstance,
+  AppletLauncher,
   AppletTerminator,
-} from '../../../applets/types.js'
+} from '@massivoto/kit'
+import { createEmptyExecutionContext } from '../../context/core-context.js'
 
 /**
  * Test file: grid.handler.spec.ts

@@ -13,6 +13,7 @@ import {
   write,
   lookup,
 } from './evaluator/scope-chain.js'
+import { createEmptyExecutionContext } from './context/core-context'
 
 /**
  * Test file: interpreter.spec.ts

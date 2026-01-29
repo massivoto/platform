@@ -30,7 +30,6 @@ import { CommandRegistry } from '../../interpreter/handlers/command-registry.js'
 import { LogHandler } from '../../interpreter/core-handlers/utils/log.handler.js'
 import { SetHandler } from '../../interpreter/core-handlers/utils/set.handler.js'
 import { ConfirmHandler } from '../../interpreter/core-handlers/human/confirm.handler.js'
-import { fromPartialContext } from '@massivoto/kit'
 import { LocalAppletLauncher } from '../../applets/local/local-applet-launcher.js'
 import { PortAllocator } from '../../applets/local/port-allocator.js'
 import { AppletRegistry, CoreAppletsBundle } from '@massivoto/kit'
@@ -42,6 +41,7 @@ import {
   createServer as createConfirmServer,
   frontendDir,
 } from '@massivoto/applet-confirm'
+import { fromPartialContext } from '../../interpreter/context/core-context.js'
 
 /**
  * Server factory that uses the real confirm applet package.

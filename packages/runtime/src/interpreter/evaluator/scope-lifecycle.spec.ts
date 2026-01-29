@@ -6,6 +6,7 @@ import {
   write,
   pushScope,
 } from './scope-chain.js'
+import { createEmptyExecutionContext } from '../context/core-context'
 
 /**
  * Test file: scope-lifecycle.spec.ts
