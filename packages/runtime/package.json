@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist tsconfig.tsbuildinfo",
     "prebuild": "npm run clean",
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",

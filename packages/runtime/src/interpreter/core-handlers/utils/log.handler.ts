@@ -1,6 +1,6 @@
 import { ActionResult } from '../../handlers/action-result.js'
 import { CommandHandler } from '../../handlers/command-registry.js'
-import { ExecutionContext } from '../../../domain/index.js'
+import { ExecutionContext } from '@massivoto/kit'
 
 export class LogHandler implements CommandHandler<void> {
   readonly id = '@utils/log'

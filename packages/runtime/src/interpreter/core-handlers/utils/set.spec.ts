@@ -1,11 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { Stream } from '@masala/parser'
-import { registerStandardCommandHandlers } from '../../handlers/register-handlers.js'
-import {
-  ExecutionContext,
-  fromPartialContext,
-} from '../../../domain/execution-context.js'
+import { ExecutionContext } from '@massivoto/kit'
 import { Interpreter } from '../../interpreter.js'
 import { InstructionNode } from '../../parser/ast.js'
 import { buildInstructionParser } from '../../parser/instruction-parser.js'

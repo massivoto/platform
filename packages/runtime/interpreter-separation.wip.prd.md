@@ -1,6 +1,6 @@
 # PRD: Interpreter Separation
 
-**Status:** DRAFT
+**Status:** APPROVED
 **Last updated:** 2026-01-28
 
 > - DRAFT: Coding should not start, requirements being defined
@@ -14,12 +14,12 @@
 |---------|--------|----------|
 | Context | Complete | - |
 | Scope | Complete | - |
-| Requirements: Interface Extraction | ❌ Not Started | 0/5 |
-| Requirements: BSL Package Creation | ❌ Not Started | 0/6 |
-| Requirements: Dependency Injection | ❌ Not Started | 0/3 |
-| Requirements: Distribution | ❌ Not Started | 0/4 |
-| Acceptance Criteria | ❌ Not Started | 0/6 |
-| **Overall** | **DRAFT** | **0%** |
+| Requirements: Interface Extraction | ✅ Complete | 5/5 |
+| Requirements: BSL Package Creation | ✅ Complete | 6/6 |
+| Requirements: Dependency Injection | ✅ Complete | 3/3 |
+| Requirements: Distribution | ⏳ In Progress | 3/4 |
+| Acceptance Criteria | ⏳ In Progress | 3/6 |
+| **Overall** | **ITERATING** | **85%** |
 
 ## Parent PRD
 
@@ -110,47 +110,47 @@ TARGET:
 
 **Last updated:** 2026-01-28
 **Test:** `npx vitest run packages/runtime/src/interfaces`
-**Progress:** 0/5 (0%)
+**Progress:** 5/5 (100%)
 
-- ❌ R-SEP-01: Create `Interpreter` interface with `execute(instruction, context): Promise<StatementResult>` and `executeProgram(program, context): Promise<ProgramResult>`
-- ❌ R-SEP-02: Create `Evaluator` interface with `evaluate(expr, context): unknown`
-- ❌ R-SEP-03: Create `CommandRegistry` interface with `resolve(actionPath): Promise<CommandHandler | undefined>`, `addBundle()`, `reload()`
-- ❌ R-SEP-04: Create `PipeRegistry` interface with `get(pipeId): Promise<PipeFunction | undefined>`, `addBundle()`, `reload()`
-- ❌ R-SEP-05: Export all interfaces and required domain types from `@massivoto/runtime` entry point
+- ✅ R-SEP-01: Create `Interpreter` interface with `execute(instruction, context): Promise<StatementResult>` and `executeProgram(program, context): Promise<ProgramResult>`
+- ✅ R-SEP-02: Create `Evaluator` interface with `evaluate(expr, context): unknown`
+- ✅ R-SEP-03: Create `CommandRegistry` interface with `resolve(actionPath): Promise<CommandHandler | undefined>`, `addBundle()`, `reload()`
+- ✅ R-SEP-04: Create `PipeRegistry` interface with `get(pipeId): Promise<PipeFunction | undefined>`, `addBundle()`, `reload()`
+- ✅ R-SEP-05: Export all interfaces and required domain types from `@massivoto/runtime` entry point
 
 ### BSL Package Creation
 
 **Last updated:** 2026-01-28
 **Test:** `npx vitest run` (in interpreter repo)
-**Progress:** 0/6 (0%)
+**Progress:** 6/6 (100%)
 
-- ❌ R-SEP-11: Create repository at `C:\code\nik\massivoto\massivoto-interpreter` with BSL 1.1 LICENSE file
-- ❌ R-SEP-12: Create `CoreInterpreter` class implementing `Interpreter` interface
-- ❌ R-SEP-13: Create `ExpressionEvaluator` class implementing `Evaluator` interface
-- ❌ R-SEP-14: Move `CoreCommandRegistry` implementing `CommandRegistry` interface
-- ❌ R-SEP-15: Move `CorePipeRegistry` implementing `PipeRegistry` interface
-- ❌ R-SEP-16: Move `CoreHandlersBundle` and `CorePipesBundle` with all built-in implementations
+- ✅ R-SEP-11: Create repository at `C:\code\nik\massivoto\massivoto-interpreter` with BSL 1.1 LICENSE file
+- ✅ R-SEP-12: Create `CoreInterpreter` class implementing `Interpreter` interface
+- ✅ R-SEP-13: Create `ExpressionEvaluator` class implementing `Evaluator` interface
+- ✅ R-SEP-14: Move `CoreCommandRegistry` implementing `CommandRegistry` interface
+- ✅ R-SEP-15: Move `CorePipeRegistry` implementing `PipeRegistry` interface
+- ✅ R-SEP-16: Move `CoreHandlersBundle` and `CorePipesBundle` with all built-in implementations
 
 ### Dependency Injection
 
 **Last updated:** 2026-01-28
 **Test:** `npx vitest run packages/runtime/src/runner`
-**Progress:** 0/3 (0%)
+**Progress:** 3/3 (100%)
 
-- ❌ R-SEP-21: Refactor `LocalRunner` to accept `Interpreter` via constructor: `createRunner(interpreter: Interpreter): Runner`
-- ❌ R-SEP-22: Runtime package must NOT import from `@massivoto/interpreter` (zero direct imports)
-- ❌ R-SEP-23: Interpreter package declares `@massivoto/runtime` as peer dependency
+- ✅ R-SEP-21: Refactor `LocalRunner` to accept `Interpreter` via constructor: `createRunner(interpreter: Interpreter): Runner`
+- ✅ R-SEP-22: Runtime package must NOT import from `@massivoto/interpreter` (zero direct imports)
+- ✅ R-SEP-23: Interpreter package declares `@massivoto/runtime` as peer dependency
 
 ### Distribution
 
 **Last updated:** 2026-01-28
 **Test:** Manual validation
-**Progress:** 0/4 (0%)
+**Progress:** 3/4 (75%)
 
-- ❌ R-SEP-31: Package builds with TypeScript strict mode and ESM target
-- ❌ R-SEP-32: `package.json` has `license: "BSL-1.1"` and correct peer dependency
-- ❌ R-SEP-33: Run `npm pack` and verify tarball contents
-- ❌ R-SEP-34: **MANUAL**: Publish to npm and verify install works in platform monorepo
+- ✅ R-SEP-31: Package builds with TypeScript strict mode and ESM target
+- ✅ R-SEP-32: `package.json` has `license: "BSL-1.1"` and correct peer dependency
+- ✅ R-SEP-33: Run `npm pack` and verify tarball contents
+- ⏳ R-SEP-34: **MANUAL**: Publish to npm and verify install works in platform monorepo
 
 ## Dependencies
 
@@ -176,9 +176,9 @@ TARGET:
 
 ### Criteria
 
-- [ ] AC-SEP-01: Given a developer imports `@massivoto/runtime`, when they access `Interpreter` interface, then it compiles without installing BSL package
-- [ ] AC-SEP-02: Given the runtime `package.json`, when checking dependencies, then `@massivoto/interpreter` is NOT listed (no direct dependency)
-- [ ] AC-SEP-03: Given the interpreter `package.json`, when checking, then `@massivoto/runtime` is listed as peer dependency
+- [x] AC-SEP-01: Given a developer imports `@massivoto/runtime`, when they access `Interpreter` interface, then it compiles without installing BSL package
+- [x] AC-SEP-02: Given the runtime `package.json`, when checking dependencies, then `@massivoto/interpreter` is NOT listed (no direct dependency)
+- [x] AC-SEP-03: Given the interpreter `package.json`, when checking, then `@massivoto/runtime` is listed as peer dependency
 - [ ] AC-SEP-04: Given both packages installed, when calling `createRunner(new CoreInterpreter())`, then OTO programs execute correctly
 - [ ] AC-SEP-05: Given all existing interpreter tests, when run in new repo, then 100% pass
 - [ ] AC-SEP-06: **MANUAL**: Given `npm install @massivoto/interpreter` in platform monorepo, when importing `CoreInterpreter`, then it resolves correctly

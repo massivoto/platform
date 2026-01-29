@@ -8,7 +8,7 @@
  * - R-CMD-02: Default no-op init() and dispose()
  */
 import type { CommandHandler } from './types.js'
-import type { ExecutionContext } from '../../domain/index.js'
+import type { ExecutionContext } from '@massivoto/kit'
 import type { ActionResult } from './action-result.js'
 
 /**

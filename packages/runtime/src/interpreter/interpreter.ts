@@ -1,6 +1,5 @@
 import { nowTs, toReadableDate } from '@massivoto/kit'
 import lodashSet from 'lodash.set'
-import { cloneExecutionContext } from '../domain/execution-context.js'
 import {
   InstructionNode,
   ProgramNode,
@@ -19,11 +18,12 @@ import {
   createNormalCompletion,
   createEarlyExit,
   createReturn,
-} from '../domain/index.js'
+} from '@massivoto/kit'
 import { write, pushScope, popScope } from './evaluator/scope-chain.js'
 import type { GotoResult } from './core-handlers/flow/goto.handler.js'
 import type { ExitResult } from './core-handlers/flow/exit.handler.js'
 import type { ReturnResult } from './core-handlers/flow/return.handler.js'
+import { cloneExecutionContext } from './context/core-context.js'
 
 /**
  * Flow control result from a statement execution.

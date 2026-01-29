@@ -1,8 +1,4 @@
-import {
-  ExecutionContext,
-  createEmptyExecutionContext,
-  ProgramResult,
-} from '../domain/index.js'
+import { ExecutionContext, ProgramResult } from '@massivoto/kit'
 import { buildProgramParser } from './parser/program-parser.js'
 import { CommandRegistry } from './handlers/command-registry.js'
 import { LogHandler } from './core-handlers/utils/log.handler.js'
@@ -11,6 +7,7 @@ import { GotoHandler } from './core-handlers/flow/goto.handler.js'
 import { ExitHandler } from './core-handlers/flow/exit.handler.js'
 import { ReturnHandler } from './core-handlers/flow/return.handler.js'
 import { Interpreter } from './interpreter.js'
+import { createEmptyExecutionContext } from './context/core-context.js'
 
 /**
  * Error thrown when program parsing or execution fails.

@@ -11,7 +11,6 @@ import { LocalAppletLauncher } from './local-applet-launcher.js'
 import { MinimalTestServerFactory } from './server-factories/minimal-test-factory.js'
 import { PortAllocator } from './port-allocator.js'
 import { AppletValidationError } from '../errors.js'
-import { createEmptyExecutionContext } from '../../domain/execution-context.js'
 import type {
   AppletRegistry,
   AppletDefinition,

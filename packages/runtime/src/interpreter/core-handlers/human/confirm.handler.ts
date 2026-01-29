@@ -13,7 +13,7 @@
 
 import { ActionResult } from '../../handlers/action-result.js'
 import { CommandHandler } from '../../handlers/command-registry.js'
-import { ExecutionContext } from '../../../domain/index.js'
+import { ExecutionContext } from '@massivoto/kit'
 
 export class ConfirmHandler implements CommandHandler<boolean> {
   readonly id = '@human/confirm'

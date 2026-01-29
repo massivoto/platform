@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GridHandler } from './grid.handler.js'
-import { createEmptyExecutionContext } from '../../../domain/execution-context.js'
 import type {
   AppletLauncher,
   AppletInstance,
@@ -302,9 +301,7 @@ describe('GridHandler', () => {
 
       const result = await handler.run({ items: testItems }, context)
 
-      expect(result.messages).toContainEqual(
-        expect.stringContaining('2'),
-      )
+      expect(result.messages).toContainEqual(expect.stringContaining('2'))
     })
 
     it('should terminate the applet instance after response', async () => {

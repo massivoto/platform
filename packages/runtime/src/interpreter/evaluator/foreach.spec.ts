@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { runProgram } from '../program-runner.js'
-import { createEmptyExecutionContext } from '../../domain/index.js'
+import { createEmptyExecutionContext } from '@massivoto/kit'
 import {
   CommandHandler,
   CommandRegistry,

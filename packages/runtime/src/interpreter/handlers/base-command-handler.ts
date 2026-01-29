@@ -1,5 +1,5 @@
 import { CommandHandler } from './command-registry.js'
-import { ExecutionContext } from '../../domain/index.js'
+import { ExecutionContext } from '@massivoto/kit'
 import { ActionResult } from './action-result.js'
 
 export abstract class BaseCommandHandler<T> implements CommandHandler<T> {

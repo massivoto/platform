@@ -5,7 +5,7 @@
  * Used by all command handlers in the runtime.
  */
 import type { RegistryItem } from '@massivoto/kit'
-import type { ExecutionContext } from '../../domain/index.js'
+import type { ExecutionContext } from '@massivoto/kit'
 import type { ActionResult } from './action-result.js'
 
 /**

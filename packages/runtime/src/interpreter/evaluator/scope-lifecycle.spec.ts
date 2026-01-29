@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { runProgram } from '../program-runner.js'
 import {
-  createEmptyExecutionContext,
-  ExecutionContext,
-} from '../../domain/execution-context.js'
-import {
   lookup,
   createEmptyScopeChain,
   write,

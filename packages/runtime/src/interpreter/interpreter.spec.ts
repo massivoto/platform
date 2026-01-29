@@ -4,10 +4,7 @@ import { Interpreter, parseOutputTarget } from './interpreter.js'
 import { CommandRegistry } from './handlers/command-registry.js'
 import { CommandHandler } from './handlers/command-registry.js'
 import { ActionResult } from './handlers/action-result.js'
-import {
-  ExecutionContext,
-  createEmptyExecutionContext,
-} from '../domain/execution-context.js'
+import { ExecutionContext } from '@massivoto/kit'
 import { buildInstructionParser } from './parser/instruction-parser.js'
 import { buildProgramParser } from './parser/program-parser.js'
 import { InstructionNode, ProgramNode } from './parser/ast.js'

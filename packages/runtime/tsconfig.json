@@ -17,5 +17,5 @@
   },
   "references": [{ "path": "../kit" }],
   "include": ["src"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["dist", "node_modules", "**/*.spec.ts", "**/*.e2e.spec.ts", "src/bin"]
 }

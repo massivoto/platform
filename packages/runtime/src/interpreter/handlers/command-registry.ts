@@ -1,5 +1,5 @@
 // Command Handler Interface
-import { ExecutionContext } from '../../domain/index.js'
+import { ExecutionContext } from '@massivoto/kit'
 import { ActionResult } from './action-result.js'
 
 export interface CommandHandler<T> {

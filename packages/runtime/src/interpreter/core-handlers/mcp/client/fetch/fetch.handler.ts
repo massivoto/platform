@@ -5,7 +5,7 @@
 import { errorToString } from '@massivoto/kit'
 import { ActionResult } from '../../../../handlers/action-result.js'
 import { BaseCommandHandler } from '../../../../handlers/base-command-handler.js'
-import { ExecutionContext } from '../../../../../domain/execution-context.js'
+import { ExecutionContext } from '@massivoto/kit'
 import { FetchClient } from './fetch.client.js'
 
 export class FetchHandler extends BaseCommandHandler<string> {

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { SetHandler } from './set.handler.js'
-import { createEmptyExecutionContext } from '../../../domain/execution-context.js'
 
 /**
  * Test file: set.handler.spec.ts

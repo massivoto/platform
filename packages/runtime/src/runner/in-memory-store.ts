@@ -1,6 +1,6 @@
 import lodashGet from 'lodash.get'
 import lodashSet from 'lodash.set'
-import { SerializableStorePointer, StoreProvider } from '../domain/store.js'
+import { SerializableStorePointer, StoreProvider } from '@massivoto/kit'
 
 /**
  * In-memory store implementation for testing and simple use cases.

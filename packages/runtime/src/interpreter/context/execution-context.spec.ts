@@ -3,13 +3,10 @@ import {
   createEmptyExecutionContext,
   cloneExecutionContext,
   fromPartialContext,
-  ExecutionStatus,
-} from './execution-context.js'
-import {
-  createEmptyScopeChain,
-  pushScope,
-} from '../interpreter/evaluator/scope-chain.js'
-import type { AppletLauncher, AppletInstance } from '../applets/types.js'
+} from './core-context'
+import { createEmptyScopeChain, pushScope } from '../evaluator/scope-chain'
+
+import { AppletInstance, AppletLauncher } from '@massivoto/kit'
 
 /**
  * Test file: execution-context.spec.ts

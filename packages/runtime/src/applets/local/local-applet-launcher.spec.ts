@@ -14,7 +14,6 @@ import {
 import { MinimalTestServerFactory } from './server-factories/minimal-test-factory.js'
 import { PortAllocator } from './port-allocator.js'
 import { AppletNotFoundError, AppletTimeoutError } from '../errors.js'
-import { createEmptyExecutionContext } from '../../domain/execution-context.js'
 import type {
   AppletRegistry,
   AppletDefinition,

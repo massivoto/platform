@@ -12,7 +12,7 @@ export type {
   AppletTerminator,
   AppletDefinition,
   AppletRegistry,
-} from './types.js'
+} from '@massivoto/kit'
 
 // Error types
 export {

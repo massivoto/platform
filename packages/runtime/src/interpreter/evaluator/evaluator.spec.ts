@@ -13,10 +13,7 @@ import {
   ExpressionNode,
 } from '../parser/ast.js'
 import { ExpressionEvaluator, EvaluationError } from './evaluators.js'
-import {
-  ExecutionContext,
-  fromPartialContext,
-} from '../../domain/execution-context.js'
+import { ExecutionContext } from '@massivoto/kit'
 import { createEmptyScopeChain, pushScope, write } from './scope-chain.js'
 
 const evaluator = new ExpressionEvaluator()

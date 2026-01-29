@@ -16,10 +16,7 @@ import { CommandHandler } from './types.js'
 import { BaseCommandHandler } from './base-command-handler.js'
 import { CommandNotFoundError } from './errors.js'
 import { ActionResult } from './action-result.js'
-import {
-  ExecutionContext,
-  createEmptyExecutionContext,
-} from '../../domain/index.js'
+import { ExecutionContext, createEmptyExecutionContext } from '@massivoto/kit'
 
 // =============================================================================
 // Test Fixtures - Social Media Automation Theme

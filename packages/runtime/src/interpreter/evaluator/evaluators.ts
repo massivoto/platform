@@ -9,7 +9,7 @@ import {
   IdentifierNode,
 } from '../parser/ast.js'
 import { PipeExpressionNode } from '../parser/args-details/pipe-parser/pipe-parser.js'
-import { ExecutionContext } from '../../domain/execution-context.js'
+import { ExecutionContext } from '@massivoto/kit'
 import { lookup } from './scope-chain.js'
 import { PipeRegistry } from '../pipe-registry/index.js'
 

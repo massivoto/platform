@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ImageHandler } from './image.handler.js'
-import { createEmptyExecutionContext } from '../../../domain/execution-context.js'
+import { createEmptyExecutionContext } from ''@massivoto/kit'
 import type { AiProvider, ImageResult } from './types.js'
 
 /**
@@ -135,10 +135,7 @@ describe('ImageHandler', () => {
       })
       handler.setProvider('gemini', mockProvider)
 
-      await handler.run(
-        { prompt: 'A mascot', style: 'illustration' },
-        context,
-      )
+      await handler.run({ prompt: 'A mascot', style: 'illustration' }, context)
 
       expect(mockProvider.generateImage).toHaveBeenCalledWith(
         expect.objectContaining({ style: 'illustration' }),
@@ -227,15 +224,13 @@ describe('ImageHandler', () => {
       const context = createEmptyExecutionContext('emma-123')
       context.env = { GEMINI_API_KEY: 'test-key' }
       const mockProvider = createMockProvider({
-        base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        base64:
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
         costUnits: 1,
       })
       handler.setProvider('gemini', mockProvider)
 
-      const result = await handler.run(
-        { prompt: 'A red pixel' },
-        context,
-      )
+      const result = await handler.run({ prompt: 'A red pixel' }, context)
 
       expect(result.success).toBe(true)
       expect(result.value).toBe(
@@ -255,10 +250,7 @@ describe('ImageHandler', () => {
       })
       handler.setProvider('gemini', mockProvider)
 
-      const result = await handler.run(
-        { prompt: 'Generate an image' },
-        context,
-      )
+      const result = await handler.run({ prompt: 'Generate an image' }, context)
 
       expect(result.cost).toBe(5)
     })
@@ -273,14 +265,9 @@ describe('ImageHandler', () => {
       })
       handler.setProvider('gemini', mockProvider)
 
-      const result = await handler.run(
-        { prompt: 'Generate an image' },
-        context,
-      )
+      const result = await handler.run({ prompt: 'Generate an image' }, context)
 
-      expect(result.messages).toContainEqual(
-        expect.stringContaining('3'),
-      )
+      expect(result.messages).toContainEqual(expect.stringContaining('3'))
     })
   })
 
@@ -290,10 +277,7 @@ describe('ImageHandler', () => {
       const context = createEmptyExecutionContext('emma-123')
       context.env = {} // No API key
 
-      const result = await handler.run(
-        { prompt: 'Generate an image' },
-        context,
-      )
+      const result = await handler.run({ prompt: 'Generate an image' }, context)
 
       expect(result.success).toBe(false)
       expect(result.fatalError).toContain('GEMINI_API_KEY')
@@ -304,10 +288,7 @@ describe('ImageHandler', () => {
       const context = createEmptyExecutionContext('emma-123')
       context.env = {}
 
-      const result = await handler.run(
-        { prompt: 'Generate an image' },
-        context,
-      )
+      const result = await handler.run({ prompt: 'Generate an image' }, context)
 
       expect(result.fatalError).toContain('env.dist')
     })
@@ -338,7 +319,9 @@ describe('ImageHandler', () => {
       const mockProvider: AiProvider = {
         name: 'mock',
         generateText: vi.fn().mockResolvedValue({ text: '', tokensUsed: 0 }),
-        generateImage: vi.fn().mockRejectedValue(new Error('Content policy violation')),
+        generateImage: vi
+          .fn()
+          .mockRejectedValue(new Error('Content policy violation')),
       }
       handler.setProvider('gemini', mockProvider)
 

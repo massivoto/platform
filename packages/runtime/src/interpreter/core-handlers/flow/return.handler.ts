@@ -15,7 +15,7 @@
  */
 import type { ActionResult } from '../../command-registry/action-result.js'
 import { BaseCommandHandler } from '../../command-registry/base-command-handler.js'
-import type { ExecutionContext } from '../../../domain/index.js'
+import type { ExecutionContext } from '@massivoto/kit'
 
 /**
  * Special action result for return that includes the return value.

@@ -119,6 +119,18 @@ interface BlockContext {
  * 3. Detect @block/begin and @block/end to build block structures
  * 4. Use a stack to handle nested blocks
  */
+/**
+ * Parse source code directly to a ProgramNode.
+ * Convenience function that creates and uses a parser instance.
+ *
+ * @param source - OTO source code to parse
+ * @returns Parsed ProgramNode
+ * @throws Error on parse failure
+ */
+export function parseProgram(source: string): ProgramNode {
+  return buildProgramParser().val(source)
+}
+
 export function buildProgramParser(): ProgramParser {
   const instructionParser = buildInstructionParser()
 

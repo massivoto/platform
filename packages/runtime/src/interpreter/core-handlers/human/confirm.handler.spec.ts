@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ConfirmHandler } from './confirm.handler.js'
-import { createEmptyExecutionContext } from '../../../domain/execution-context.js'
+import { createEmptyExecutionContext } from '../../../../../kit/src/domain/execution-context.js'
 import type {
   AppletLauncher,
   AppletInstance,

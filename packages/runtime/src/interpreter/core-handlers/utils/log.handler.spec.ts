@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { LogHandler } from './log.handler.js'
-import {
-  createEmptyExecutionContext,
-  fromPartialContext,
-} from '../../../domain/execution-context.js'
 
 /**
  * Test file: log.handler.spec.ts

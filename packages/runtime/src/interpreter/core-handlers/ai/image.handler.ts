@@ -17,7 +17,7 @@
  */
 import { BaseCommandHandler } from '../../command-registry/base-command-handler.js'
 import type { ActionResult } from '../../command-registry/action-result.js'
-import type { ExecutionContext } from '../../../domain/index.js'
+import type { ExecutionContext } from '@massivoto/kit'
 import type { AiProvider, AiProviderName, ImageRequest } from './types.js'
 import { DEFAULT_AI_PROVIDER } from './types.js'
 import { GeminiProvider } from './providers/gemini.provider.js'
@@ -93,7 +93,8 @@ export class ImageHandler extends BaseCommandHandler<string> {
       }
     } catch (error) {
       // R-AI-43: Handle provider errors gracefully
-      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
       return this.handleFailure(errorMessage)
     }
   }

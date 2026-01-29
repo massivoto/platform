@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { runProgram, ProgramRunError } from './program-runner.js'
-import { createEmptyExecutionContext } from '../domain/execution-context.js'
 
 /**
  * Test file: program-runner.spec.ts

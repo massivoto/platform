@@ -24,7 +24,7 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
-import { fromPartialContext, ProgramResult } from '../domain/index.js'
+import { ProgramResult } from '@massivoto/kit'
 import { runProgram } from '../interpreter/program-runner.js'
 import { buildProgramParser } from '../interpreter/parser/program-parser.js'
 import {
@@ -34,6 +34,7 @@ import {
   FileNotFoundError,
   InvalidExtensionError,
 } from './runner.types.js'
+import { fromPartialContext } from '../interpreter/context/core-context.js'
 
 /**
  * Valid file extensions for OTO programs.
