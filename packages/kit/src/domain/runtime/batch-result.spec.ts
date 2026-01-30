@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { BatchResult } from './batch-result'
-import type { ActionLog } from './action-log'
+import type { ActionLog } from '../action-log'
 
 /**
  * Test file: batch-result.spec.ts
