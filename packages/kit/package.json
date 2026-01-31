@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "clean": "rimraf dist tsconfig.tsbuildinfo",
+    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
     "prebuild": "npm run clean",
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",

@@ -9,6 +9,7 @@
  */
 import {
   BaseComposableRegistry,
+  Registry,
   RegistryBundle,
   RegistryEntry,
 } from '@massivoto/kit'
@@ -34,7 +35,7 @@ import type { CommandHandler } from './types.js'
  * }
  * ```
  */
-export class CommandRegistry {
+export class CommandRegistry implements Registry<CommandHandler> {
   private readonly inner: BaseComposableRegistry<CommandHandler<any>>
 
   constructor() {

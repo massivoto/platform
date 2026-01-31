@@ -29,7 +29,12 @@ We need to cherry pick:
 runProgram : accessible in kit/domain/runtime
 interpreter interface : accessible in kit/domain/runtime
 
-Create an interface in 
+Create an interface on Interpreter  in C:\code\nik\massivoto\platform\packages\kit\src\domain\runtime\Interpreter.ts 
+that matches the actual CoreInterpreter in C:\code\nik\massivoto\massivoto-interpreter\src\core-interpreter.ts
+
+
+
+implement correctly CommandRegistry (C:\code\nik\massivoto\massivoto-interpreter\src\handlers\command-registry.ts)
 
 
 ## grid support

@@ -9,7 +9,11 @@
       "Bash(yarn:*)",
       "Bash(npm run:*)",
       "Bash(npx tsc:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Read(C:\\Users\\n.zozol\\AppData\\Local\\Temp\\claude\\**)",
+      "Read(//C:/code/nik/massivoto/massivoto-interpreter/**)",
+      "Write(C:\\Users\\n.zozol\\AppData\\Local\\Temp\\claude\\**)",
+      "Write(//C:/code/nik/massivoto/massivoto-interpreter/**)"
     ]
   }
 }

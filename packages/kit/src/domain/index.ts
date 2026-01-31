@@ -15,8 +15,20 @@ export {
   createReturn,
 } from './runtime/program-result.js'
 
+export type {
+  FlowControl,
+  LabelLocation,
+  EnhancedLabelIndex,
+  StatementResult,
+  InstructionOutcome,
+  OutputTarget,
+  Interpreter,
+} from './runtime/Interpreter.js'
+export { parseOutputTarget } from './runtime/Interpreter.js'
+
 export type { SerializableStorePointer, StoreProvider } from './store.js'
 export { fakeStorePointer } from './store.js'
 
 export * from './execution-context'
 export * from './scope'
+export * from './command'
