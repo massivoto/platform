@@ -37,6 +37,8 @@ that matches the actual CoreInterpreter in C:\code\nik\massivoto\massivoto-inter
 implement correctly CommandRegistry (C:\code\nik\massivoto\massivoto-interpreter\src\handlers\command-registry.ts)
 
 
+Check the cache : 
+
 ## grid support
 
 we have the same mecanism of spawning that the confirm applet but we need more data.

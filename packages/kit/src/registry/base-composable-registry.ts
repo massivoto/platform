@@ -4,14 +4,14 @@
 
 import {
   ComposableRegistry,
+  RegistryBundle,
   RegistryEntry,
   RegistryItem,
-  RegistryBundle,
 } from './types.js'
 import {
+  RegistryConflict,
   RegistryConflictError,
   RegistryNotLoadedError,
-  RegistryConflict,
 } from './errors.js'
 
 /**
@@ -43,6 +43,18 @@ export class BaseComposableRegistry<
 
   addBundle(bundle: RegistryBundle<V>): void {
     this.bundles.push(bundle)
+  }
+
+  addRegistryItem(item: V) {
+    const bundle: RegistryBundle<V> = {
+      id: `single-item-bundle-${item.id}`,
+      load: async () => {
+        const map = new Map<string, V>()
+        map.set(item.id, item)
+        return map
+      },
+    }
+    this.addBundle(bundle)
   }
 
   getBundles(): RegistryBundle<V>[] {

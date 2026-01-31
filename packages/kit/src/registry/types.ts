@@ -8,6 +8,7 @@
 /**
  * Base interface for all registry items.
  * All items stored in a registry must implement this interface.
+ * Usually identified by @package/name in Massivoto, but could be a simple string ID.
  */
 export interface RegistryItem {
   /** Unique identifier: "@utils/log", "github", "confirm" */
@@ -92,6 +93,8 @@ export interface ComposableRegistry<
    * Bundles are loaded in order when reload() is called.
    */
   addBundle(bundle: RegistryBundle<V>): void
+
+  addRegistryItem(item: V): void
 
   /**
    * Reload all bundles.

@@ -1,5 +1,6 @@
 import { CommandHandler } from './command-handler.js'
-import { Registry } from '../../registry/index.js'
+import { BaseComposableRegistry } from '../../registry/index.js'
 
 // TODO AI: use ComposableRegistry instead
-export type CommandRegistry = Registry<CommandHandler>
+
+export abstract class CommandRegistry extends BaseComposableRegistry<CommandHandler> {}
