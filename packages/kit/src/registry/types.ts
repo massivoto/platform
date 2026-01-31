@@ -94,7 +94,7 @@ export interface ComposableRegistry<
    */
   addBundle(bundle: RegistryBundle<V>): void
 
-  addRegistryItem(item: V): void
+  addRegistryItem(id: string, item: V): void
 
   /**
    * Reload all bundles.

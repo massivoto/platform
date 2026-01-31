@@ -37,7 +37,12 @@ that matches the actual CoreInterpreter in C:\code\nik\massivoto\massivoto-inter
 implement correctly CommandRegistry (C:\code\nik\massivoto\massivoto-interpreter\src\handlers\command-registry.ts)
 
 
-Check the cache : 
+Check the cache : BaseComposableRegistry and CoreCommandRegistry.inner probably are one level too complex
+Also clearly BaseComposableRegistry should be BSL, not in the kit as there are too much details
+The bundle notion also is probably to wide for kit.
+
+IN CoreCommandRegistry, all the addBundle complexity should be handled by the Base
+
 
 ## grid support
 

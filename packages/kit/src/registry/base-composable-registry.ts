@@ -45,12 +45,13 @@ export class BaseComposableRegistry<
     this.bundles.push(bundle)
   }
 
-  addRegistryItem(item: V) {
+  // TODO AI: test with same id for argument and item.id, and also test with different ids
+  addRegistryItem(id: string, item: V) {
     const bundle: RegistryBundle<V> = {
-      id: `single-item-bundle-${item.id}`,
+      id: `single-item-bundle-${id}`,
       load: async () => {
         const map = new Map<string, V>()
-        map.set(item.id, item)
+        map.set(id, item)
         return map
       },
     }
