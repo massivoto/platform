@@ -42,7 +42,7 @@ Also clearly BaseComposableRegistry should be BSL, not in the kit as there are t
 The bundle notion also is probably to wide for kit.
 
 IN CoreCommandRegistry, all the addBundle complexity should be handled by the Base
-
+Problem fondamental: a registry should resolve:     const handler = this.registry.resolve(id)  ; C:\code\nik\massivoto\massivoto-interpreter\src\core-interpreter.ts
 
 ## grid support
 
