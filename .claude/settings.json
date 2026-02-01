@@ -13,7 +13,9 @@
       "Read(C:\\Users\\n.zozol\\AppData\\Local\\Temp\\claude\\**)",
       "Read(//C:/code/nik/massivoto/massivoto-interpreter/**)",
       "Write(C:\\Users\\n.zozol\\AppData\\Local\\Temp\\claude\\**)",
-      "Write(//C:/code/nik/massivoto/massivoto-interpreter/**)"
+      "Write(//C:/code/nik/massivoto/massivoto-interpreter/**)",
+      "Read(C:\\code\\nik\\massivoto\\massivoto-interpreter\\**)",
+      "Write(C:\\code\\nik\\massivoto\\massivoto-interpreter\\**)"
     ]
   }
 }
