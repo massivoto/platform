@@ -101,7 +101,7 @@ export interface ComposableRegistry<
    */
   addBundle(bundle: RegistryBundle<V>): void
 
-  addRegistryItem(id: string, item: V): void
+  addRegistryItem(id: string, item: V): Promise<void>
 
   /**
    * Reload all bundles.
