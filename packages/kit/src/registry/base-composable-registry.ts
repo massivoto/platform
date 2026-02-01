@@ -41,10 +41,6 @@ export class BaseComposableRegistry<
   private cache: Map<string, RegistryEntry<V>> | null = null
   private loaded = false
 
-  addBundle(bundle: RegistryBundle<V>): void {
-    this.bundles.push(bundle)
-  }
-
   // TODO AI: test with same id for argument and item.id, and also test with different ids
   addRegistryItem(id: string, item: V) {
     const bundle: RegistryBundle<V> = {
@@ -56,6 +52,18 @@ export class BaseComposableRegistry<
       },
     }
     this.addBundle(bundle)
+  }
+
+  async resolve(key: string): Promise<V> {
+    const entry = await this.get(key)
+    if (!entry) {
+      throw new Error(`Registry entry not found for key: ${key}`)
+    }
+    return entry.value
+  }
+
+  addBundle(bundle: RegistryBundle<V>): void {
+    this.bundles.push(bundle)
   }
 
   getBundles(): RegistryBundle<V>[] {
