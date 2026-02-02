@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@masala/parser": "^2.0.0",
+    "@massivoto/interpreter": "portal:../../../massivoto-interpreter",
     "@massivoto/kit": "*",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "commander": "^14.0.2",
