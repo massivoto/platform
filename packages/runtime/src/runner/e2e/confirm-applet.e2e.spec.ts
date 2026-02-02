@@ -38,7 +38,12 @@ import type {
   AppletServerFactory,
 } from '../../applets/local/server-factories/server-factory.js'
 import { createServer as createConfirmServer } from '@massivoto/applet-confirm'
-import { CoreCommandRegistry } from '@massivoto/interpreter'
+import {
+  ConfirmHandler,
+  CoreCommandRegistry,
+  SetHandler,
+} from '@massivoto/interpreter'
+import { runLocalProgram } from '../local-runner.js'
 
 /**
  * Server factory that uses the real confirm applet package.
@@ -135,10 +140,10 @@ test.describe('Confirm Applet E2E', () => {
       status: 'running',
     })
 
-    const registry = createTestRegistry()
+    const registry = await createTestRegistry()
 
     // Start execution in background
-    const resultPromise = runProgram(TEST_OTO_SCRIPT, context, registry)
+    const resultPromise = runLocalProgram(TEST_OTO_SCRIPT, context, registry)
 
     // Wait for applet URL to appear in logs
     const appletUrl = await test.step('wait for applet URL', async () => {
@@ -214,10 +219,10 @@ test.describe('Confirm Applet E2E', () => {
       status: 'running',
     })
 
-    const registry = createTestRegistry()
+    const registry = await createTestRegistry()
 
     // Start execution in background
-    const resultPromise = runProgram(TEST_OTO_SCRIPT, context, registry)
+    const resultPromise = runLocalProgram(TEST_OTO_SCRIPT, context, registry)
 
     // Wait for applet URL to appear in logs
     const appletUrl = await test.step('wait for applet URL', async () => {
@@ -295,10 +300,10 @@ test.describe('Confirm Applet E2E', () => {
       status: 'running',
     })
 
-    const registry = createTestRegistry()
+    const registry = await createTestRegistry()
 
     // Start execution in background
-    const resultPromise = runProgram(TEST_OTO_SCRIPT, context, registry)
+    const resultPromise = runLocalProgram(TEST_OTO_SCRIPT, context, registry)
 
     // Wait for applet URL to appear in logs
     const appletUrl = await test.step('wait for applet URL', async () => {

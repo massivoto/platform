@@ -25,9 +25,16 @@
  *
  * @license Apache-2.0
  */
-import { parseProgram, ProgramNode } from '@massivoto/interpreter'
-import type { Interpreter } from '../interfaces/interpreter.js'
-import type { ProgramResult } from '@massivoto/kit'
+import {
+  CoreInterpreter,
+  parseProgram,
+  ProgramNode,
+} from '@massivoto/interpreter'
+import type {
+  CommandRegistry,
+  Interpreter,
+  ProgramResult,
+} from '@massivoto/kit'
 import { createEmptyExecutionContext, ExecutionContext } from '@massivoto/kit'
 
 /**
@@ -85,7 +92,7 @@ class LocalRunner implements Runner {
     partialContext?: Partial<ExecutionContext>,
   ): Promise<ProgramResult> {
     // Parse source to AST
-    const program:ProgramNode = parseProgram(source)
+    const program: ProgramNode = parseProgram(source)
 
     // Build full context from partial
     const context = partialContext
@@ -99,4 +106,14 @@ class LocalRunner implements Runner {
 
     return this.interpreter.executeProgram(program, context)
   }
+}
+
+export function runLocalProgram(
+  source: string,
+  partialContext: Partial<ExecutionContext>,
+  registry: CommandRegistry,
+): Promise<ProgramResult> {
+  const coreInterpreter = new CoreInterpreter(registry)
+  const runner = createRunner(coreInterpreter)
+  return runner.runSource(source, partialContext)
 }

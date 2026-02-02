@@ -5,13 +5,13 @@
  * Uses real clock (not mocks) as specified in PRD.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { LocalAppletInstance } from './local-applet-instance.js'
 import { PortAllocator } from './port-allocator.js'
 import { MinimalTestServerFactory } from './server-factories/minimal-test-factory.js'
-import { AppletTimeoutError, AppletTerminatedError } from '../errors.js'
-import { createEmptyExecutionContext } from '../../interpreter/context/core-context.js'
+import { AppletTerminatedError, AppletTimeoutError } from '../errors.js'
+import { createEmptyExecutionContext } from '@massivoto/kit'
 
 describe('LocalAppletInstance', () => {
   let portAllocator: PortAllocator
