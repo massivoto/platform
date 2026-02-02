@@ -253,6 +253,21 @@ Acceptance criteria:
 5. Le runtime peut utiliser le token récupéré pour authentifier l’exécution de l’applet avec succès.
 
 
+## Yield/collect
+
+les generators en javascript utilisent yield. je crois que c'est aussi un mot clé en Scala.
+
+Case with one value in tagline
+@ai/text prompt="Write a tagline for Massivoto" output=tagline
+
+Case with creation of an array from each generated text
+@ai/text prompt="Write a tagline for {product}"  forEach=products->product yield=taglines
+@ai/text prompt="Write a tagline for {product}"  forEach=products->product collect=taglines
+
+For the moment, both will be reserved args and supported the same way. When streams will be implemented, we will
+maybe differentiate them.
+
+
 ---
 
 ## v0.8 - Licensing & Legal Foundation
