@@ -267,6 +267,12 @@ Case with creation of an array from each generated text
 For the moment, both will be reserved args and supported the same way. When streams will be implemented, we will
 maybe differentiate them.
 
+## rename
+
+@utils/log to @core/log ...
+
+
+
 
 ---
 
@@ -275,6 +281,8 @@ maybe differentiate them.
 Prepare for public release with proper licensing and legal framework.
 
 See `license.prd.md` for full details.
+
+
 
 ### Licensing Implementation
 
@@ -317,6 +325,14 @@ Split `@massivoto/runtime` into:
 ## v1.0 - Production SaaS
 
 Paying customers require reliability, security, and easy deployment.
+
+## handlers
+
+@core/log should not append to execution context, but to ProgramResult log probably. 
+
+don't use mcp this way
+import { FetchHandler } from '../core-handlers/mcp/client/fetch/fetch.handler.js'
+import { FileSystemWriterHandler } from '../core-handlers/mcp/client/filesystem/filesystem.handler.js'
 
 ### CLI Tool (`@massivoto/oto`)
 
