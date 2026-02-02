@@ -25,12 +25,10 @@
  *
  * @license Apache-2.0
  */
+import { parseProgram, ProgramNode } from '@massivoto/interpreter'
 import type { Interpreter } from '../interfaces/interpreter.js'
-import type { ExecutionContext } from '@massivoto/kit'
 import type { ProgramResult } from '@massivoto/kit'
-import type { ProgramNode } from '../interpreter/parser/ast.js'
-import { parseProgram } from '../interpreter/parser/program-parser.js'
-import { createEmptyExecutionContext } from '../interpreter/context/core-context.js'
+import { createEmptyExecutionContext, ExecutionContext } from '@massivoto/kit'
 
 /**
  * Runner interface for program execution.
@@ -39,18 +37,6 @@ import { createEmptyExecutionContext } from '../interpreter/context/core-context
  * It accepts an Interpreter via dependency injection.
  */
 export interface Runner {
-  /**
-   * Execute a program AST with the given context.
-   *
-   * @param program - The parsed program AST
-   * @param context - Initial execution context
-   * @returns Promise resolving to ProgramResult
-   */
-  runProgram(
-    program: ProgramNode,
-    context: ExecutionContext,
-  ): Promise<ProgramResult>
-
   /**
    * Parse and execute source code with optional context.
    *
@@ -94,19 +80,12 @@ export function createRunner(interpreter: Interpreter): Runner {
 class LocalRunner implements Runner {
   constructor(private readonly interpreter: Interpreter) {}
 
-  async runProgram(
-    program: ProgramNode,
-    context: ExecutionContext,
-  ): Promise<ProgramResult> {
-    return this.interpreter.executeProgram(program, context)
-  }
-
   async runSource(
     source: string,
     partialContext?: Partial<ExecutionContext>,
   ): Promise<ProgramResult> {
     // Parse source to AST
-    const program = parseProgram(source)
+    const program:ProgramNode = parseProgram(source)
 
     // Build full context from partial
     const context = partialContext
@@ -118,6 +97,6 @@ class LocalRunner implements Runner {
         }
       : createEmptyExecutionContext('local')
 
-    return this.runProgram(program, context)
+    return this.interpreter.executeProgram(program, context)
   }
 }

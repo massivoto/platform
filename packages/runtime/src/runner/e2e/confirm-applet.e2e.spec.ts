@@ -23,25 +23,22 @@
  * - AC-CONFIRM-E2E-05: After rejection, context.userLogs contains "user said: false"
  */
 
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import * as http from 'node:http'
-import { runProgram } from '../../interpreter/program-runner.js'
-import { CommandRegistry } from '../../interpreter/handlers/command-registry.js'
-import { LogHandler } from '../../interpreter/core-handlers/utils/log.handler.js'
-import { SetHandler } from '../../interpreter/core-handlers/utils/set.handler.js'
-import { ConfirmHandler } from '../../interpreter/core-handlers/human/confirm.handler.js'
 import { LocalAppletLauncher } from '../../applets/local/local-applet-launcher.js'
 import { PortAllocator } from '../../applets/local/port-allocator.js'
-import { AppletRegistry, CoreAppletsBundle } from '@massivoto/kit'
-import type {
-  AppletServerFactory,
-  AppletServerConfig,
-} from '../../applets/local/server-factories/server-factory.js'
 import {
-  createServer as createConfirmServer,
-  frontendDir,
-} from '@massivoto/applet-confirm'
-import { fromPartialContext } from '../../interpreter/context/core-context.js'
+  AppletRegistry,
+  CommandRegistry,
+  CoreAppletsBundle,
+  fromPartialContext,
+} from '@massivoto/kit'
+import type {
+  AppletServerConfig,
+  AppletServerFactory,
+} from '../../applets/local/server-factories/server-factory.js'
+import { createServer as createConfirmServer } from '@massivoto/applet-confirm'
+import { CoreCommandRegistry } from '@massivoto/interpreter'
 
 /**
  * Server factory that uses the real confirm applet package.
@@ -68,11 +65,10 @@ class ConfirmAppletServerFactory implements AppletServerFactory {
 /**
  * Creates a command registry with handlers needed for the test.
  */
-function createTestRegistry(): CommandRegistry {
-  const registry = new CommandRegistry()
-  registry.register('@utils/log', new LogHandler())
-  registry.register('@utils/set', new SetHandler())
-  registry.register('@human/confirm', new ConfirmHandler())
+async function createTestRegistry(): Promise<CommandRegistry> {
+  const registry = new CoreCommandRegistry()
+  await registry.addRegistryItem('@utils/set', new SetHandler())
+  await registry.addRegistryItem('@human/confirm', new ConfirmHandler())
   return registry
 }
 

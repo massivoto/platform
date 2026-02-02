@@ -1304,6 +1304,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@massivoto/interpreter@portal:../../../massivoto-interpreter::locator=%40massivoto%2Fruntime%40workspace%3Apackages%2Fruntime":
+  version: 0.0.0-use.local
+  resolution: "@massivoto/interpreter@portal:../../../massivoto-interpreter::locator=%40massivoto%2Fruntime%40workspace%3Apackages%2Fruntime"
+  dependencies:
+    "@masala/parser": "npm:^2.0.0"
+    "@modelcontextprotocol/sdk": "npm:^1.0.0"
+    lodash.set: "npm:^4.3.2"
+    zod: "npm:^3.24.0"
+  peerDependencies:
+    "@massivoto/kit": "*"
+    "@massivoto/runtime": "*"
+  languageName: node
+  linkType: soft
+
 "@massivoto/kit@npm:*, @massivoto/kit@workspace:packages/kit":
   version: 0.0.0-use.local
   resolution: "@massivoto/kit@workspace:packages/kit"
@@ -1321,6 +1335,7 @@ __metadata:
   resolution: "@massivoto/runtime@workspace:packages/runtime"
   dependencies:
     "@masala/parser": "npm:^2.0.0"
+    "@massivoto/interpreter": "portal:../../../massivoto-interpreter"
     "@massivoto/kit": "npm:*"
     "@modelcontextprotocol/sdk": "npm:^1.0.0"
     "@playwright/test": "npm:^1.58.0"

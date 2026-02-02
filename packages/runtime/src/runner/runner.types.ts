@@ -8,7 +8,7 @@
  * - R-LOCAL-05: RunOptions for context injection
  */
 import type { ExecutionContext } from '@massivoto/kit'
-import type { CommandRegistry } from '../interpreter/handlers/command-registry.js'
+import type { CommandRegistry } from '../interpreter/command-registry/command-registry.js'
 
 /**
  * Options for creating a FileRunner instance.
