@@ -10,9 +10,6 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
     "rootDir": "src"
   },
   "references": [{ "path": "../kit" }],
