@@ -8,9 +8,7 @@
     "skipLibCheck": true,
     "module": "ESNext",
     "composite": true,
-    "strict": true,
-    "declaration": true,
-    "declarationMap": true
+    "strict": true
   },
   "references": [
     { "path": "./packages/kit" },

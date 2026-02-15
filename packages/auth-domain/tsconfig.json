@@ -9,9 +9,6 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "outDir": "dist",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
     "composite": true,
     "rootDir": "src"
   },
