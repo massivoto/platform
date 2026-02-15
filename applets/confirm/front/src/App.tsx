@@ -8,7 +8,7 @@
  * - R-CONFIRM-45: POST to /respond with approved value on click
  */
 import { useEffect, useState } from 'react'
-import ResourceDisplay from './ResourceDisplay'
+import ResourceDisplay from './ResourceDisplay.js'
 
 /**
  * Input data received from the server.

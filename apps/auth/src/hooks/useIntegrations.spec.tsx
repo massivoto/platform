@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
-import { useIntegrations, Integration } from './useIntegrations'
+import { useIntegrations, Integration } from './useIntegrations.js'
 import { useHandlers, resetHandlers } from '@/mocks/http/server'
 import { Handler, json } from '@/mocks/http/handlers'
 

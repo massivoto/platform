@@ -1,14 +1,7 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "module": "ESNext",
-    "composite": true,
-    "strict": true
+    "composite": true
   },
   "references": [
     { "path": "./packages/kit" },

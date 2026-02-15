@@ -20,9 +20,9 @@
  * - R-GOTO-85: @flow/return sets value and exitCode=0
  * - R-TERM-22: ProgramResult uses batches: BatchResult[] instead of history
  */
-import type { ExecutionContext } from '../execution-context'
-import type { BatchResult } from './batch-result'
-import { SerializableObject } from '../../network'
+import type { ExecutionContext } from '../execution-context/index.js'
+import type { BatchResult } from './batch-result.js'
+import { SerializableObject } from '../../network/index.js'
 
 /**
  * Cost tracking information for program execution.

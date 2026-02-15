@@ -5,8 +5,8 @@ import { RootLayout } from './layouts/RootLayout.js'
 import { Dashboard } from './routes/dashboard/Dashboard.js'
 import { Landing } from './routes/home/Landing.js'
 
-import { ProviderConnectPage } from './routes/providers/ProviderConnectPage'
-import { ProviderSettingsPage } from './routes/providers/ProviderSettingsPage'
+import { ProviderConnectPage } from './routes/providers/ProviderConnectPage.js'
+import { ProviderSettingsPage } from './routes/providers/ProviderSettingsPage.js'
 
 // R-BUILD-03: Define the base application router map.
 export const appRouter = createBrowserRouter([

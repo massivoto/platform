@@ -12,7 +12,7 @@ import {
   BaseComposableRegistry,
   RegistryBundle,
   RegistryEntry,
-} from '../registry'
+} from '../registry/index.js'
 import type { AppletDefinition } from './types.js'
 import { AppletRegistry as IAppletRegistry } from './types.js'
 /**

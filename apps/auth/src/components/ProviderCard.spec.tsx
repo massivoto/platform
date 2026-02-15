@@ -2,7 +2,7 @@ import { expect, describe, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
-import { ProviderCard } from './ProviderCard'
+import { ProviderCard } from './ProviderCard.js'
 
 describe('ProviderCard', () => {
   it('renders provider details and actions', () => {

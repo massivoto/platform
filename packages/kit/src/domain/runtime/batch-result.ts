@@ -1,4 +1,4 @@
-import type { ActionLog } from '../action-log'
+import type { ActionLog } from '../action-log.js'
 
 /**
  * BatchResult - Aggregation of Actions for a Block, Template, or any grouping.

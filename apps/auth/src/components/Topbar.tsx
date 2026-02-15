@@ -2,7 +2,7 @@ import { Link, UIMatch, useMatches } from 'react-router-dom'
 import { Box, LogOut } from 'lucide-react'
 import '../styles/structure.scss'
 import { useEffect, useMemo, useState } from 'react'
-import Login, { GoogleUser } from './Login'
+import Login, { GoogleUser } from './Login.js'
 import { useUser } from '@/context/userContext'
 
 type TitleHandle = { title?: string } | { title?: (match: UIMatch) => string }

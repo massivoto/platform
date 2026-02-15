@@ -9,7 +9,7 @@
  * - R-GRID-46: Render Submit button that POSTs selected item IDs to /respond
  */
 import { useEffect, useState } from 'react'
-import GridItemCard from './GridItemCard'
+import GridItemCard from './GridItemCard.js'
 
 /**
  * GridItem type (matches backend)

@@ -7,9 +7,9 @@
  * Type parameters use `unknown` for AST types since those are defined
  * in the interpreter package, not in kit.
  */
-import type { ExecutionContext } from '../execution-context'
-import type { ActionLog } from '../action-log'
-import type { ProgramResult } from './program-result'
+import type { ExecutionContext } from '../execution-context/index.js'
+import type { ActionLog } from '../action-log.js'
+import type { ProgramResult } from './program-result.js'
 
 /**
  * Flow control result from a statement execution.

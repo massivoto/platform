@@ -1,47 +1,27 @@
 {
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ],
+  "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/components/*": [
-        "./src/components/*"
-      ],
-      "@/hooks/*": [
-        "./src/hooks/*"
-      ],
-      "@/lib/*": [
-        "./src/lib/*"
-      ],
-      "@/pages/*": [
-        "./src/pages/*"
-      ],
-      "@/styles/*": [
-        "./src/styles/*"
-      ],
-      "@/mocks/*": [
-        "./src/mocks/*"
-      ],
-      "@/tests/*": [
-        "./src/tests/*"
-      ]
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/styles/*": ["./src/styles/*"],
+      "@/mocks/*": ["./src/mocks/*"],
+      "@/tests/*": ["./src/tests/*"]
     },
     "allowJs": true,
-    "strict": true,
     "noUncheckedIndexedAccess": true,
-    "skipLibCheck": true,
     "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "esModuleInterop": true
-  }
+    "noUnusedParameters": false
+  },
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }

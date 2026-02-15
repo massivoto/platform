@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom'
 
-import { Topbar } from '../components/Topbar'
+import { Topbar } from '../components/Topbar.js'
 
 // R-BUILD-04: RootLayout with semantic landmarks
 export const RootLayout = () => {

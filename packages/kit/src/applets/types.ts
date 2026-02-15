@@ -1,4 +1,4 @@
-import type { ExecutionContext } from '../domain'
+import type { ExecutionContext } from '../domain/index.js'
 
 /**
  * Applet Type Definitions

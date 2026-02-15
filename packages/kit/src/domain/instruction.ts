@@ -1,4 +1,4 @@
-import { Serializable } from '../network'
+import { Serializable } from '../network/index.js'
 
 export type InstructionState =
   | 'waiting'

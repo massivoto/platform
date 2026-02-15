@@ -3,7 +3,7 @@ import {
   createEmptyExecutionContext,
   cloneExecutionContext,
   fromPartialContext,
-} from './core-context'
+} from './core-context.js'
 
 import { createEmptyScopeChain, pushScope } from '../scope/scope-chain.js'
 import { AppletInstance, AppletLauncher } from '../../applets/index.js'
