@@ -13,41 +13,40 @@
 
 ## Overview
 
-The Kit package (`@massivoto/kit`) is a collection of shared utilities used
-across the Massivoto monorepo. It provides common functionality including error
-handling, network utilities, testing helpers, time/timestamp operations, and a
-composable registry pattern. The package is published as an ESM module with
-TypeScript types and is a dependency of both the runtime and other packages.
+The Kit package (`@massivoto/kit`) is a collection of contracts between pieces of the platform, as well as the shared utilities used
+across the Massivoto monorepo, or error management.
+
+The package is published as an ESM module with TypeScript types and is the core dependency of all packages.
+
+## Contracts
+
+- runtime:
+  - Interpreter: how to execute a oto program, given as a string
+  - Result: output of an execution of a oto program or a single action
+  - ScopeChain: the scope needed for program execution
+  - ExecutionContext: the extended context representing all data accessible for the evaluation, including database, secrets, action output, etc.
+  - CommandHandler: a javascript function that executes an action
+- applets:
+  - AppletDefinition: an applet is a program spawned by an oto action. For exemple a website waiting for a human validation of AI generation.
+  - Docker: a suite of utilities to create and manage docker containers for applets 
+- registries:
+  - Registry: a shared interface for all kind of registries 
+  - CommandRegistry: list of CommandHandlers, aka the list of available actions for an oto program
+  - AppletRegistry: list of applets that can spawn from an oto program
+- stores
+  - StoreProvider: a function that allows an oto program to connect to a datasource, mostly postgres, MongoDB or vectorized database for RAG applications.
+
+
+The contracts for authentication, including ProviderRegistry, are inside packages/auth-domain, so that they can evolve more freely.
+
+Good to know about authentication: 
+    * ServiceProvider: a service requiring an authentication (e.g. Gmail, Github, etc.)
+    * ProviderRegistry: list of service providers requiring an authentication (e.g. Gmail, Github, etc.)
 
 ## Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                      @massivoto/kit (packages/kit)                          │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌───────────────────────────────────────────────────────────────────────┐ │
-│  │                          src/index.ts                                 │ │
-│  │                     (Single entry point)                              │ │
-│  └───────────────────────────────────────────────────────────────────────┘ │
-│                                    │                                        │
-│    ┌──────────┬──────────┬─────────┼─────────┬──────────┬──────────┐       │
-│    │          │          │         │         │          │          │       │
-│    ▼          ▼          ▼         ▼         ▼          ▼          ▼       │
-│ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌─────────┐ ┌────────┐  │
-│ │errors/│ │network│ │testing│ │ time/ │ │caching│ │registry/│ │strings/│  │
-│ └───┬───┘ └───┬───┘ └───┬───┘ └───┬───┘ └───┬───┘ └────┬────┘ └───┬────┘  │
-│     │         │         │         │         │          │          │        │
-│     ▼         ▼         ▼         ▼         ▼          ▼          ▼        │
-│ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌─────────┐ ┌────────┐  │
-│ │error- │ │cuid-  │ │skip-  │ │timest-│ │local- │ │Compos-  │ │base-64 │  │
-│ │ToString│ │valid. │ │Descr. │ │amp    │ │Storage│ │ableReg- │ │obfusc. │  │
-│ │assert │ │proxy  │ │       │ │       │ │Adapter│ │istry    │ │        │  │
-│ │       │ │serial │ │       │ │       │ │       │ │ModuleBdl│ │        │  │
-│ └───────┘ └───────┘ └───────┘ └───────┘ └───────┘ └─────────┘ └────────┘  │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+TODO: create a diagram with contracts and their related dependencies
+
 
 ## Key Components
 
@@ -136,6 +135,14 @@ TypeScript types and is a dependency of both the runtime and other packages.
 │    └────────────┘    └────────────┘    └────────────┘                 │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
+```
+
+Example of implementation of a Registry with the CommandRegistry
+
+```typescript
+export class CoreCommandRegistry
+    extends BaseComposableRegistry<CommandHandler>
+    implements CommandRegistry {}
 ```
 
 ## LocalStorage Adapters
