@@ -1,4 +1,4 @@
-import { SerializableObject } from '../network'
+import { SerializableObject } from '../network/index.js'
 
 /**
  * Interface allowing the Store to read and write data.

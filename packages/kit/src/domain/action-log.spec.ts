@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { ActionLog } from './action-log'
+import type { ActionLog } from './action-log.js'
 
 /**
  * Test file: action-log.spec.ts

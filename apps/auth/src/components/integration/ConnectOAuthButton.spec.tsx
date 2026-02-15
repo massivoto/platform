@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { ConnectOAuthButton } from './ConnectOAuthButton'
+import { ConnectOAuthButton } from './ConnectOAuthButton.js'
 import { useHandlers, resetHandlers } from '@/mocks/http/server'
 import { Handler, json } from '@/mocks/http/handlers'
 import { Provider, ProviderKind } from '@/lib/providers/provider.types'

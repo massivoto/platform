@@ -1,7 +1,7 @@
 import { expect, describe, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
-import { TokenStateBadge } from './TokenStateBadge'
+import { TokenStateBadge } from './TokenStateBadge.js'
 
 describe('TokenStateBadge', () => {
   it.each([

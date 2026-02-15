@@ -2,8 +2,8 @@ import { expect, describe, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 
-import { appRouter } from './app-router'
-import { UserProvider } from './context/userContext'
+import { appRouter } from './app-router.js'
+import { UserProvider } from './context/userContext.js'
 
 const renderWithRoute = (initialEntry: string) => {
   const router = createMemoryRouter(appRouter.routes, { initialEntries: [initialEntry] })

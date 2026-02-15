@@ -1,7 +1,7 @@
 import { expect, describe, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
-import { ScopePicker } from './ScopePicker'
+import { ScopePicker } from './ScopePicker.js'
 
 describe('ScopePicker', () => {
   it('pre-checks and disables mandatory scopes', () => {

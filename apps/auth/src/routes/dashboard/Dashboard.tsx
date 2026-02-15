@@ -9,7 +9,7 @@ import {
   Terminal,
   Github,
 } from 'lucide-react'
-import { Topbar } from '../../components/Topbar'
+import { Topbar } from '../../components/Topbar.js'
 import '../../styles/structure.scss'
 import {
   CUSTOM_API_PROVIDER,

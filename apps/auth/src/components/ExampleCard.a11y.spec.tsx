@@ -1,6 +1,6 @@
 import { expect, describe, it } from 'vitest'
 import { expectAccessible } from '@/tests/utils/a11y'
-import { ExampleCard } from './ExampleCard'
+import { ExampleCard } from './ExampleCard.js'
 
 describe('a11y: ExampleCard', () => {
   it('has no obvious accessibility violations', async () => {

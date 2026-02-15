@@ -1,4 +1,4 @@
-import { ReadableDate } from '../time'
+import { ReadableDate } from '../time/index.js'
 
 /**
  * ActionLog - Execution log for a single Action.

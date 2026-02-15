@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Plug, Database, Zap } from 'lucide-react'
 
-import { ExampleCard } from '../../components/ExampleCard'
+import { ExampleCard } from '../../components/ExampleCard.js'
 import '../../styles/structure.scss'
 
 export const Landing = () => {

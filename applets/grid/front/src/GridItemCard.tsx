@@ -8,7 +8,7 @@
  * - R-GRID-45: Display item text, resource, and metadata key/values
  */
 import { Fragment } from 'react'
-import ResourceDisplay from './ResourceDisplay'
+import ResourceDisplay from './ResourceDisplay.js'
 
 /**
  * GridItem type (matches backend)
