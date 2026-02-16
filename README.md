@@ -11,6 +11,22 @@ An Automation Programming Language (APL) for building workflow automations using
 @email/send to="team@company.com" body=summary
 ```
 
+```oto
+
+// conditions for creating images: initial f1 image in different situations
+@ai/prompt/reverseImage image=~/f1.png output=f1RacingPrompt
+@set/array values=['overtake under the rain', 'first turn', 'monaco tunel'] output=situations
+
+// image generation with retry and collection of results
+@ai/generateImage context=situation content=f1RacingPrompt  forEach=situations->situation retry=3 collect=images
+
+// human validation of generated images and saving selected ones
+@human/validation items=images display=gallery output=selectedImages
+@file/save file={["selection/", "f1-",$index,".png"]| path} forEach=selectedImages->image
+
+```
+
+
 ## Structure
 
 ```
