@@ -6,42 +6,58 @@
 @math/increment input=i step=2 while={i < 10}
 ```
 
-## 2. Control blocks with `@begin/...` and `@end/...`
+## 2. Control blocks with `@block/begin` and `@block/end`
 
 Blocks are control instructions that wrap a list of child instructions.
 
 They are always delimited by:
 
-- `@begin/<type> ...`
-- `@end/<type>`
+- `@block/begin ...`
+- `@block/end`
 
-Defined types:
+Block reserved arguments:
 
-- `@begin/forEach` … `@end/forEach`
-- `@begin/block if=...` … `@end/block`
-- `@begin/block while=...` … `@end/block`
+- `forEach=<iterable> -> <iterator>` — loop over a collection
+- `if=<condition>` — conditional execution
+- `while=<condition>` — loop while condition is true
+
+`forEach=` and `if=` are mutually exclusive on the same block.
 
 More attributes (`pause`, `stream`, `break`, `continue`, `goto` etc.) can be added
-later on `@begin/block`.
+later on `@block/begin`.
 
 ---
 
-## 3. `@begin/forEach` loop
+## 3. `@block/begin forEach=` loop
 
 ### Syntax
 
 ```oto
-@begin/forEach item="itemVar" of=<collectionExpr> [index="indexVar"]
+@block/begin forEach=<collectionExpr> -> <iteratorVar>
   ... child instructions ...
-@end/forEach
+@block/end
 ```
 
-- `item` _(required)_: **string literal** naming the variable to inject into the
-  context.
-- `of` _(required)_: expression that must evaluate to an iterable collection.
-  - `of=monitors` → `context.data.monitors`
-  - `of=data.monitors` → same, explicit
-  - `of={monitors:keys}` → pipe expression
+- `forEach=` _(required)_: uses mapper syntax `<iterable> -> <iterator>`.
+  - Left side: any expression evaluating to an array.
+  - Right side: variable name (single string) injected into scope.
+- Examples:
+  - `forEach=users -> user`
+  - `forEach=data.users -> user`
+  - `forEach={users|filter:active} -> user`
+  - `forEach=[1, 2, 3] -> num`
+  - `forEach=~/images/races/*.jpg -> photo` — glob pattern (resolves to array of file references)
 
-- `index` _(optional)_: string literal naming the variable for the zero-based
-  index.
+### System variables
+
+Inside a forEach block, these variables are automatically available:
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `_index` | number | 0-based iteration index |
+| `_count` | number | 1-based iteration count |
+| `_length` | number | Total array length |
+| `_first` | boolean | true only on first iteration |
+| `_last` | boolean | true only on last iteration |
+| `_odd` | boolean | true if count is odd |
+| `_even` | boolean | true if count is even |

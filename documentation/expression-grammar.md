@@ -10,8 +10,13 @@ This document defines the expression grammar for the OTO DSL.
 
 ```grammar
 primary        := literal
+                | pathLiteral
                 | identifier
                 | '(' expression ')'
+
+pathLiteral    := globLiteral | fileLiteral
+fileLiteral    := '~/' [a-zA-Z0-9_\-./]+          // no *, no ..
+globLiteral    := '~/' [a-zA-Z0-9_\-./]* '*' ...  // requires at least one *
 
 member         := primary ('.' IDENT)+               // dot-only; no [expr]
 
@@ -52,6 +57,8 @@ fullExpression := pipe | mapper | bracedExpr | simpleExpression
 |-----------------|---------|-----------------|
 | Identifier | `user` | No |
 | Literal | `"hello"`, `42`, `true` | No |
+| File path | `~/images/hero.png` | No |
+| Glob pattern | `~/images/*.jpg` | No |
 | Member access | `user.name` | No |
 | Unary | `!active`, `-count` | No |
 | Binary (arithmetic) | `a + b` | Recommended* |
@@ -68,6 +75,12 @@ fullExpression := pipe | mapper | bracedExpr | simpleExpression
 // Simple - no braces needed
 @utils/log message=greeting
 @utils/log message=user.name
+
+// File paths - no braces needed
+@ai/describe image=~/images/hero.png output=description
+@block/begin forEach=~/images/races/*.jpg -> photo
+  @ai/describe image={photo} output=description
+@block/end
 
 // Complex - braces recommended
 @utils/set input={a + b} output=sum

@@ -59,14 +59,14 @@ Fetching in store is async, so probably the Evaluator needs to be async too.
 
 ---
 
-## 4. Conditional block: `@start/block if=...`
+## 4. Conditional block: `@block/begin if=...`
 
 ### Syntax
 
 ```oto
-@start/block if=<conditionExpr>
+@block/begin if=<conditionExpr>
   ... child instructions ...
-@end/block
+@block/end
 ```
 
 - `if`: expression evaluated in the current context. It must evaluate to a
@@ -87,33 +87,33 @@ Fetching in store is async, so probably the Evaluator needs to be async too.
 Using an expression:
 
 ```oto
-@start/block if={foundUser}
+@block/begin if={foundUser}
   @print/users users={users:tail:10}
   @email/send template="welcome" users={users}
-@end/block
+@block/end
 ```
 
 Using a bare identifier:
 
 ```oto
-@start/block if=foundUser
+@block/begin if=foundUser
   @print/users users={users:first:1}
-@end/block
+@block/end
 ```
 
 ---
 
-## 5. While loop: `@start/block while=...`
+## 5. While loop: `@block/begin while=...`
 
 ### Syntax
 
 ```oto
-@start/block while=<conditionExpr>
+@block/begin while=<conditionExpr>
   ... child instructions ...
-@end/block
+@block/end
 ```
 
-- On a given `@start/block`, **only one** of `if` or `while` may be defined.
+- On a given `@block/begin`, **only one** of `if` or `while` may be defined.
 
 ### Execution semantics
 
@@ -131,10 +131,10 @@ enforce safety guards (max iterations, max cost, timeout, etc.).
 ### Example
 
 ```oto
-@start/block while={i < 10}
+@block/begin while={i < 10}
   @utils/doSomething value={i}
   @utils/increment input={i} output=data.i
-@end/block
+@block/end
 ```
 
 ---
@@ -168,23 +168,23 @@ Within blocks, expressions and arguments follow the global rules:
 ### ForEach + If
 
 ```oto
-@start/forEach item="monitor" of=monitors index="i"
-  @start/block if={monitor.status == "ERROR"}
-    @alert/notify monitor={monitor} index={i}
-  @end/block
-@end/forEach
+@block/begin forEach=monitors -> monitor
+  @block/begin if={monitor.status == "ERROR"}
+    @alert/notify monitor={monitor} index={_index}
+  @block/end
+@block/end
 ```
 
 ### While inside a ForEach
 
 ```oto
-@start/forEach item="monitor" of=monitors
-  @start/block while={monitor.retries < 3 && !monitor.ok}
+@block/begin forEach=monitors -> monitor
+  @block/begin while={monitor.retries < 3 && !monitor.ok}
     @monitor/ping monitor={monitor} output=data.monitor
-  @end/block
-@end/forEach
+  @block/end
+@block/end
 ```
 
-This gives you a precise, unambiguous spec for `@start/forEach` and
-`@start/block` (`if` / `while`), fully aligned with your `ExecutionContext`,
+This gives you a precise, unambiguous spec for `@block/begin forEach=` and
+`@block/begin` (`if=` / `while=`), fully aligned with your `ExecutionContext`,
 data resolution rules, and cost model.

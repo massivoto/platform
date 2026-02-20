@@ -4,6 +4,8 @@
 **Participants:** Product Owner, Claude (AI facilitator)
 **Context:** Massivoto v0.6 — enabling local file access for "The Race Was Great" (F1 SaaS) image pipeline
 
+**Status:** Parser phase IMPLEMENTED (FileLiteralNode, GlobLiteralNode, `~/` syntax). See [file-path-parser.wip.prd.md](../../../massivoto-interpreter/src/parser/file/file-path-parser.wip.prd.md). Remaining: evaluator, `|path` pipe, `@core/files/save`.
+
 ---
 
 ## 1. Product Role
@@ -196,9 +198,9 @@ Most automation tools (n8n, Zapier, Make) treat files as opaque blobs passed bet
 ### Glob as Flow Control
 
 ```oto
-@start/forEach item="photo" of=~/images/races/*.jpg
+@block/begin forEach=~/images/races/*.jpg -> photo
   @ai/describe image={photo} output=description
-@end/forEach
+@block/end
 ```
 
 The glob IS the iteration source. No intermediate "list files" step. Pattern matching drives the flow directly. Shell-level power with language-level safety.
@@ -209,7 +211,7 @@ The glob IS the iteration source. No intermediate "list files" step. Pattern mat
 @ai/describe image={photo} forEach=~/images/races/*.jpg->photo output=description
 ```
 
-Rejected because: precedence nightmare (`~/` greedy lexer vs `->` mapper vs `*` glob), readability loss, vague error messages. The explicit `@start/forEach` block is OTO's strength.
+Rejected because: precedence nightmare (`~/` greedy lexer vs `->` mapper vs `*` glob), readability loss, vague error messages. The explicit `@block/begin forEach=` block is OTO's strength.
 
 ---
 

@@ -298,7 +298,7 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  │  multiply    →  a * b, a / b, a % b                                 │   │
 │  │  unary       →  !x, -x, +x                                          │   │
 │  │  member      →  obj.prop.nested                                     │   │
-│  │  primary     →  literal, identifier, (expr), [array]                │   │
+│  │  primary     →  literal, path, identifier, (expr), [array]          │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 │  Literals:                                                                  │
@@ -306,6 +306,8 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  - Strings:  "hello world" (double quotes only)                            │
 │  - Booleans: true, false                                                   │
 │  - Arrays:   [1, 2, 3], ["a", "b"]                                         │
+│  - Files:    ~/images/hero.png (literal-file)                              │
+│  - Globs:    ~/images/*.jpg, ~/data/**/*.json (literal-glob)               │
 │  - No null literal (handled at runtime)                                    │
 │                                                                             │
 │  Variables:                                                                 │
