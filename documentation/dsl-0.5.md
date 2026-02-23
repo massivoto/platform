@@ -283,6 +283,88 @@ Then use it later:
 
 Follow Angular rules
 
+### `|path` pipe (v0.6)
+
+Joins an array of string segments into a `/`-separated file path. Normalizes double slashes and skips empty segments. Rejects `..` segments for security.
+
+**Syntax:** `{[segments...]|path}`
+
+**Behavior:**
+- Input: array of segments (non-strings coerced via `String()`)
+- Output: normalized path string
+- Empty segments skipped: `["images", "", "hero.png"]` → `"images/hero.png"`
+- Double slashes normalized: `["images/", "/hero.png"]` → `"images/hero.png"`
+- Non-strings coerced: `[123, true, "hero.png"]` → `"123/true/hero.png"`
+- Empty array → `""`
+- `..` in any segment → throws `"Path pipe rejects '..' segments (security)"`
+
+**Examples:**
+
+```oto
+@file/save data=description file={["drivers", "max", "bio.txt"]|path}
+@file/save file={["selection/", "f1-", $index, ".png"]|path} forEach=selectedImages->image
+```
+
+The `|path` pipe does NOT prepend `~/` or resolve against projectRoot. It produces a relative path string. Commands handle resolution.
+
+## File Literals (v0.6)
+
+The `~/` prefix creates file path literals as first-class AST nodes.
+
+### Single file: `~/path`
+
+A static file reference. Parsed as a `literal-file` expression. When evaluated, produces a `FileReference` object with `relativePath` and `absolutePath` resolved against `ExecutionContext.fileSystem.projectRoot`.
+
+```oto
+@ai/prompt/reverseImage image=~/f1.png output=f1RacingPrompt
+@file/save data=results file=~/output/race.json
+```
+
+### Glob pattern: `~/pattern/*.ext`
+
+A glob pattern (contains `*`). Parsed as a `literal-glob` expression. When evaluated, expands via `fast-glob` against the project root and returns `FileReference[]` sorted alphabetically. Empty match returns `[]`.
+
+```oto
+@block/begin forEach=~/images/races/*.jpg -> photo
+  @ai/describe image={photo} output=description
+@block/end
+```
+
+### Resolution rules
+
+- `~/` prefix is stripped by the evaluator
+- Path resolved against `context.fileSystem.projectRoot`
+- Security: resolved path must remain within `projectRoot`
+- Requires `fileSystem.projectRoot` to be set (throws `EvaluationError` otherwise)
+
+## `@file/save` command (v0.6)
+
+Writes data to a file on the local filesystem. Creates parent directories if needed.
+
+**Args:**
+- `data` — content to write (string, object, array, Buffer, or FileReference)
+- `file` — destination path (string, FileReference, or `~/`-prefixed string)
+
+**Serialization:**
+- `string` → write as UTF-8 text
+- `object` / `array` → `JSON.stringify(data, null, 2)` as UTF-8
+- `Buffer` / `Uint8Array` → write as binary
+- `FileReference` → copy file from source to destination
+
+**Path resolution for `file` arg:**
+- `FileReference` → use `absolutePath` directly
+- `~/path` string → strip prefix, resolve against `projectRoot`
+- Relative string (from `|path`) → resolve against `projectRoot`
+- Absolute string → use directly
+
+**Examples:**
+
+```oto
+@file/save data=results file=~/output/race.json
+@file/save data=description file={["drivers", driver.name, "bio.txt"]|path}
+@file/save file={["selection/", "f1-", $index, ".png"]|path} forEach=selectedImages->image
+```
+
 ## Comments : not in 0.5
 
 The comments are not valid in the markdown raw text, but are inside massivoto

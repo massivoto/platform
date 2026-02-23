@@ -46,7 +46,20 @@ later on `@block/begin`.
   - `forEach=data.users -> user`
   - `forEach={users|filter:active} -> user`
   - `forEach=[1, 2, 3] -> num`
-  - `forEach=~/images/races/*.jpg -> photo` — glob pattern (resolves to array of file references)
+  - `forEach=~/images/races/*.jpg -> photo` — glob pattern (resolves to array of FileReference objects)
+
+### Glob-in-forEach example
+
+When a glob pattern is used as the iterable in a `forEach=`, each iteration variable is a `FileReference` object with `relativePath` and `absolutePath` fields.
+
+```oto
+@block/begin forEach=~/images/races/*.jpg -> photo
+  @ai/describe image={photo} output=description
+  @file/save data=description file={["descriptions/", photo.relativePath, ".txt"]|path}
+@block/end
+```
+
+This resolves all `.jpg` files under `images/races/` relative to the project root, then iterates over each match. The `photo` variable in each iteration is a `FileReference` that commands can use directly.
 
 ### System variables
 

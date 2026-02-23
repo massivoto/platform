@@ -104,6 +104,11 @@ class LocalRunner implements Runner {
         }
       : createEmptyExecutionContext('local')
 
+    // R-FILE-82: default fileSystem.projectRoot to process.cwd()
+    if (!context.fileSystem) {
+      context.fileSystem = { projectRoot: process.cwd() }
+    }
+
     return this.interpreter.executeProgram(program, context)
   }
 }

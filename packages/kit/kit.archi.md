@@ -59,6 +59,7 @@ TODO: create a diagram with contracts and their related dependencies
 | `caching/`  | src/caching/  | localStorage adapters for Node and browser          |
 | `registry/` | src/registry/ | Composable registry pattern with conflict detection |
 | `strings/`  | src/strings/  | Base64, obfuscation utilities                       |
+| `domain/`   | src/domain/   | Domain types: FileReference, ExecutionContext        |
 
 ## Module Exports
 
@@ -94,6 +95,12 @@ TODO: create a diagram with contracts and their related dependencies
 │  ├── RegistryConflictError (class)                                     │
 │  ├── RegistryNotLoadedError (class)                                    │
 │  └── ModuleLoadError (class)                                           │
+│                                                                         │
+│  domain/                                                                │
+│  ├── FileReference (interface)  { type, relativePath, absolutePath }   │
+│  ├── isFileReference(value: unknown): value is FileReference           │
+│  ├── resolveFilePath(relativePath, projectRoot): string                │
+│  └── ExecutionContext.fileSystem?: { projectRoot: string }             │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```

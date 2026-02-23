@@ -4,7 +4,7 @@
 **Participants:** Product Owner, Claude (AI facilitator)
 **Context:** Massivoto v0.6 — enabling local file access for "The Race Was Great" (F1 SaaS) image pipeline
 
-**Status:** Parser phase IMPLEMENTED (FileLiteralNode, GlobLiteralNode, `~/` syntax). See [file-path-parser.done.prd.md](../../../massivoto-interpreter/src/parser/file/file-path-parser.done.prd.md). Remaining: evaluator, `|path` pipe, `@core/files/save`.
+**Status:** All phases IMPLEMENTED. Parser: [file-path-parser.done.prd.md](../../../massivoto-interpreter/src/parser/file/file-path-parser.done.prd.md). Runtime (evaluator, `|path` pipe, `@file/save`): [file-access-runtime.done.prd.md](./file-access-runtime.done.prd.md).
 
 ---
 
