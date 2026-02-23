@@ -21,7 +21,7 @@ Block reserved arguments:
 - `if=<condition>` — conditional execution
 - `while=<condition>` — loop while condition is true
 
-`forEach=` and `if=` are mutually exclusive on the same block.
+`forEach=` and `if=` can coexist on the same block. When both are present, `if=` is evaluated per-item inside the `forEach` loop (filter pattern). See [reserved-args-precedence PRD](../../massivoto-interpreter/src/parser/filter-pattern/reserved-args-precedence.wip.prd.md).
 
 More attributes (`pause`, `stream`, `break`, `continue`, `goto` etc.) can be added
 later on `@block/begin`.
@@ -61,3 +61,23 @@ Inside a forEach block, these variables are automatically available:
 | `_last` | boolean | true only on last iteration |
 | `_odd` | boolean | true if count is odd |
 | `_even` | boolean | true if count is even |
+
+---
+
+## Reserved Arguments Precedence
+
+When multiple reserved arguments are present on an instruction or block, they are evaluated in this canonical order regardless of their position on the line:
+
+```
+forEach → if → retry → execute → output/collect
+```
+
+| Reserved Arg | Role | Scope |
+|-------------|------|-------|
+| `forEach=` | Iteration | Instructions and blocks |
+| `if=` | Per-item filter (inside forEach) or guard (standalone) | Instructions and blocks |
+| `retry=` | Retry on failure (per individual execution) | Instructions only |
+| `output=` | Store single result in variable | Instructions only |
+| `collect=` | Accumulate results into array | Instructions only |
+
+`output=` and `collect=` are mutually exclusive on the same instruction.

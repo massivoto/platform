@@ -59,7 +59,7 @@ There is a list of reserved keywords for attributes:
 
 ```markdown
 'true','false','for','forEach','for-each','in','if','else','endif','repeat','while','function','return','break','continue','switch','case','default','let','const','var',
-'input', 'output', 'goto', 'label', 'options'
+'input', 'output', 'goto', 'label', 'options', 'retry', 'collect'
 ```
 
 ### Reserved packages
@@ -317,6 +317,56 @@ This is equivalent to
 Not for 0.5
 
 See block section in documentation/bloc-rules.md
+
+## Reserved Arguments and Precedence
+
+Reserved arguments are special argument names that the runtime interprets instead of passing to the command handler. They control execution flow, iteration, and result handling.
+
+**Full list of reserved args:**
+
+| Reserved Arg | Role | Description |
+|-------------|------|-------------|
+| `output=` | Store result | Write command result to a variable |
+| `if=` | Condition | Per-item filter (inside forEach) or standalone guard |
+| `forEach=` | Iteration | Loop over a collection with mapper syntax |
+| `label=` | Jump target | Mark instruction for `@flow/goto` |
+| `retry=` | Retry on failure | Re-execute command up to N times on error |
+| `collect=` | Accumulate results | Append each result to an array variable |
+
+### Canonical Precedence Chain
+
+When multiple reserved arguments are present on a single instruction, they are evaluated in this order regardless of their position on the line:
+
+```
+forEach → if → retry → execute → output/collect
+```
+
+Position on the line does **not** affect evaluation order. These two lines are equivalent:
+
+```oto
+@ai/generateImage forEach=situations->situation if={situation.length > 2} retry=3 collect=images
+@ai/generateImage retry=3 collect=images if={situation.length > 2} forEach=situations->situation
+```
+
+### retry=
+
+Wraps command execution in a retry loop. If the command throws an error, it is re-executed up to N times. After N failures, the last error is re-thrown. On first success, retrying stops.
+
+```oto
+@ai/generateImage prompt="F1 car" retry=3
+```
+
+With `forEach`, each item gets its own independent retry budget.
+
+### collect=
+
+Accumulates command results into an array variable. Without `forEach`, wraps a single result in a one-element array. With `forEach`, appends each iteration's result to the array. Filtered items (skipped by `if=`) are not collected.
+
+```oto
+@ai/generateImage forEach=situations->situation collect=images
+```
+
+`output=` and `collect=` are mutually exclusive on the same instruction.
 
 ## Goto and Label
 
