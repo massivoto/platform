@@ -15,6 +15,18 @@ Not in 0.5:
 - `monitors->name` is a mapping token : Not for 0.5
   - `monitors` is an array of objects, `name` is a string
 
+
+## Convention
+
+An Action has two or three segments:
+
+The pattern is `@namespace/verb` or `@namespace/type/verb`
+
+Example: `@ai/image/edit` means the input or output type is an image. And the action edits
+
+So `@print/users` is in fact pretty bad... Though it's still legal.
+`@print/lines input=users` is more realistic
+
 ## Note for 0.5
 
 No blocks, comments, not single_string. No ambiguity at all. No options keyword

@@ -87,7 +87,7 @@ fullExpression := pipe | mapper | bracedExpr | simpleExpression
 
 // Complex - braces recommended
 @utils/set input={a + b} output=sum
-@flow/if condition={count > 0}
+@action/x if={count > 0}
 
 // Pipes - braces required
 @utils/log message={data|uppercase}

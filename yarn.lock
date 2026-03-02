@@ -1262,6 +1262,7 @@ __metadata:
     "@types/react": "npm:^18.3.23"
     "@types/react-dom": "npm:^18.3.7"
     "@vitejs/plugin-react-swc": "npm:^3.11.0"
+    appwrite: "npm:^21.5.0"
     autoprefixer: "npm:^10.4.21"
     axe-core: "npm:^4.11.0"
     axios: "npm:^1.13.2"
@@ -1309,12 +1310,10 @@ __metadata:
   resolution: "@massivoto/interpreter@portal:../../../massivoto-interpreter::locator=%40massivoto%2Fruntime%40workspace%3Apackages%2Fruntime"
   dependencies:
     "@masala/parser": "npm:^2.0.0"
+    "@massivoto/kit": "npm:*"
     "@modelcontextprotocol/sdk": "npm:^1.0.0"
     lodash.set: "npm:^4.3.2"
     zod: "npm:^3.24.0"
-  peerDependencies:
-    "@massivoto/kit": "*"
-    "@massivoto/runtime": "*"
   languageName: node
   linkType: soft
 
@@ -2848,7 +2847,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-oauth/google@npm:^0.13.0, @react-oauth/google@npm:^0.13.4":
+"@react-oauth/google@npm:^0.13.0":
   version: 0.13.4
   resolution: "@react-oauth/google@npm:0.13.4"
   peerDependencies:
@@ -2869,12 +2868,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@robusta/massivoto@workspace:."
   dependencies:
-    "@react-oauth/google": "npm:^0.13.4"
     "@types/node": "npm:^22"
-    appwrite: "npm:^21.5.0"
     concurrently: "npm:^8.2.2"
     globals: "npm:^16.5.0"
-    jwt-decode: "npm:^4.0.0"
     prettier: "npm:^3.7.4"
     rimraf: "npm:^6.0.1"
     typescript: "npm:^5.9.3"
