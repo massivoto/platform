@@ -88,6 +88,24 @@ Tooling
 @validate, @test, @mock, @logger, @metrics, @trace, @alert,
 ```
 
+## File Path Literals (v0.6+)
+
+File paths and glob patterns are first-class literals, prefixed with `~/`:
+
+```oto
+@ai/describe image=~/images/hero.png output=description
+@block/begin forEach=~/images/races/*.jpg -> photo
+  @ai/describe image={photo} output=description
+@block/end
+@core/files/save data=results path=~/output/results.json
+```
+
+- `~/path/to/file.ext` -> `FileLiteralNode` (type: `literal-file`)
+- `~/path/*.ext`, `~/path/**/*.ext` -> `GlobLiteralNode` (type: `literal-glob`)
+- `~/` prefix is kept in the AST `.value`
+- `..` path traversal is rejected at parse time (security)
+- Trailing slash accepted and normalized: `~/images/` -> `~/images`
+
 ## examples
 
 ```oto

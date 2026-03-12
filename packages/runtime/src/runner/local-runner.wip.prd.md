@@ -133,6 +133,10 @@ What we need:
 - [ ] R-LOCAL-04: `runFile()` throws `InvalidExtensionError` if file does not have `.oto` extension
 - [ ] R-LOCAL-05: `runFile()` accepts `RunOptions` to inject initial context variables
 - [ ] R-LOCAL-06: `runFile()` returns `ProgramResult` with success, commands[], context, totalCost
+- [x] R-LOCAL-07: `LocalRunner` sets `fileSystem.projectRoot` on the execution context when creating it.
+  Defaults to `process.cwd()`. Configurable via `RunnerOptions.projectRoot`.
+  This enables file literal resolution (`~/path`) and glob expansion in OTO programs.
+  See [file-access-runtime.done.prd.md](../../../../documentation/files/file-access-runtime.done.prd.md).
 
 ### CLI
 

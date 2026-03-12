@@ -15,6 +15,18 @@ Not in 0.5:
 - `monitors->name` is a mapping token : Not for 0.5
   - `monitors` is an array of objects, `name` is a string
 
+
+## Convention
+
+An Action has two or three segments:
+
+The pattern is `@namespace/verb` or `@namespace/type/verb`
+
+Example: `@ai/image/edit` means the input or output type is an image. And the action edits
+
+So `@print/users` is in fact pretty bad... Though it's still legal.
+`@print/lines input=users` is more realistic
+
 ## Note for 0.5
 
 No blocks, comments, not single_string. No ambiguity at all. No options keyword
@@ -59,7 +71,7 @@ There is a list of reserved keywords for attributes:
 
 ```markdown
 'true','false','for','forEach','for-each','in','if','else','endif','repeat','while','function','return','break','continue','switch','case','default','let','const','var',
-'input', 'output', 'goto', 'label', 'options'
+'input', 'output', 'goto', 'label', 'options', 'retry', 'collect'
 ```
 
 ### Reserved packages
@@ -283,6 +295,88 @@ Then use it later:
 
 Follow Angular rules
 
+### `|path` pipe (v0.6)
+
+Joins an array of string segments into a `/`-separated file path. Normalizes double slashes and skips empty segments. Rejects `..` segments for security.
+
+**Syntax:** `{[segments...]|path}`
+
+**Behavior:**
+- Input: array of segments (non-strings coerced via `String()`)
+- Output: normalized path string
+- Empty segments skipped: `["images", "", "hero.png"]` → `"images/hero.png"`
+- Double slashes normalized: `["images/", "/hero.png"]` → `"images/hero.png"`
+- Non-strings coerced: `[123, true, "hero.png"]` → `"123/true/hero.png"`
+- Empty array → `""`
+- `..` in any segment → throws `"Path pipe rejects '..' segments (security)"`
+
+**Examples:**
+
+```oto
+@file/save data=description file={["drivers", "max", "bio.txt"]|path}
+@file/save file={["selection/", "f1-", $index, ".png"]|path} forEach=selectedImages->image
+```
+
+The `|path` pipe does NOT prepend `~/` or resolve against projectRoot. It produces a relative path string. Commands handle resolution.
+
+## File Literals (v0.6)
+
+The `~/` prefix creates file path literals as first-class AST nodes.
+
+### Single file: `~/path`
+
+A static file reference. Parsed as a `literal-file` expression. When evaluated, produces a `FileReference` object with `relativePath` and `absolutePath` resolved against `ExecutionContext.fileSystem.projectRoot`.
+
+```oto
+@ai/prompt/reverseImage image=~/f1.png output=f1RacingPrompt
+@file/save data=results file=~/output/race.json
+```
+
+### Glob pattern: `~/pattern/*.ext`
+
+A glob pattern (contains `*`). Parsed as a `literal-glob` expression. When evaluated, expands via `fast-glob` against the project root and returns `FileReference[]` sorted alphabetically. Empty match returns `[]`.
+
+```oto
+@block/begin forEach=~/images/races/*.jpg -> photo
+  @ai/describe image={photo} output=description
+@block/end
+```
+
+### Resolution rules
+
+- `~/` prefix is stripped by the evaluator
+- Path resolved against `context.fileSystem.projectRoot`
+- Security: resolved path must remain within `projectRoot`
+- Requires `fileSystem.projectRoot` to be set (throws `EvaluationError` otherwise)
+
+## `@file/save` command (v0.6)
+
+Writes data to a file on the local filesystem. Creates parent directories if needed.
+
+**Args:**
+- `data` — content to write (string, object, array, Buffer, or FileReference)
+- `file` — destination path (string, FileReference, or `~/`-prefixed string)
+
+**Serialization:**
+- `string` → write as UTF-8 text
+- `object` / `array` → `JSON.stringify(data, null, 2)` as UTF-8
+- `Buffer` / `Uint8Array` → write as binary
+- `FileReference` → copy file from source to destination
+
+**Path resolution for `file` arg:**
+- `FileReference` → use `absolutePath` directly
+- `~/path` string → strip prefix, resolve against `projectRoot`
+- Relative string (from `|path`) → resolve against `projectRoot`
+- Absolute string → use directly
+
+**Examples:**
+
+```oto
+@file/save data=results file=~/output/race.json
+@file/save data=description file={["drivers", driver.name, "bio.txt"]|path}
+@file/save file={["selection/", "f1-", $index, ".png"]|path} forEach=selectedImages->image
+```
+
 ## Comments : not in 0.5
 
 The comments are not valid in the markdown raw text, but are inside massivoto
@@ -317,6 +411,56 @@ This is equivalent to
 Not for 0.5
 
 See block section in documentation/bloc-rules.md
+
+## Reserved Arguments and Precedence
+
+Reserved arguments are special argument names that the runtime interprets instead of passing to the command handler. They control execution flow, iteration, and result handling.
+
+**Full list of reserved args:**
+
+| Reserved Arg | Role | Description |
+|-------------|------|-------------|
+| `output=` | Store result | Write command result to a variable |
+| `if=` | Condition | Per-item filter (inside forEach) or standalone guard |
+| `forEach=` | Iteration | Loop over a collection with mapper syntax |
+| `label=` | Jump target | Mark instruction for `@flow/goto` |
+| `retry=` | Retry on failure | Re-execute command up to N times on error |
+| `collect=` | Accumulate results | Append each result to an array variable |
+
+### Canonical Precedence Chain
+
+When multiple reserved arguments are present on a single instruction, they are evaluated in this order regardless of their position on the line:
+
+```
+forEach → if → retry → execute → output/collect
+```
+
+Position on the line does **not** affect evaluation order. These two lines are equivalent:
+
+```oto
+@ai/generateImage forEach=situations->situation if={situation.length > 2} retry=3 collect=images
+@ai/generateImage retry=3 collect=images if={situation.length > 2} forEach=situations->situation
+```
+
+### retry=
+
+Wraps command execution in a retry loop. If the command throws an error, it is re-executed up to N times. After N failures, the last error is re-thrown. On first success, retrying stops.
+
+```oto
+@ai/generateImage prompt="F1 car" retry=3
+```
+
+With `forEach`, each item gets its own independent retry budget.
+
+### collect=
+
+Accumulates command results into an array variable. Without `forEach`, wraps a single result in a one-element array. With `forEach`, appends each iteration's result to the array. Filtered items (skipped by `if=`) are not collected.
+
+```oto
+@ai/generateImage forEach=situations->situation collect=images
+```
+
+`output=` and `collect=` are mutually exclusive on the same instruction.
 
 ## Goto and Label
 

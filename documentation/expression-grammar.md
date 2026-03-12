@@ -10,8 +10,16 @@ This document defines the expression grammar for the OTO DSL.
 
 ```grammar
 primary        := literal
+                | pathLiteral
+                | systemVariable
                 | identifier
                 | '(' expression ')'
+
+systemVariable := '$' IDENT                              // SystemVariableNode
+
+pathLiteral    := globLiteral | fileLiteral
+fileLiteral    := '~/' [a-zA-Z0-9_\-./]+          // no *, no ..
+globLiteral    := '~/' [a-zA-Z0-9_\-./]* '*' ...  // requires at least one *
 
 member         := primary ('.' IDENT)+               // dot-only; no [expr]
 
@@ -52,6 +60,8 @@ fullExpression := pipe | mapper | bracedExpr | simpleExpression
 |-----------------|---------|-----------------|
 | Identifier | `user` | No |
 | Literal | `"hello"`, `42`, `true` | No |
+| File path | `~/images/hero.png` | No |
+| Glob pattern | `~/images/*.jpg` | No |
 | Member access | `user.name` | No |
 | Unary | `!active`, `-count` | No |
 | Binary (arithmetic) | `a + b` | Recommended* |
@@ -69,9 +79,15 @@ fullExpression := pipe | mapper | bracedExpr | simpleExpression
 @utils/log message=greeting
 @utils/log message=user.name
 
+// File paths - no braces needed
+@ai/describe image=~/images/hero.png output=description
+@block/begin forEach=~/images/races/*.jpg -> photo
+  @ai/describe image={photo} output=description
+@block/end
+
 // Complex - braces recommended
 @utils/set input={a + b} output=sum
-@flow/if condition={count > 0}
+@action/x if={count > 0}
 
 // Pipes - braces required
 @utils/log message={data|uppercase}
@@ -80,6 +96,40 @@ fullExpression := pipe | mapper | bracedExpr | simpleExpression
 // Mapper - braces in argument position
 @flow/forEach forEach={users -> user}
 @utils/set input={users -> name} output=names
+```
+
+## System Variables
+
+System variables use the `$` prefix and are parsed as `SystemVariableNode` (distinct from
+`IdentifierNode`). They are injected by the runtime during `forEach` iteration and are
+read-only from the program's perspective.
+
+### Available System Variables
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `$index` | number | Current iteration index (0-based) |
+| `$count` | number | Current iteration count (1-based, equals `$index + 1`) |
+| `$length` | number | Total collection length |
+| `$first` | boolean | `true` on first iteration (`$index === 0`) |
+| `$last` | boolean | `true` on last iteration (`$index === $length - 1`) |
+| `$odd` | boolean | `true` if 1-based count is odd (1st, 3rd, 5th...) |
+| `$even` | boolean | `true` if 1-based count is even (2nd, 4th, 6th...) |
+
+### Resolution
+
+System variables are resolved from the scope chain only. Unlike regular identifiers, they
+do **not** fall back to `context.data`. Outside of a `forEach` block, accessing a system
+variable returns `undefined`.
+
+### Examples
+
+```oto
+@block/begin forEach=users -> user
+  @log/print message={$index + 1}
+  @html/render class={$even ? "bg-white" : "bg-gray-100"}
+  @log/print message={$first ? "Starting list..." : ""}
+@block/end
 ```
 
 ## Mapper Expression

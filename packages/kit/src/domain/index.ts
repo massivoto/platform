@@ -32,3 +32,6 @@ export { fakeStorePointer } from './store.js'
 export * from './execution-context/index.js'
 export * from './scope/index.js'
 export * from './command/index.js'
+
+export type { FileReference } from './file-reference.js'
+export { isFileReference, resolveFilePath } from './file-reference.js'

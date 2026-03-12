@@ -328,3 +328,62 @@ describe('ExecutionContext Runtime Fields', () => {
     })
   })
 })
+
+/**
+ * Tests for fileSystem field on ExecutionContext (R-FILE-81 to R-FILE-83)
+ * Theme: Formula One Race Automation
+ */
+describe('ExecutionContext FileSystem', () => {
+  describe('R-FILE-81: fileSystem field', () => {
+    it('should be undefined by default', () => {
+      const context = createEmptyExecutionContext('max-33')
+
+      expect(context.fileSystem).toBeUndefined()
+    })
+
+    it('should accept a fileSystem with projectRoot', () => {
+      const context = createEmptyExecutionContext('max-33')
+      context.fileSystem = { projectRoot: '/home/max/f1-photos' }
+
+      expect(context.fileSystem.projectRoot).toBe('/home/max/f1-photos')
+    })
+  })
+
+  describe('R-FILE-83: createEmptyExecutionContext with fileSystem', () => {
+    it('should preserve fileSystem when set via partial context', () => {
+      const context = fromPartialContext({
+        fileSystem: { projectRoot: '/home/max/f1-photos' },
+      })
+
+      expect(context.fileSystem?.projectRoot).toBe('/home/max/f1-photos')
+    })
+
+    it('should leave fileSystem undefined when not provided in partial context', () => {
+      const context = fromPartialContext({
+        data: { driver: 'Verstappen' },
+      })
+
+      expect(context.fileSystem).toBeUndefined()
+    })
+  })
+
+  describe('cloneExecutionContext with fileSystem', () => {
+    it('should clone fileSystem independently', () => {
+      const original = createEmptyExecutionContext('max-33')
+      original.fileSystem = { projectRoot: '/home/max/f1-photos' }
+
+      const cloned = cloneExecutionContext(original)
+
+      expect(cloned.fileSystem?.projectRoot).toBe('/home/max/f1-photos')
+      expect(cloned.fileSystem).not.toBe(original.fileSystem)
+    })
+
+    it('should handle undefined fileSystem in clone', () => {
+      const original = createEmptyExecutionContext('max-33')
+
+      const cloned = cloneExecutionContext(original)
+
+      expect(cloned.fileSystem).toBeUndefined()
+    })
+  })
+})

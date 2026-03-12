@@ -39,4 +39,9 @@ export interface ExecutionContext {
 
   // R-CONFIRM-123: Applet launcher for human validation (v0.5)
   appletLauncher?: AppletLauncher
+
+  // R-FILE-81: File system configuration for file access
+  fileSystem?: {
+    projectRoot: string
+  }
 }

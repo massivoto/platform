@@ -50,6 +50,9 @@ export function cloneExecutionContext(
     userLogs: [...context.userLogs],
     status: context.status,
     appletLauncher: context.appletLauncher, // AppletLauncher is not cloned (stateful service)
+    fileSystem: context.fileSystem
+      ? { projectRoot: context.fileSystem.projectRoot }
+      : undefined,
   }
 }
 
@@ -83,5 +86,8 @@ export function fromPartialContext(
     userLogs: [...(partialContext.userLogs || emptyContext.userLogs)],
     status: partialContext.status || emptyContext.status,
     appletLauncher: partialContext.appletLauncher, // AppletLauncher is not cloned (stateful service)
+    fileSystem: partialContext.fileSystem
+      ? { projectRoot: partialContext.fileSystem.projectRoot }
+      : undefined,
   }
 }

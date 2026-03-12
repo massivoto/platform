@@ -41,6 +41,8 @@ key=value
 | Number | `42`, `3.14`, `-5` | `literal-number` |
 | Boolean | `true`, `false` | `literal-boolean` |
 | Null | `null` | `literal-null` |
+| File path | `~/images/hero.png` | `literal-file` |
+| Glob pattern | `~/images/*.jpg`, `~/data/**/*.json` | `literal-glob` |
 
 #### Identifiers
 
@@ -152,7 +154,7 @@ interface CommandNode {
 ```typescript
 type ExpressionNode =
   | IdentifierNode
-  | LiteralNode           // string, number, boolean, null
+  | LiteralNode           // string, number, boolean, null, file, glob
   | MemberExpressionNode  // user.name
   | UnaryExpressionNode   // !x, -x, +x
   | BinaryExpressionNode  // a + b
@@ -177,12 +179,14 @@ type ExpressionNode =
 ## What was added to 0.5
 
 - Comments (`//`, `/* */`)
-- Blocks (`@start/block`, `@end/block`)
+- Blocks (`@block/begin`, `@block/end`)
 - `forEach` inline syntax
 - `while` loops
 - `if` conditionals (inline)
 - Mapping tokens (`monitors->name`)
-- 
+- File path literals (`~/images/hero.png` -> `literal-file`)
+- Glob pattern literals (`~/images/*.jpg` -> `literal-glob`)
+
 ## What is NOT in 0.5
 
 

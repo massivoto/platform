@@ -169,6 +169,9 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  │  }                                                                  │   │
 │  │  user: { id, extra }            // User info (READ-ONLY)            │   │
 │  │  store: StorePointer            // Persistent storage (future)      │   │
+│  │  fileSystem?: {                 // File access config (optional)    │   │
+│  │    projectRoot: string          //   Absolute path to project root  │   │
+│  │  }                              //   Set by LocalRunner             │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
@@ -298,7 +301,7 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  │  multiply    →  a * b, a / b, a % b                                 │   │
 │  │  unary       →  !x, -x, +x                                          │   │
 │  │  member      →  obj.prop.nested                                     │   │
-│  │  primary     →  literal, identifier, (expr), [array]                │   │
+│  │  primary     →  literal, path, identifier, (expr), [array]          │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 │  Literals:                                                                  │
@@ -306,6 +309,8 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │  - Strings:  "hello world" (double quotes only)                            │
 │  - Booleans: true, false                                                   │
 │  - Arrays:   [1, 2, 3], ["a", "b"]                                         │
+│  - Files:    ~/images/hero.png (literal-file)                              │
+│  - Globs:    ~/images/*.jpg, ~/data/**/*.json (literal-glob)               │
 │  - No null literal (handled at runtime)                                    │
 │                                                                             │
 │  Variables:                                                                 │
@@ -319,6 +324,17 @@ The Runtime package (`@massivoto/runtime`) implements the Massivoto Automation P
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+## File System Configuration
+
+The `fileSystem` field on `ExecutionContext` enables file access features (file literals, glob evaluation, `@file/save` command). It is optional because not all runners need file access (e.g. a SaaS runner may use cloud storage).
+
+`LocalRunner` defaults `fileSystem.projectRoot` to `process.cwd()` when creating the execution context. This can be overridden via constructor options.
+
+The evaluator uses `projectRoot` to:
+- Resolve `~/path` file literals to absolute paths
+- Set `cwd` for `fast-glob` when expanding `~/pattern/*.ext` globs
+- Validate that resolved paths stay within the project root (security)
 
 ## Dependencies
 

@@ -57,10 +57,10 @@ All instructions can have `if`, `forEach`, `while`, `pause`, `stream`:
 #### While Block
 
 ```oto
-@begin/block while={i < 10}
+@block/begin while={i < 10}
   @utils/doSomething value={i}
   @utils/increment input={i} output=data.i
-@end/block
+@block/end
 ```
 
 
