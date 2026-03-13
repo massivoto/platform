@@ -35,3 +35,15 @@ export * from './command/index.js'
 
 export type { FileReference } from './file-reference.js'
 export { isFileReference, resolveFilePath } from './file-reference.js'
+
+export type {
+  AiProvider,
+  AiProviderName,
+  TextRequest,
+  TextResult,
+  ImageRequest,
+  ImageResult,
+  ImageAnalysisRequest,
+  ImageAnalysisResult,
+} from './ai-provider.js'
+export { DEFAULT_AI_PROVIDER } from './ai-provider.js'
