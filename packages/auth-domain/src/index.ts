@@ -107,3 +107,14 @@ export {
   expireMockToken,
   revokeMockToken,
 } from './mock-token.js'
+
+// AI Config - Provider credential resolution
+export {
+  loadAiConfig,
+  type AiProviderConfig,
+  type AiProviderEntry,
+  resolveProvider,
+  type ResolvedProvider,
+  findEnvFile,
+  loadEnvChain,
+} from './ai-config/index.js'

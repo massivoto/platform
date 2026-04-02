@@ -25,6 +25,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@massivoto/kit": "file:../kit",
+    "dotenv": "^17.3.1",
     "zod": "^3.24.0"
   },
   "devDependencies": {

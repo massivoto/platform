@@ -3,6 +3,7 @@ import { SerializableStorePointer, StoreProvider } from '../store.js'
 import { AppletLauncher } from '../../applets/index.js'
 import { SerializableObject } from '../../network/index.js'
 import { ReadableDate } from '../../time/index.js'
+import type { AiProviderConfig } from '../ai-provider.js'
 
 /**
  * Execution status for tracking program state.
@@ -44,4 +45,7 @@ export interface ExecutionContext {
   fileSystem?: {
     projectRoot: string
   }
+
+  // R-AIC-62: Validated AI provider config loaded from env at startup
+  aiConfig?: AiProviderConfig
 }

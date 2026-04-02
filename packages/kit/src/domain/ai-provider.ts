@@ -79,3 +79,30 @@ export type AiProviderName = 'gemini' | 'openai' | 'anthropic'
  * Default provider for AI commands.
  */
 export const DEFAULT_AI_PROVIDER: AiProviderName = 'gemini'
+
+/**
+ * Known AI provider names with their expected API key env var.
+ */
+export const AI_PROVIDER_KEY_NAMES: Record<AiProviderName, string> = {
+  gemini: 'GEMINI_API_KEY',
+  openai: 'OPENAI_API_KEY',
+  anthropic: 'ANTHROPIC_API_KEY',
+}
+
+/**
+ * A validated, ready-to-use AI provider entry with its API key.
+ * Part of AiProviderConfig loaded at startup from env vars.
+ */
+export interface AiProviderEntry {
+  name: AiProviderName
+  apiKey: string
+}
+
+/**
+ * Validated configuration of available AI providers.
+ * Loaded at startup from AI_PROVIDERS + <NAME>_API_KEY env vars.
+ * Order reflects user priority (first = highest).
+ */
+export interface AiProviderConfig {
+  providers: AiProviderEntry[]
+}

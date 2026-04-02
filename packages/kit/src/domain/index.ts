@@ -39,6 +39,8 @@ export { isFileReference, resolveFilePath } from './file-reference.js'
 export type {
   AiProvider,
   AiProviderName,
+  AiProviderConfig,
+  AiProviderEntry,
   TextRequest,
   TextResult,
   ImageRequest,
@@ -46,4 +48,4 @@ export type {
   ImageAnalysisRequest,
   ImageAnalysisResult,
 } from './ai-provider.js'
-export { DEFAULT_AI_PROVIDER } from './ai-provider.js'
+export { DEFAULT_AI_PROVIDER, AI_PROVIDER_KEY_NAMES } from './ai-provider.js'
