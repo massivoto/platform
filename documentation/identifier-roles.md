@@ -157,13 +157,6 @@ Simple case: `path: ['users']`. With navigation: `path: ['data', 'users']`.
 Each role should have a dedicated AST node type so that:
 - The parser communicates **intent** to the evaluator/interpreter
 - The type checker knows what constraints apply (binding target must be a valid name, binding source must exist in scope)
-- LSP can provide go-to-definition for references, and find-all-references for bindings
-
-### Target state
-
-Each role should have a dedicated AST node type so that:
-- The parser communicates **intent** to the evaluator/interpreter
-- The type checker knows what constraints apply (binding target must be a valid name, binding source must exist in scope)
 - LSP can provide go-to-definition for binding references, and find-all-references for binding targets
 
 | Role | AST Node | Type string | Fields |
@@ -172,6 +165,32 @@ Each role should have a dedicated AST node type so that:
 | Value (variable) | `IdentifierNode` | `'identifier'` | `value: string` |
 | Binding target | `BindingNode` | `'binding'` | `name: string` |
 | Binding source | `ReferenceNode` | `'reference'` | `path: string[]` |
+
+---
+
+## Scope of the Redesign: Only Reserved Args
+
+Identifier roles are determined by the **language syntax**, not by command handlers.
+Only the reserved args (built into the parser) carry non-value roles. All regular
+args (defined by handlers) are always **value positions** (Role 2).
+
+| Reserved arg | Role | AST Node | Why |
+|---|---|---|---|
+| `output=result` | Binding target | `BindingNode` | Introduces a name to WRITE the command output |
+| `collect=items` | Binding target | `BindingNode` | Introduces a name to WRITE collected values |
+| `forEach=X -> Y` | X = Binding source, Y = Binding target | X = `ReferenceNode`, Y = `BindingNode` | X reads from scope, Y introduces iteration variable |
+| `if=condition` | Binding source | `ReferenceNode` | Reads a name from scope and tests truthiness |
+| `retry=3` | Value | (number literal) | Always a value, no role change |
+| `label="start"` | Value | (string literal) | Always a value, no role change |
+| **All regular args** | **Value** | `BareStringNode` or `IdentifierNode` | **Always a value. Handlers never declare identifier roles.** |
+
+Custom handlers (e.g., `@robusta/calculous x=hello w=42`) receive resolved values.
+If a handler needs to write to scope, it uses `output=`. If it needs a condition, it
+uses `if=`. The handler never controls what AST node type its parameters produce.
+
+The future **Value Resolver** (ROADMAP v0.7) will let handlers declare expected **value
+types** (string, number, image, etc.) -- but that is type coercion at the handler level,
+not identifier role assignment at the parser level. These are independent concerns.
 
 ---
 
@@ -256,7 +275,7 @@ positions, not value positions.
 
 ## References
 
-- `features/angular-string/angular-string.idea.md` -- the Angular String problem and decision
+- `features/identifier-roles/identifier-roles.idea.md` -- the implementation plan
 - `massivoto-interpreter/src/parser/ast.ts` -- current AST node types
 - `massivoto-interpreter/src/parser/instruction-parser.ts` -- reserved arg parsing
 - `massivoto-interpreter/src/parser/args-details/mapper-parser.ts` -- mapper `->` parsing
