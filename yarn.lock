@@ -1203,12 +1203,12 @@ __metadata:
 
 "@massivoto/auth-domain@file:../massivoto-platform/packages/auth-domain::locator=%40massivoto%2Finterpreter%40portal%3A..%2F..%2F..%2Fmassivoto-interpreter%3A%3Alocator%3D%2540massivoto%252Fruntime%2540workspace%253Apackages%252Fruntime":
   version: 1.0.0
-  resolution: "@massivoto/auth-domain@file:../massivoto-platform/packages/auth-domain#../massivoto-platform/packages/auth-domain::hash=1de3d9&locator=%40massivoto%2Finterpreter%40portal%3A..%2F..%2F..%2Fmassivoto-interpreter%3A%3Alocator%3D%2540massivoto%252Fruntime%2540workspace%253Apackages%252Fruntime"
+  resolution: "@massivoto/auth-domain@file:../massivoto-platform/packages/auth-domain#../massivoto-platform/packages/auth-domain::hash=fef157&locator=%40massivoto%2Finterpreter%40portal%3A..%2F..%2F..%2Fmassivoto-interpreter%3A%3Alocator%3D%2540massivoto%252Fruntime%2540workspace%253Apackages%252Fruntime"
   dependencies:
     "@massivoto/kit": "file:../kit"
     dotenv: "npm:^17.3.1"
     zod: "npm:^3.24.0"
-  checksum: 10c0/9fc891ee8badb1e4848138fdd26617078fc55ffeba3d7c61bc607663456aa33b1c064194f60bbc1b4dc7bf9e7ad1e03b26e755284180af8c2db815334232ce41
+  checksum: 10c0/60103c0672b63571309d6ea62dac73fe635c6bad827ca0a1cb0fa780f77e3adda85ee77015ca7ad18b58f7f2aac712ed2c128db08da7b22a8745df4cb52d3759
   languageName: node
   linkType: hard
 
@@ -1327,6 +1327,7 @@ __metadata:
     "@massivoto/kit": "file:../massivoto-platform/packages/kit"
     "@modelcontextprotocol/sdk": "npm:^1.0.0"
     cheerio: "npm:^1.2.0"
+    dotenv: "npm:^17.3.1"
     fast-glob: "npm:^3.3.3"
     lodash.set: "npm:^4.3.2"
     turndown: "npm:^7.2.2"
@@ -1334,9 +1335,9 @@ __metadata:
   languageName: node
   linkType: soft
 
-"@massivoto/kit@file:../kit::locator=%40massivoto%2Fauth-domain%40file%3A..%2Fmassivoto-platform%2Fpackages%2Fauth-domain%23..%2Fmassivoto-platform%2Fpackages%2Fauth-domain%3A%3Ahash%3D1de3d9%26locator%3D%2540massivoto%252Finterpreter%2540portal%253A..%252F..%252F..%252Fmassivoto-interpreter%253A%253Alocator%253D%252540massivoto%25252Fruntime%252540workspace%25253Apackages%25252Fruntime":
+"@massivoto/kit@file:../kit::locator=%40massivoto%2Fauth-domain%40file%3A..%2Fmassivoto-platform%2Fpackages%2Fauth-domain%23..%2Fmassivoto-platform%2Fpackages%2Fauth-domain%3A%3Ahash%3Dfef157%26locator%3D%2540massivoto%252Finterpreter%2540portal%253A..%252F..%252F..%252Fmassivoto-interpreter%253A%253Alocator%253D%252540massivoto%25252Fruntime%252540workspace%25253Apackages%25252Fruntime":
   version: 1.0.0
-  resolution: "@massivoto/kit@file:../kit#../kit::hash=73c2fc&locator=%40massivoto%2Fauth-domain%40file%3A..%2Fmassivoto-platform%2Fpackages%2Fauth-domain%23..%2Fmassivoto-platform%2Fpackages%2Fauth-domain%3A%3Ahash%3D1de3d9%26locator%3D%2540massivoto%252Finterpreter%2540portal%253A..%252F..%252F..%252Fmassivoto-interpreter%253A%253Alocator%253D%252540massivoto%25252Fruntime%252540workspace%25253Apackages%25252Fruntime"
+  resolution: "@massivoto/kit@file:../kit#../kit::hash=73c2fc&locator=%40massivoto%2Fauth-domain%40file%3A..%2Fmassivoto-platform%2Fpackages%2Fauth-domain%23..%2Fmassivoto-platform%2Fpackages%2Fauth-domain%3A%3Ahash%3Dfef157%26locator%3D%2540massivoto%252Finterpreter%2540portal%253A..%252F..%252F..%252Fmassivoto-interpreter%253A%253Alocator%253D%252540massivoto%25252Fruntime%252540workspace%25253Apackages%25252Fruntime"
   checksum: 10c0/b4a51da053f0bdd92580072d51657c6049344911db668ea1ab3d95f63b104e7506f161646e1fc08875bfaa18062b863250d1c9e40dfdb77de3fb7b05ee3c8887
   languageName: node
   linkType: hard
