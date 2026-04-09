@@ -78,7 +78,7 @@ describe('CLI Integration Tests', () => {
     it('should handle string values correctly', async () => {
       const filePath = await createTestFile(
         'var-string.oto',
-        '@utils/set input=name output=greeting',
+        '@utils/set input={name} output=greeting',
       )
 
       const runner = new FileRunner()
@@ -89,6 +89,30 @@ describe('CLI Integration Tests', () => {
       })
 
       expect(result.data.greeting).toBe('Carlos')
+    })
+
+    it('should handle quoted string literals correctly', async () => {
+      const filePath = await createTestFile(
+        'quoted-string.oto',
+        '@utils/set input="name" output=greeting',
+      )
+
+      const runner = new FileRunner()
+      const result = await runner.runFile(filePath)
+
+      expect(result.data.greeting).toBe('name')
+    })
+
+    it('should handle bare string literals correctly', async () => {
+      const filePath = await createTestFile(
+        'bare-string.oto',
+        '@utils/set input=name output=greeting',
+      )
+
+      const runner = new FileRunner()
+      const result = await runner.runFile(filePath)
+
+      expect(result.data.greeting).toBe('name')
     })
   })
 
