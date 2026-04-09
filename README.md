@@ -26,6 +26,27 @@ An Automation Programming Language (APL) for building workflow automations using
 
 ```
 
+## Benefits
+
+Compared to n8n:
+
+* Easy to share, copy and paste
+* Easy to update
+* The code goes in Git, and you can diff the changes, making it part of the CI/CD
+* oto is a full language, you can use a debugger (wip though)
+* Command line tool available :
+  * `oto generate "here is my orders prompt" orders.oto.md` 
+  * `oto run orders.oto.md`
+* Executables are pure Markdown files, with documentation included
+
+Compared to OpenClaw
+
+* You have a step to understand what WILL happen
+* You have tooling and logs to understand what DID happen
+* Safety is by design, in isolated containers
+* you can still use the `oto yolo "here is my orders prompt"` to generate oto language and execute it immediately
+
+
 
 ## Structure
 
