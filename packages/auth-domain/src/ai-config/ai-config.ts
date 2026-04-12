@@ -14,6 +14,8 @@ export function loadAiConfig(env: Record<string, string | undefined>): AiProvide
     )
   }
 
+  // Parse "gemini, openai , anthropic" into ['gemini', 'openai', 'anthropic']
+  // Split on commas, trim whitespace, drop empty segments, remove duplicates
   const names = deduplicate(
     raw.split(',').map((s) => s.trim()).filter((s) => s.length > 0),
   )

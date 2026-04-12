@@ -51,13 +51,23 @@ The `.env` file holds API keys and the provider priority list.
 | `AI_PROVIDERS` | Comma-separated provider names, in priority order | `gemini` or `openai,gemini` |
 | `<NAME>_API_KEY` | API key for each listed provider | `GEMINI_API_KEY=AIzaSy...` |
 
-### Supported providers
+### Known providers
+
+These providers have built-in support with known API key variable names:
 
 | Provider | Key variable | Status |
 |----------|-------------|--------|
 | `gemini` | `GEMINI_API_KEY` | Implemented |
 | `openai` | `OPENAI_API_KEY` | Planned |
 | `anthropic` | `ANTHROPIC_API_KEY` | Planned |
+
+### Custom / unknown providers
+
+The provider list is **not closed**. Users can configure any provider name. For unknown providers, the system derives the API key variable name from the provider name using the `<UPPER_NAME>_API_KEY` convention. For example, a provider named `mistral` expects `MISTRAL_API_KEY`.
+
+Handlers never filter or reject providers. If the user configures a provider in `.env` or `massivoto.config.json`, the system trusts it. Errors surface naturally at runtime when the provider can't fulfill a request -- not at config time with a static allowlist.
+
+This design supports Hugging Face models, local inference servers, custom APIs, and any future provider without code changes.
 
 ### Provider name normalization
 
@@ -276,10 +286,11 @@ createAiProvider(name, apiKey)       selected provider + model
 ### Key types
 
 ```typescript
-type AiProviderName = 'gemini' | 'openai' | 'anthropic'
+// Open type -- any string is valid. Known names are convenience constants, not constraints.
+type AiProviderName = string
 
 interface AiProviderEntry {
-  name: AiProviderName
+  name: string
   apiKey: string
 }
 
@@ -306,17 +317,24 @@ interface HandlerConfig {
 
 ### Where it lives
 
-| Concern | Package | Path |
-|---------|---------|------|
-| Types (`AiProviderConfig`, `AiProviderName`) | `@massivoto/kit` | `packages/kit/src/domain/ai-provider.ts` |
-| Types (`HandlerConfig`, `CapabilityConfig`) | `@massivoto/kit` | `packages/kit/src/domain/handler-config.ts` |
-| .env loading & AI config validation | `@massivoto/auth-domain` | `packages/auth-domain/src/ai-config/` |
-| Config file loader & validation | `@massivoto/auth-domain` | `packages/auth-domain/src/ai-config/handler-config.ts` |
-| Provider name normalization | `@massivoto/auth-domain` | `packages/auth-domain/src/ai-config/normalize-provider.ts` |
-| 4-layer resolution engine | `@massivoto/auth-domain` | `packages/auth-domain/src/ai-config/resolve-handler-provider.ts` |
-| Runtime wiring (startup loading) | `@massivoto/runtime` | `packages/runtime/src/runner/build-ai-context.ts` |
-| Provider implementations | `massivoto-interpreter` | `src/core-handlers/ai/providers/` |
-| Handler capability declarations | `massivoto-interpreter` | Each handler in `src/core-handlers/ai/` |
+The split between kit and auth-domain is intentional:
+
+- **`@massivoto/kit`** holds types, interfaces, and pure functions (no I/O, no dependencies). The interpreter depends on kit only in production.
+- **`@massivoto/auth-domain`** holds config loading with side effects: reading `.env` files from disk (`dotenv`), parsing `massivoto.config.json`, validating against the filesystem. Only the platform and tests import auth-domain.
+- **`massivoto-interpreter`** depends on kit, never on auth-domain in production. It receives resolved providers via `context.resolvedProvider` -- it doesn't know how config was loaded.
+
+| Concern | Package | Why here |
+|---------|---------|----------|
+| Types (`AiProviderConfig`, `AiProviderName`, `ResolvedProvider`) | `@massivoto/kit` | Pure types, no I/O -- shared by all |
+| Pure functions (`resolveProvider`, `deriveApiKeyName`) | `@massivoto/kit` | No side effects, needed by interpreter |
+| .env loading (`loadEnvChain`) | `@massivoto/auth-domain` | Reads filesystem (`dotenv`) |
+| AI config validation (`loadAiConfig`) | `@massivoto/auth-domain` | Parses env vars, validates keys |
+| Config file loader (`loadHandlerConfig`) | `@massivoto/auth-domain` | Reads `massivoto.config.json` from disk |
+| Provider name normalization | `@massivoto/auth-domain` | Platform-side utility |
+| 4-layer resolution engine | `@massivoto/auth-domain` | Combines config sources (platform concern) |
+| Runtime wiring (`buildAiContext`) | `@massivoto/runtime` | Startup glue: loads env + config, populates context |
+| Provider implementations (`GeminiProvider`) | `massivoto-interpreter` | Execution engine, BSL licensed |
+| `AiCommandHandler` + handler resolution | `massivoto-interpreter` | `instanceof` check before `handler.run()` |
 
 ## Integration Tests
 
