@@ -4,6 +4,7 @@ import { AppletLauncher } from '../../applets/index.js'
 import { SerializableObject } from '../../network/index.js'
 import { ReadableDate } from '../../time/index.js'
 import type { AiProviderConfig } from '../ai-provider.js'
+import type { HandlerConfig } from '../handler-config.js'
 
 /**
  * Execution status for tracking program state.
@@ -48,4 +49,7 @@ export interface ExecutionContext {
 
   // R-AIC-62: Validated AI provider config loaded from env at startup
   aiConfig?: AiProviderConfig
+
+  // R-HC-13: Handler configuration loaded from massivoto.config.json
+  handlerConfig?: HandlerConfig
 }

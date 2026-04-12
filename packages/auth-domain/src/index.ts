@@ -117,4 +117,9 @@ export {
   type ResolvedProvider,
   findEnvFile,
   loadEnvChain,
+  normalizeProviderName,
+  loadHandlerConfig,
+  validateHandlerConfig,
+  resolveHandlerProvider,
+  type HandlerProviderResult,
 } from './ai-config/index.js'

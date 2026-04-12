@@ -53,6 +53,9 @@ export function cloneExecutionContext(
     fileSystem: context.fileSystem
       ? { projectRoot: context.fileSystem.projectRoot }
       : undefined,
+    handlerConfig: context.handlerConfig
+      ? structuredClone(context.handlerConfig)
+      : undefined,
   }
 }
 
@@ -88,6 +91,9 @@ export function fromPartialContext(
     appletLauncher: partialContext.appletLauncher, // AppletLauncher is not cloned (stateful service)
     fileSystem: partialContext.fileSystem
       ? { projectRoot: partialContext.fileSystem.projectRoot }
+      : undefined,
+    handlerConfig: partialContext.handlerConfig
+      ? structuredClone(partialContext.handlerConfig)
       : undefined,
   }
 }

@@ -41,6 +41,7 @@ import {
   createStandardCommandRegistry,
 } from '@massivoto/interpreter'
 import { runLocalProgram } from './local-runner.js'
+import { buildAiContext } from './build-ai-context.js'
 
 /**
  * Valid file extensions for OTO programs.
@@ -115,6 +116,42 @@ export class FileRunner {
     const context = runOptions.context
       ? fromPartialContext(runOptions.context)
       : createEmptyExecutionContext('file-runner')
+
+    // R-HC-01 to R-HC-07: Wire AI config at startup
+    const projectDir = path.dirname(path.resolve(filePath))
+    try {
+      const aiContext = buildAiContext(projectDir)
+
+      // Merge loaded env with existing context.env (loaded env takes priority)
+      context.env = { ...context.env, ...aiContext.env }
+
+      // Populate aiConfig if not already set by caller
+      if (!context.aiConfig && aiContext.aiConfig) {
+        context.aiConfig = aiContext.aiConfig
+      }
+
+      // Populate handlerConfig if not already set by caller
+      if (!context.handlerConfig && aiContext.handlerConfig) {
+        context.handlerConfig = aiContext.handlerConfig
+      }
+
+      // Log warnings to stderr
+      for (const warning of aiContext.warnings) {
+        console.error(`[oto] ${warning}`)
+      }
+    } catch (error) {
+      // Config errors are fatal -- rethrow with context
+      if (error instanceof Error && error.message.includes('Config error')) {
+        throw error
+      }
+      if (error instanceof Error && error.message.includes('Invalid JSON')) {
+        throw error
+      }
+      // Other errors (e.g., file system issues) are logged but not fatal
+      console.error(
+        `[oto] Warning: AI config loading failed: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
 
     let commandRegistry = this.options.registry
 
