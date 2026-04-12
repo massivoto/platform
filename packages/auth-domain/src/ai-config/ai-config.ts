@@ -1,9 +1,7 @@
-import type { AiProviderName, AiProviderConfig, AiProviderEntry } from '@massivoto/kit'
-import { AI_PROVIDER_KEY_NAMES } from '@massivoto/kit'
+import type { AiProviderConfig, AiProviderEntry } from '@massivoto/kit'
+import { deriveApiKeyName } from '@massivoto/kit'
 
 export type { AiProviderConfig, AiProviderEntry }
-
-const KNOWN_PROVIDERS: AiProviderName[] = ['gemini', 'openai', 'anthropic']
 
 // R-AIC-01 to R-AIC-04
 export function loadAiConfig(env: Record<string, string | undefined>): AiProviderConfig {
@@ -23,25 +21,18 @@ export function loadAiConfig(env: Record<string, string | undefined>): AiProvide
   const providers: AiProviderEntry[] = []
 
   for (const name of names) {
-    // R-AIC-02
-    if (!KNOWN_PROVIDERS.includes(name as AiProviderName)) {
-      throw new Error(
-        `Unknown provider '${name}' in AI_PROVIDERS. Valid options: ${KNOWN_PROVIDERS.join(', ')}`,
-      )
-    }
-
-    const providerName = name as AiProviderName
-    const keyEnvName = AI_PROVIDER_KEY_NAMES[providerName]
+    // R-PAR-01: Accept any provider name -- derive env key from convention
+    const keyEnvName = deriveApiKeyName(name)
     const apiKey = env[keyEnvName]
 
     // R-AIC-03
     if (!apiKey) {
       throw new Error(
-        `Provider '${providerName}' is listed in AI_PROVIDERS but ${keyEnvName} is not set. Add it to your .env file`,
+        `Provider '${name}' is listed in AI_PROVIDERS but ${keyEnvName} is not set. Add it to your .env file`,
       )
     }
 
-    providers.push({ name: providerName, apiKey })
+    providers.push({ name, apiKey })
   }
 
   return { providers }

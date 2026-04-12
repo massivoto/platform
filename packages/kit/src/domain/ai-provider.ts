@@ -71,9 +71,11 @@ export interface AiProvider {
 }
 
 /**
- * Supported AI provider names.
+ * AI provider name. Open string type for extensibility -- any provider name is valid.
+ * Known providers ('gemini', 'openai', 'anthropic') have convenience constants
+ * but unknown providers are not rejected.
  */
-export type AiProviderName = 'gemini' | 'openai' | 'anthropic'
+export type AiProviderName = string
 
 /**
  * Default provider for AI commands.
@@ -82,11 +84,20 @@ export const DEFAULT_AI_PROVIDER: AiProviderName = 'gemini'
 
 /**
  * Known AI provider names with their expected API key env var.
+ * Unknown providers derive their key from the <UPPER_NAME>_API_KEY convention.
  */
-export const AI_PROVIDER_KEY_NAMES: Record<AiProviderName, string> = {
+export const AI_PROVIDER_KEY_NAMES: Record<string, string> = {
   gemini: 'GEMINI_API_KEY',
   openai: 'OPENAI_API_KEY',
   anthropic: 'ANTHROPIC_API_KEY',
+}
+
+/**
+ * Derive the expected env var name for an arbitrary provider.
+ * Known providers use AI_PROVIDER_KEY_NAMES; unknown providers use <UPPER_NAME>_API_KEY.
+ */
+export function deriveApiKeyName(providerName: string): string {
+  return AI_PROVIDER_KEY_NAMES[providerName] ?? `${providerName.toUpperCase()}_API_KEY`
 }
 
 /**
@@ -94,7 +105,7 @@ export const AI_PROVIDER_KEY_NAMES: Record<AiProviderName, string> = {
  * Part of AiProviderConfig loaded at startup from env vars.
  */
 export interface AiProviderEntry {
-  name: AiProviderName
+  name: string
   apiKey: string
 }
 
@@ -111,29 +122,24 @@ export interface AiProviderConfig {
  * Result of resolving a provider from config.
  */
 export interface ResolvedProvider {
-  name: AiProviderName
+  name: string
   apiKey: string
 }
 
 /**
- * Pick the first provider from config that the handler accepts.
+ * Pick the first provider from config.
  * Order in config.providers reflects user priority (first = highest).
- * Throws if no compatible provider is found.
+ * Throws if config is empty.
  */
 export function resolveProvider(
   config: AiProviderConfig,
-  acceptedProviders: AiProviderName[],
 ): ResolvedProvider {
-  const acceptedSet = new Set<string>(acceptedProviders)
-
-  for (const entry of config.providers) {
-    if (acceptedSet.has(entry.name)) {
-      return { name: entry.name, apiKey: entry.apiKey }
-    }
+  if (config.providers.length === 0) {
+    throw new Error(
+      'No AI provider configured. Set AI_PROVIDERS and the corresponding API key env vars.',
+    )
   }
 
-  const available = config.providers.map((p) => p.name)
-  throw new Error(
-    `No compatible provider for this command. Command accepts: [${acceptedProviders.join(', ')}]. Available providers: [${available.join(', ')}]`,
-  )
+  const entry = config.providers[0]
+  return { name: entry.name, apiKey: entry.apiKey }
 }

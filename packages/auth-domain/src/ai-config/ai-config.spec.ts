@@ -64,7 +64,7 @@ describe('loadAiConfig', () => {
     })
   })
 
-  describe('R-AIC-02: validate provider names', () => {
+  describe('R-AIC-02: provider names', () => {
     it('should accept known providers: gemini, openai, anthropic', () => {
       const env = {
         AI_PROVIDERS: 'gemini,openai,anthropic',
@@ -78,11 +78,26 @@ describe('loadAiConfig', () => {
       expect(config.providers).toHaveLength(3)
     })
 
-    it('should fail fast on unknown provider', () => {
+    it('should accept unknown providers with the <UPPER_NAME>_API_KEY convention', () => {
+      const env = {
+        AI_PROVIDERS: 'gemini,mistral',
+        GEMINI_API_KEY: 'gkey',
+        MISTRAL_API_KEY: 'mkey',
+      }
+
+      const config = loadAiConfig(env)
+
+      expect(config.providers).toEqual([
+        { name: 'gemini', apiKey: 'gkey' },
+        { name: 'mistral', apiKey: 'mkey' },
+      ])
+    })
+
+    it('should fail when unknown provider has no API key', () => {
       const env = { AI_PROVIDERS: 'gemini,mistral', GEMINI_API_KEY: 'k' }
 
       expect(() => loadAiConfig(env)).toThrow(
-        "Unknown provider 'mistral' in AI_PROVIDERS. Valid options: gemini, openai, anthropic",
+        "Provider 'mistral' is listed in AI_PROVIDERS but MISTRAL_API_KEY is not set",
       )
     })
   })

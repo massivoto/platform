@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { resolveHandlerProvider } from './resolve-handler-provider.js'
-import type { AiProviderConfig, HandlerConfig, AiProviderName } from '@massivoto/kit'
-
-const ACCEPTED: AiProviderName[] = ['gemini', 'openai', 'anthropic']
+import type { AiProviderConfig, HandlerConfig } from '@massivoto/kit'
 
 const ENV_ALL_KEYS = {
   GEMINI_API_KEY: 'gemini-key',
@@ -30,7 +28,7 @@ describe('resolveHandlerProvider', () => {
     }
 
     const result = resolveHandlerProvider(
-      '@ai/text', 'text', handlerConfig, AI_CONFIG, ACCEPTED, ENV_ALL_KEYS,
+      '@ai/text', 'text', handlerConfig, AI_CONFIG, ENV_ALL_KEYS,
     )
 
     expect(result.name).toBe('anthropic')
@@ -47,7 +45,7 @@ describe('resolveHandlerProvider', () => {
     }
 
     const result = resolveHandlerProvider(
-      '@ai/text', 'text', handlerConfig, AI_CONFIG, ACCEPTED, ENV_ALL_KEYS,
+      '@ai/text', 'text', handlerConfig, AI_CONFIG, ENV_ALL_KEYS,
     )
 
     expect(result.name).toBe('openai')
@@ -58,7 +56,7 @@ describe('resolveHandlerProvider', () => {
   // R-HC-44: L1 AI_PROVIDERS fallback
   it('should fall back to AI_PROVIDERS when no config', () => {
     const result = resolveHandlerProvider(
-      '@ai/text', 'text', undefined, AI_CONFIG, ACCEPTED, ENV_ALL_KEYS,
+      '@ai/text', 'text', undefined, AI_CONFIG, ENV_ALL_KEYS,
     )
 
     expect(result.name).toBe('gemini') // first in AI_CONFIG
@@ -68,7 +66,7 @@ describe('resolveHandlerProvider', () => {
   // R-HC-45: L0 default provider
   it('should fall back to default provider when no AI_PROVIDERS', () => {
     const result = resolveHandlerProvider(
-      '@ai/text', 'text', undefined, undefined, ACCEPTED,
+      '@ai/text', 'text', undefined, undefined,
       { GEMINI_API_KEY: 'test-key' },
     )
 
@@ -78,7 +76,7 @@ describe('resolveHandlerProvider', () => {
 
   it('should throw when no provider available at all', () => {
     expect(() =>
-      resolveHandlerProvider('@ai/text', 'text', undefined, undefined, ACCEPTED, {}),
+      resolveHandlerProvider('@ai/text', 'text', undefined, undefined, {}),
     ).toThrow('No AI provider available')
   })
 
@@ -90,7 +88,7 @@ describe('resolveHandlerProvider', () => {
     }
 
     const result = resolveHandlerProvider(
-      '@ai/text', 'text', handlerConfig, undefined, ACCEPTED,
+      '@ai/text', 'text', handlerConfig, undefined,
       { GEMINI_API_KEY: 'gemini-key' }, // no openai key
     )
 
@@ -108,7 +106,7 @@ describe('resolveHandlerProvider', () => {
     }
 
     const result = resolveHandlerProvider(
-      '@ai/text', 'text', handlerConfig, undefined, ACCEPTED,
+      '@ai/text', 'text', handlerConfig, undefined,
       { GEMINI_API_KEY: 'gemini-key' }, // no anthropic key
     )
 
@@ -118,7 +116,7 @@ describe('resolveHandlerProvider', () => {
 
   it('should work with undefined capability', () => {
     const result = resolveHandlerProvider(
-      '@custom/handler', undefined, undefined, AI_CONFIG, ACCEPTED, ENV_ALL_KEYS,
+      '@custom/handler', undefined, undefined, AI_CONFIG, ENV_ALL_KEYS,
     )
 
     expect(result.name).toBe('gemini')
@@ -133,7 +131,7 @@ describe('resolveHandlerProvider', () => {
     }
 
     const result = resolveHandlerProvider(
-      '@ai/text', 'text', handlerConfig, AI_CONFIG, ACCEPTED, ENV_ALL_KEYS,
+      '@ai/text', 'text', handlerConfig, AI_CONFIG, ENV_ALL_KEYS,
     )
 
     expect(result.name).toBe('gemini') // falls through to L1

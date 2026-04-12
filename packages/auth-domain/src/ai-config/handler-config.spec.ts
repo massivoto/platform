@@ -118,7 +118,7 @@ describe('loadHandlerConfig', () => {
     expect(() => loadHandlerConfig(tempDir)).toThrow('must contain a JSON object')
   })
 
-  it('should throw on unknown provider', async () => {
+  it('should accept unknown provider names (normalized)', async () => {
     await fs.writeFile(
       path.join(tempDir, 'massivoto.config.json'),
       JSON.stringify({
@@ -126,7 +126,8 @@ describe('loadHandlerConfig', () => {
       }),
     )
 
-    expect(() => loadHandlerConfig(tempDir)).toThrow('not a known provider')
+    const config = loadHandlerConfig(tempDir)
+    expect(config?.ai?.text?.provider).toBe('huggingface')
   })
 
   it('should throw on missing provider field', async () => {

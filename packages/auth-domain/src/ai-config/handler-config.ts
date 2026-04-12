@@ -9,7 +9,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import type { HandlerConfig, CapabilityConfig, AiCapability } from '@massivoto/kit'
-import { AI_PROVIDER_KEY_NAMES } from '@massivoto/kit'
+import { deriveApiKeyName } from '@massivoto/kit'
 import { normalizeProviderName } from './normalize-provider.js'
 
 const CONFIG_FILENAME = 'massivoto.config.json'
@@ -112,13 +112,8 @@ function validateCapabilityConfig(
     throw new Error(`${configPath}: "${path}.provider" is required and must be a non-empty string`)
   }
 
+  // R-PAR-01: Accept any provider name -- normalize for casing/separators
   const normalizedProvider = normalizeProviderName(obj.provider)
-  if (!normalizedProvider) {
-    throw new Error(
-      `${configPath}: "${path}.provider" is "${obj.provider}" which is not a known provider. ` +
-      `Valid options: ${Object.keys(AI_PROVIDER_KEY_NAMES).join(', ')}`
-    )
-  }
 
   const config: CapabilityConfig = {
     provider: normalizedProvider,
@@ -135,14 +130,7 @@ function validateCapabilityConfig(
     if (typeof obj.fallback !== 'string') {
       throw new Error(`${configPath}: "${path}.fallback" must be a string`)
     }
-    const normalizedFallback = normalizeProviderName(obj.fallback)
-    if (!normalizedFallback) {
-      throw new Error(
-        `${configPath}: "${path}.fallback" is "${obj.fallback}" which is not a known provider. ` +
-        `Valid options: ${Object.keys(AI_PROVIDER_KEY_NAMES).join(', ')}`
-      )
-    }
-    config.fallback = normalizedFallback
+    config.fallback = normalizeProviderName(obj.fallback)
   }
 
   return config
@@ -163,17 +151,15 @@ export function validateHandlerConfig(
 ): void {
   if (!config.ai) return
 
-  const providerKeyNames = AI_PROVIDER_KEY_NAMES as Record<string, string>
-
   // Check capability configs
   for (const cap of KNOWN_CAPABILITIES) {
     const capConfig = config.ai[cap]
     if (!capConfig) continue
 
-    checkProviderKey(capConfig.provider, `ai.${cap}.provider`, env, providerKeyNames)
+    checkProviderKey(capConfig.provider, `ai.${cap}.provider`, env)
 
     if (capConfig.fallback) {
-      checkProviderKey(capConfig.fallback, `ai.${cap}.fallback`, env, providerKeyNames)
+      checkProviderKey(capConfig.fallback, `ai.${cap}.fallback`, env)
     }
   }
 
@@ -184,7 +170,6 @@ export function validateHandlerConfig(
         handlerConf.provider,
         `ai.handlers.${handlerId}.provider`,
         env,
-        providerKeyNames,
       )
 
       if (handlerConf.fallback) {
@@ -192,7 +177,6 @@ export function validateHandlerConfig(
           handlerConf.fallback,
           `ai.handlers.${handlerId}.fallback`,
           env,
-          providerKeyNames,
         )
       }
     }
@@ -203,11 +187,8 @@ function checkProviderKey(
   provider: string,
   configPath: string,
   env: Record<string, string | undefined>,
-  providerKeyNames: Record<string, string>,
 ): void {
-  const keyName = providerKeyNames[provider]
-  if (!keyName) return // unknown provider, already validated during load
-
+  const keyName = deriveApiKeyName(provider)
   const apiKey = env[keyName]
   if (!apiKey) {
     throw new Error(

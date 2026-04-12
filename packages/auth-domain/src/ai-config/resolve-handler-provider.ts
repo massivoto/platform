@@ -11,7 +11,7 @@
  * R-HC-40 to R-HC-45
  */
 import type { AiProviderName, AiProviderConfig, AiCapability, HandlerConfig } from '@massivoto/kit'
-import { DEFAULT_AI_PROVIDER, AI_PROVIDER_KEY_NAMES } from '@massivoto/kit'
+import { DEFAULT_AI_PROVIDER, deriveApiKeyName } from '@massivoto/kit'
 import { resolveProvider, type ResolvedProvider } from './resolve-provider.js'
 
 export interface HandlerProviderResult {
@@ -27,14 +27,13 @@ export interface HandlerProviderResult {
  * Resolution order:
  * 1. L2 handler-specific: handlerConfig.ai.handlers[handlerId]
  * 2. L2 capability: handlerConfig.ai[capability]
- * 3. L1: resolveProvider(aiConfig, acceptedProviders)
+ * 3. L1: resolveProvider(aiConfig) -- first configured provider
  * 4. L0: DEFAULT_AI_PROVIDER
  *
  * @param handlerId - Handler identifier (e.g., '@ai/text')
  * @param capability - Handler's declared capability (e.g., 'text')
  * @param handlerConfig - Optional handler config from massivoto.config.json
  * @param aiConfig - Optional AI provider config from .env
- * @param acceptedProviders - Providers this handler can use
  * @param env - Environment variables for API key lookup
  * @returns Resolved provider with name, API key, optional model, and source layer
  */
@@ -43,7 +42,6 @@ export function resolveHandlerProvider(
   capability: AiCapability | undefined,
   handlerConfig: HandlerConfig | undefined,
   aiConfig: AiProviderConfig | undefined,
-  acceptedProviders: AiProviderName[],
   env: Record<string, string | undefined>,
 ): HandlerProviderResult {
   // L2: handler-specific override
@@ -81,7 +79,7 @@ export function resolveHandlerProvider(
   // L1: AI_PROVIDERS resolution
   if (aiConfig && aiConfig.providers.length > 0) {
     try {
-      const resolved = resolveProvider(aiConfig, acceptedProviders)
+      const resolved = resolveProvider(aiConfig)
       return {
         name: resolved.name,
         apiKey: resolved.apiKey,
@@ -93,7 +91,7 @@ export function resolveHandlerProvider(
   }
 
   // L0: Hardcoded default
-  const defaultKeyName = (AI_PROVIDER_KEY_NAMES as Record<string, string>)[DEFAULT_AI_PROVIDER]
+  const defaultKeyName = deriveApiKeyName(DEFAULT_AI_PROVIDER)
   const defaultApiKey = env[defaultKeyName]
   if (defaultApiKey) {
     return {
@@ -114,12 +112,9 @@ function resolveFromConfig(
   model: string | undefined,
   env: Record<string, string | undefined>,
 ): Omit<HandlerProviderResult, 'source'> | undefined {
-  const providerName = provider as AiProviderName
-  const keyName = (AI_PROVIDER_KEY_NAMES as Record<string, string>)[providerName]
-  if (!keyName) return undefined
-
+  const keyName = deriveApiKeyName(provider)
   const apiKey = env[keyName]
   if (!apiKey) return undefined
 
-  return { name: providerName, apiKey, model }
+  return { name: provider, apiKey, model }
 }

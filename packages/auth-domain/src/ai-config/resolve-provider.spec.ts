@@ -5,9 +5,8 @@ import type { AiProviderConfig } from './ai-config.js'
 /**
  * Theme: Formula One Racing Workshop
  *
- * Marco has multiple AI providers configured. When he runs an @ai/text command,
- * the system intersects his provider priority (AI_PROVIDERS order) with what
- * the handler supports (acceptedProviders). The first match wins.
+ * Marco has multiple AI providers configured. resolveProvider picks the first
+ * provider from his priority list (AI_PROVIDERS order).
  */
 
 function makeConfig(...providers: Array<{ name: string; apiKey: string }>): AiProviderConfig {
@@ -20,80 +19,55 @@ function makeConfig(...providers: Array<{ name: string; apiKey: string }>): AiPr
 }
 
 describe('resolveProvider', () => {
-  describe('R-AIC-21: resolve first matching provider by user priority', () => {
-    it('should return the first provider from AI_PROVIDERS that the handler accepts', () => {
-      // AC-AIC-03: Marco has AI_PROVIDERS=openai,gemini. Handler accepts [gemini, openai].
-      // OpenAI is selected because it has higher user priority.
+  describe('returns first provider from config by user priority', () => {
+    it('should return the first provider from AI_PROVIDERS', () => {
       const config = makeConfig(
         { name: 'openai', apiKey: 'okey' },
         { name: 'gemini', apiKey: 'gkey' },
       )
 
-      const result = resolveProvider(config, ['gemini', 'openai'])
+      const result = resolveProvider(config)
 
       expect(result.name).toBe('openai')
       expect(result.apiKey).toBe('okey')
     })
 
-    it('should respect user order when handler supports all', () => {
+    it('should respect user order', () => {
       const config = makeConfig(
         { name: 'anthropic', apiKey: 'akey' },
         { name: 'gemini', apiKey: 'gkey' },
       )
 
-      const result = resolveProvider(config, ['gemini', 'openai', 'anthropic'])
+      const result = resolveProvider(config)
 
       expect(result.name).toBe('anthropic')
     })
 
-    it('should skip user providers not in handler accepted list', () => {
-      const config = makeConfig(
-        { name: 'anthropic', apiKey: 'akey' },
-        { name: 'gemini', apiKey: 'gkey' },
-      )
-
-      const result = resolveProvider(config, ['gemini'])
-
-      expect(result.name).toBe('gemini')
-      expect(result.apiKey).toBe('gkey')
-    })
-
-    it('should work with a single provider matching', () => {
+    it('should work with a single provider', () => {
       const config = makeConfig({ name: 'gemini', apiKey: 'marco-key' })
 
-      const result = resolveProvider(config, ['gemini'])
+      const result = resolveProvider(config)
 
       expect(result.name).toBe('gemini')
       expect(result.apiKey).toBe('marco-key')
     })
   })
 
-  describe('R-AIC-22: no compatible provider error', () => {
-    it('should throw when no provider matches', () => {
-      const config = makeConfig({ name: 'anthropic', apiKey: 'akey' })
+  describe('empty config error', () => {
+    it('should throw when no providers configured', () => {
+      const config: AiProviderConfig = { providers: [] }
 
-      expect(() => resolveProvider(config, ['gemini', 'openai'])).toThrow(
-        'No compatible provider for this command. Command accepts: [gemini, openai]. Available providers: [anthropic]',
-      )
-    })
-
-    it('should include all accepted and available in error message', () => {
-      const config = makeConfig(
-        { name: 'anthropic', apiKey: 'a' },
-        { name: 'openai', apiKey: 'o' },
-      )
-
-      expect(() => resolveProvider(config, ['gemini'])).toThrow(
-        'No compatible provider for this command. Command accepts: [gemini]. Available providers: [anthropic, openai]',
+      expect(() => resolveProvider(config)).toThrow(
+        'No AI provider configured',
       )
     })
   })
 
-  describe('R-AIC-23: return both name and API key', () => {
+  describe('return value shape', () => {
     it('should return an object with name and apiKey', () => {
       const config = makeConfig({ name: 'gemini', apiKey: 'secret-key-123' })
 
-      const result = resolveProvider(config, ['gemini'])
+      const result = resolveProvider(config)
 
       expect(result).toEqual({ name: 'gemini', apiKey: 'secret-key-123' })
     })

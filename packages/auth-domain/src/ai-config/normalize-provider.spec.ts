@@ -28,11 +28,12 @@ describe('normalizeProviderName', () => {
     expect(normalizeProviderName('ANTHROPIC')).toBe('anthropic')
   })
 
-  // R-HC-24: Unknown provider names
-  it('should return undefined for unknown providers', () => {
-    expect(normalizeProviderName('huggingface')).toBeUndefined()
-    expect(normalizeProviderName('cohere')).toBeUndefined()
-    expect(normalizeProviderName('')).toBeUndefined()
-    expect(normalizeProviderName('unknown')).toBeUndefined()
+  // R-HC-24: Unknown provider names -- return normalized form, not undefined
+  it('should return normalized form for unknown providers', () => {
+    expect(normalizeProviderName('huggingface')).toBe('huggingface')
+    expect(normalizeProviderName('cohere')).toBe('cohere')
+    expect(normalizeProviderName('')).toBe('')
+    expect(normalizeProviderName('Mistral')).toBe('mistral')
+    expect(normalizeProviderName('hugging_face')).toBe('huggingface')
   })
 })

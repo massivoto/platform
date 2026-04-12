@@ -3,7 +3,7 @@ import { SerializableStorePointer, StoreProvider } from '../store.js'
 import { AppletLauncher } from '../../applets/index.js'
 import { SerializableObject } from '../../network/index.js'
 import { ReadableDate } from '../../time/index.js'
-import type { AiProviderConfig } from '../ai-provider.js'
+import type { AiProvider, AiProviderConfig } from '../ai-provider.js'
 import type { HandlerConfig } from '../handler-config.js'
 
 /**
@@ -52,4 +52,7 @@ export interface ExecutionContext {
 
   // R-HC-13: Handler configuration loaded from massivoto.config.json
   handlerConfig?: HandlerConfig
+
+  // R-PAR-03: Resolved AI provider injected by interpreter before handler.run()
+  resolvedProvider?: AiProvider
 }
