@@ -114,6 +114,46 @@ describe('CLI Integration Tests', () => {
 
       expect(result.data.greeting).toBe('name')
     })
+
+    it('should pipe a bare string through length', async () => {
+      const filePath = await createTestFile(
+        'bare-pipe.oto',
+        '@utils/set input=hello|length output=result',
+      )
+
+      const runner = new FileRunner()
+      const result = await runner.runFile(filePath)
+
+      expect(result.data.result).toBe(5)
+    })
+
+    it('should pipe a variable through join', async () => {
+      const filePath = await createTestFile(
+        'braced-pipe.oto',
+        '@utils/set input={names|join} output=result',
+      )
+
+      const runner = new FileRunner()
+      const result = await runner.runFile(filePath, {
+        context: {
+          data: { names: ['Alice', 'Bob', 'Carlos'] },
+        },
+      })
+
+      expect(result.data.result).toBe('Alice,Bob,Carlos')
+    })
+
+    it('should use variable pipe in a two-step program', async () => {
+      const filePath = await createTestFile(
+        'two-step-pipe.oto',
+        '@utils/set input="Alice,Bob,Carlos" output=names\n@utils/set input={names|length} output=result',
+      )
+
+      const runner = new FileRunner()
+      const result = await runner.runFile(filePath)
+
+      expect(result.data.result).toBe(16) // length of string "Alice,Bob,Carlos"
+    })
   })
 
   describe('R-LOCAL-13: oto check <file>', () => {

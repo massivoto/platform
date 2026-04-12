@@ -29,6 +29,9 @@ import {
   CoreInterpreter,
   parseProgram,
   ProgramNode,
+  ExpressionEvaluator,
+  PipeRegistry,
+  CorePipesBundle,
 } from '@massivoto/interpreter'
 import type {
   CommandRegistry,
@@ -113,12 +116,16 @@ class LocalRunner implements Runner {
   }
 }
 
-export function runLocalProgram(
+export async function runLocalProgram(
   source: string,
   partialContext: Partial<ExecutionContext>,
   registry: CommandRegistry,
 ): Promise<ProgramResult> {
-  const coreInterpreter = new CoreInterpreter(registry)
+  const pipeRegistry = new PipeRegistry()
+  pipeRegistry.addBundle(new CorePipesBundle())
+  await pipeRegistry.reload()
+  const evaluator = new ExpressionEvaluator(pipeRegistry)
+  const coreInterpreter = new CoreInterpreter(registry, evaluator)
   const runner = createRunner(coreInterpreter)
   return runner.runSource(source, partialContext)
 }
