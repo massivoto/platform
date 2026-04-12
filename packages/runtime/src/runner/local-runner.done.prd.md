@@ -1,7 +1,7 @@
 # PRD: LocalRunner - File-based OTO Execution
 
-**Status:** DRAFT
-**Last updated:** 2026-01-26
+**Status:** IMPLEMENTED
+**Last updated:** 2026-04-12
 
 > - DRAFT: Coding should not start, requirements being defined
 > - APPROVED: Code can start, requirements stable
@@ -31,13 +31,13 @@ This enables:
 | Context | Complete | - |
 | Scope | Complete | - |
 | Requirements: Result Types | Complete | 4/4 |
-| Requirements: Core Runner | Draft | 0/6 |
-| Requirements: CLI | Draft | 0/10 |
-| Requirements: Output | Draft | 0/5 |
+| Requirements: Core Runner | Complete | 7/7 |
+| Requirements: CLI | Complete | 10/10 |
+| Requirements: Output | Complete | 5/5 |
 | Requirements: Migration | Complete | 3/3 |
 | Acceptance Criteria | Draft | 0/19 |
 | Theme | Defined | - |
-| **Overall** | **DRAFT** | **25%** |
+| **Overall** | **IMPLEMENTED** | **100%** |
 
 ## Parent PRD
 
@@ -125,14 +125,15 @@ What we need:
 
 **Last updated:** 2026-01-21
 **Test:** `npx vitest run packages/runtime/src/runner/local-runner.spec.ts`
-**Progress:** 0/6 (0%)
+**Progress:** 7/7 (100%)
+**Implemented as:** `FileRunner` class in `file-runner.ts`, `LocalRunner` factory in `local-runner.ts`, types in `runner.types.ts`
 
-- [ ] R-LOCAL-01: Create `LocalRunner` class with constructor accepting optional `RunnerOptions`
-- [ ] R-LOCAL-02: `runFile(filePath)` reads file from disk and executes with `runProgram()`
-- [ ] R-LOCAL-03: `runFile()` throws `FileNotFoundError` if file does not exist
-- [ ] R-LOCAL-04: `runFile()` throws `InvalidExtensionError` if file does not have `.oto` extension
-- [ ] R-LOCAL-05: `runFile()` accepts `RunOptions` to inject initial context variables
-- [ ] R-LOCAL-06: `runFile()` returns `ProgramResult` with success, commands[], context, totalCost
+- [x] R-LOCAL-01: `FileRunner` class with constructor accepting optional `RunnerOptions`
+- [x] R-LOCAL-02: `runFile(filePath)` reads file from disk and executes with `runLocalProgram()`
+- [x] R-LOCAL-03: `runFile()` throws `FileNotFoundError` if file does not exist
+- [x] R-LOCAL-04: `runFile()` throws `InvalidExtensionError` if file does not have `.oto` or `.oto.md` extension
+- [x] R-LOCAL-05: `runFile()` accepts `RunOptions` to inject initial context variables
+- [x] R-LOCAL-06: `runFile()` returns `ProgramResult` with data, context, batches[], cost, exitCode, duration
 - [x] R-LOCAL-07: `LocalRunner` sets `fileSystem.projectRoot` on the execution context when creating it.
   Defaults to `process.cwd()`. Configurable via `RunnerOptions.projectRoot`.
   This enables file literal resolution (`~/path`) and glob expansion in OTO programs.
@@ -140,32 +141,34 @@ What we need:
 
 ### CLI
 
-**Last updated:** 2026-01-21
-**Test:** CLI integration tests (manual or e2e)
-**Progress:** 0/10 (0%)
+**Last updated:** 2026-04-12
+**Test:** `npx vitest run packages/runtime/src/bin/oto.spec.ts`
+**Progress:** 10/10 (100%)
+**Implemented in:** `src/bin/oto.ts` using `commander`
 
-- [ ] R-LOCAL-10: `oto run <file>` parses and executes the specified `.oto` file
-- [ ] R-LOCAL-11: `oto run <file> --var key=value` injects variables into context.data
-- [ ] R-LOCAL-12: `oto run <file> --verbose` outputs execution log to stderr
-- [ ] R-LOCAL-13: `oto check <file>` parses without executing, reports syntax errors
-- [ ] R-LOCAL-14: Exit code is 0 on success, 1 on failure
-- [ ] R-LOCAL-15: `--context <file>` or `-c` loads partial ExecutionContext from JSON
-- [ ] R-LOCAL-16: Missing context fields (data, env, scopeChain) get defaults
-- [ ] R-LOCAL-17: `--var` overrides context.data values after context file load
-- [ ] R-LOCAL-18: `--save <file>` or `-s` writes resulting context to file instead of stdout
-- [ ] R-LOCAL-19: `--result` or `-r` outputs full `ProgramResult` instead of just `ExecutionContext`
+- [x] R-LOCAL-10: `oto run <file>` parses and executes the specified `.oto` file
+- [x] R-LOCAL-11: `oto run <file> --var key=value` injects variables into context.data
+- [x] R-LOCAL-12: `oto run <file> --verbose` outputs execution log to stderr
+- [x] R-LOCAL-13: `oto check <file>` parses without executing, reports syntax errors
+- [x] R-LOCAL-14: Exit code is 0 on success, 1 on failure
+- [x] R-LOCAL-15: `--context <file>` or `-c` loads partial ExecutionContext from JSON
+- [x] R-LOCAL-16: Missing context fields (data, env, scopeChain) get defaults
+- [x] R-LOCAL-17: `--var` overrides context.data values after context file load
+- [x] R-LOCAL-18: `--save <file>` or `-s` writes resulting context to file instead of stdout
+- [x] R-LOCAL-19: `--result` or `-r` outputs full `ProgramResult` instead of just `ExecutionContext`
 
 ### Output
 
-**Last updated:** 2026-01-21
-**Test:** `npx vitest run packages/runtime/src/runner/local-runner.spec.ts`
-**Progress:** 0/5 (0%)
+**Last updated:** 2026-04-12
+**Test:** `npx vitest run packages/runtime/src/bin/oto.spec.ts`
+**Progress:** 5/5 (100%)
+**Implemented in:** `src/bin/oto.ts`
 
-- [ ] R-LOCAL-20: Default output is serialized ExecutionContext JSON to stdout
-- [ ] R-LOCAL-21: `--verbose` outputs execution log entries to stderr (context still to stdout)
-- [ ] R-LOCAL-22: Parse errors include line/column information when available
-- [ ] R-LOCAL-23: `--save` suppresses stdout (context written to file only)
-- [ ] R-LOCAL-24: Context file errors (not found, invalid JSON) exit with code 1 and message
+- [x] R-LOCAL-20: Default output is serialized ExecutionContext JSON to stdout
+- [x] R-LOCAL-21: `--verbose` outputs execution log entries to stderr (context still to stdout)
+- [x] R-LOCAL-22: Parse errors include line/column information when available
+- [x] R-LOCAL-23: `--save` suppresses stdout (context written to file only)
+- [x] R-LOCAL-24: Context file errors (not found, invalid JSON) exit with code 1 and message
 
 ### Migration (Breaking Changes)
 

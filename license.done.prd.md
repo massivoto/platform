@@ -1,6 +1,6 @@
 # PRD: Massivoto Licensing Strategy
 
-**Status:** APPROVED
+**Status:** DONE
 **Last updated:** 2026-01-23
 
 > - DRAFT: Decision not yet made, options being evaluated
