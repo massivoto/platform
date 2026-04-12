@@ -48,7 +48,8 @@ export type {
   ImageAnalysisRequest,
   ImageAnalysisResult,
 } from './ai-provider.js'
-export { DEFAULT_AI_PROVIDER, AI_PROVIDER_KEY_NAMES } from './ai-provider.js'
+export { DEFAULT_AI_PROVIDER, AI_PROVIDER_KEY_NAMES, resolveProvider } from './ai-provider.js'
+export type { ResolvedProvider } from './ai-provider.js'
 
 export type {
   AiCapability,
