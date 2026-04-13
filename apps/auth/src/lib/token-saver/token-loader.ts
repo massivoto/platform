@@ -5,7 +5,7 @@
  */
 import { IntegrationStatus, IntegrationToken } from '../integration/integration.type.js'
 import { getIntegrationStatus } from '../integration/token-status.js'
-import { getSafeLocalStorage } from '../localstorage/safe-local-storage.js'
+import { getSafeLocalStorage } from '@massivoto/kit'
 import { ProviderKind } from '../providers/provider.types.js'
 
 type ProviderId = string

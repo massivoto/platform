@@ -4,6 +4,7 @@ export * from './time/index.js'
 export * from './registry/index.js'
 export * from './applets/index.js'
 export * from './domain/index.js'
+export * from './caching/index.js'
 
 import type { AppletLauncher as X } from './applets/types.js'
 

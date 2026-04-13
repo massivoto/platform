@@ -4,7 +4,7 @@
  * TODO AI: Remove this file and token-loader.ts once confirmed no longer needed.
  */
 import { IntegrationToken } from '../integration/integration.type.js'
-import { getSafeLocalStorage } from '../localstorage/safe-local-storage.js'
+import { getSafeLocalStorage } from '@massivoto/kit'
 import { LocalStorageTokenLoader, TokenLoaders } from './token-loader.js'
 
 export interface TokenSaver {
