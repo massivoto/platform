@@ -29,6 +29,7 @@ export interface TextResult {
  */
 export interface ImageRequest {
   prompt: string
+  model?: string
   size?: 'square' | 'landscape' | 'portrait'
   style?: 'photo' | 'illustration' | '3d'
 }
