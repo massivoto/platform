@@ -112,13 +112,50 @@ If you find yourself doing this often, prefer passing the components as separate
 
 ## Project root
 
-The project root is set by the runner. The default is `process.cwd()`. You can override:
+The project root is what `~/` resolves against. The runner picks it in two steps:
 
-```bash
-oto run script.oto --context context.json
+1. **Default** — `process.cwd()`. Run `oto run pipeline.oto` from `~/dev/scratch/` and `~/output.txt` lands at `~/dev/scratch/output.txt`. This is the legacy behaviour and stays unchanged when no workspace is configured.
+2. **Override via `_project`** — if you set the workspace project name (CLI flag, env var, or `.env`), the runner uses `<workspaceRoot>/<project>` as the project root instead.
+
+Example. Émilie consults for three clients and keeps a directory per client under `massivoto-platform/workspace/`:
+
+```
+massivoto-platform/
+└── workspace/
+    ├── acme-corp/
+    │   ├── brief.md
+    │   └── charte.pptx
+    ├── beta-industries/
+    │   └── brief.md
+    └── gamma-group/
+        └── brief.md
 ```
 
-…where `context.json` includes `fileSystem.projectRoot`. The evaluator uses this for both file literals and glob expansion.
+She points `_project` at the right client and runs the same `pipeline.oto` for each:
+
+```bash
+# Acme Corp deck
+MASSIVOTO_PROJECT=acme-corp oto run pipeline.oto
+
+# Switch on the fly to Beta Industries
+oto run pipeline.oto --project beta-industries
+```
+
+In both runs, `~/brief.md` resolves against the right client folder — no edits to the program. The runner logs the resolved path on stderr at boot:
+
+```
+[oto] workspace: project=acme-corp, root=/home/emilie/dev/massivoto-platform/workspace/acme-corp
+```
+
+When `_project` is unset, the legacy default is preserved and the runner logs:
+
+```
+[oto] workspace: no _project set, using cwd as projectRoot
+```
+
+See [workspace-and-project.md](./workspace-and-project.md) for the full set-up — `<workspaceRoot>` configuration, the three precedence sources of `_project`, reading `{_project}` from a program, and validation errors.
+
+You can also still pass an explicit `fileSystem.projectRoot` via `--context context.json`. That is overridden by `_project` when set, so the recommended path is the workspace mechanism above.
 
 If `fileSystem` is not set on the context (e.g. a SaaS runner with cloud-only storage), file literals throw an `EvaluationError`. The local CLI always sets one.
 

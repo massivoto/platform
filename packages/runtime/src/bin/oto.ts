@@ -174,6 +174,11 @@ program
   .option('-r, --result', 'Output full ProgramResult instead of just context')
   .option('--var <key=value...>', 'Set/override context.data variables')
   .option('--verbose', 'Show execution log on stderr')
+  // R-WORKSPACE-03: workspace project flag (highest-priority source for `_project`)
+  .option(
+    '-p, --project <name>',
+    'Workspace project name (overrides MASSIVOTO_PROJECT)',
+  )
   .action(
     async (
       file: string,
@@ -183,6 +188,7 @@ program
         result?: boolean
         var?: string[]
         verbose?: boolean
+        project?: string
       },
     ) => {
       try {
@@ -201,7 +207,11 @@ program
         }
 
         // Execute the file
-        const result = await runner.runFile(file, { context })
+        // R-WORKSPACE-03: forward --project to the runner.
+        const result = await runner.runFile(file, {
+          context,
+          project: options.project,
+        })
 
         // R-LOCAL-12, R-LOCAL-21: Verbose output to stderr
         if (options.verbose) {

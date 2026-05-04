@@ -45,6 +45,14 @@ export interface RunOptions {
 
   /** Override runner verbose setting for this run */
   verbose?: boolean
+
+  /**
+   * R-WORKSPACE-02: Workspace project name. Highest-priority source for
+   * `_project`. Typically wired from the CLI flag `--project` / `-p`. When
+   * omitted, the runner falls back to `process.env.MASSIVOTO_PROJECT`, then
+   * to legacy behaviour (no project, projectRoot = cwd).
+   */
+  project?: string
 }
 
 /**

@@ -42,6 +42,7 @@ import {
 } from '@massivoto/interpreter'
 import { runLocalProgram } from './local-runner.js'
 import { buildAiContext } from './build-ai-context.js'
+import { resolveWorkspaceConfig } from './workspace-config.js'
 
 /**
  * Valid file extensions for OTO programs.
@@ -150,6 +151,39 @@ export class FileRunner {
       // Other errors (e.g., file system issues) are logged but not fatal
       console.error(
         `[oto] Warning: AI config loading failed: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
+
+    // R-WORKSPACE-02, R-WORKSPACE-04, R-WORKSPACE-05: resolve and validate
+    // the workspace project configuration *before* parsing/executing.
+    // Throws WorkspaceConfigError on traversal, missing dir, or non-dir.
+    const workspace = resolveWorkspaceConfig({ project: runOptions.project })
+
+    // R-WORKSPACE-41 / R-WORKSPACE-43: derive the effective projectRoot.
+    //   - project set  → <workspaceRoot>/<project>
+    //   - project unset → process.cwd() (legacy behaviour preserved)
+    const effectiveProjectRoot = workspace.projectRoot ?? process.cwd()
+    context.fileSystem = { projectRoot: effectiveProjectRoot }
+
+    // R-WORKSPACE-21: inject `_project` at the root of the scope chain so
+    // OTO programs can read {_project} anywhere. Only inject when defined;
+    // a missing `_project` resolves to undefined, which is the documented
+    // contract for `if={_project}` guards.
+    if (workspace.project !== undefined) {
+      let rootScope = context.scopeChain
+      while (rootScope.parent) rootScope = rootScope.parent
+      rootScope.current['_project'] = workspace.project
+    }
+
+    // R-WORKSPACE-06: boot log. Goes to stderr to mirror the existing
+    // `[oto] ...` warning channel and avoid polluting stdout JSON.
+    if (workspace.project !== undefined) {
+      console.error(
+        `[oto] workspace: project=${workspace.project}, root=${effectiveProjectRoot}`,
+      )
+    } else {
+      console.error(
+        `[oto] workspace: no _project set, using cwd as projectRoot`,
       )
     }
 
