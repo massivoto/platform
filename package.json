@@ -9,6 +9,7 @@
     "build": "tsc --build",
     "build:kit": "yarn workspace @massivoto/kit build",
     "build:runtime": "yarn workspace @massivoto/runtime build",
+    "oto": "node packages/runtime/dist/bin/oto.js",
     "dev": "yarn workspaces foreach -A run dev",
     "test": "yarn workspaces foreach -A run test",
     "type-check": "tsc --noEmit"
